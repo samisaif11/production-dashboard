@@ -513,7 +513,6 @@ async function saveToSheet() {
 }
 
 async function loadFromSheet(manual = false) {
-  1
   if (manual) { $('syncBtn').classList.add('spinning'); showSync('loading', 'LOADING...'); }
   try {
     const res = await fetch(SHEET_API_URL, { method: 'GET', redirect: 'follow' });
