@@ -60,22 +60,25 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .sort-tgl{margin-left:auto;padding:4px 10px;border-radius:4px;font-size:.58rem;font-weight:700;color:var(--t3);background:var(--bg-2);border:1px solid var(--b0);cursor:pointer;text-transform:uppercase;letter-spacing:.8px;font-family:'Outfit';transition:var(--tr)}
 .sort-tgl:hover{border-color:var(--gold);color:var(--gold)}
 
-.tsk{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);margin-bottom:5px;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:grab;user-select:none;position:relative;overflow:hidden}
-@media(min-width:1200px){.tsk{padding:16px 20px;gap:14px;margin-bottom:6px}}
+.tsk{display:flex;align-items:flex-start;gap:14px;padding:18px 20px;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);margin-bottom:6px;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:grab;user-select:none;position:relative;overflow:hidden}
+@media(min-width:1200px){.tsk{padding:22px 26px;gap:16px;margin-bottom:8px}}
 .tsk:hover{border-color:var(--b1);background:var(--bg-3)}
 .tsk.struck .tsk-txt{text-decoration:line-through;text-decoration-color:var(--green);text-decoration-thickness:2.5px;opacity:.45}
 .tsk.struck .tc{border-color:var(--green);background:var(--green);color:#fff}
 .tsk.blk{border-left:3px solid var(--red);background:var(--red-d)}
-.tsk.dragging{opacity:.35;border:1px dashed var(--gold)}
-.tsk.drag-over{border-top:2px solid var(--gold)}
+.tsk .drag-h{display:flex;flex-direction:column;gap:2px;opacity:0;transition:var(--tr);cursor:grab;padding:2px 0;align-self:center;flex-shrink:0}
+.tsk:hover .drag-h{opacity:.4}.tsk .drag-h:hover{opacity:.8}
+.tsk .drag-h span{display:block;width:12px;height:2px;background:var(--t3);border-radius:1px}
+.tsk.dragging{opacity:.35;border:1px dashed var(--gold);transform:scale(.98)}
+.tsk.drag-over{border-top:2px solid var(--gold);margin-top:-2px}
 @keyframes shimmer{0%{left:-100%}100%{left:200%}}
 .tsk.shimmer::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(34,197,94,.15),transparent);animation:shimmer .6s ease-out;pointer-events:none}
-.tc{width:24px;height:24px;min-width:24px;border-radius:50%;border:2px solid var(--b2);cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;font-weight:800;margin-top:2px}
+.tc{width:26px;height:26px;min-width:26px;border-radius:50%;border:2px solid var(--b2);cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;font-size:14px;color:transparent;font-weight:800;margin-top:3px}
 .tc:hover{border-color:var(--green);background:rgba(34,197,94,.06)}
-.tp{width:4px;min-width:4px;height:32px;border-radius:2px;margin-top:2px}
+.tp{width:4px;min-width:4px;height:36px;border-radius:2px;margin-top:3px}
 .tp.p1{background:var(--red);box-shadow:0 0 8px rgba(239,68,68,.3)}.tp.p2{background:var(--orange)}.tp.p3{background:var(--gold)}.tp.p4{background:var(--blue)}.tp.p5{background:var(--t3)}
 .tb{flex:1;min-width:0}
-.tsk-txt{font-size:var(--tf);font-weight:600;text-transform:uppercase;letter-spacing:.3px;line-height:1.4;margin-bottom:6px}
+.tsk-txt{font-size:var(--tf);font-weight:500;text-transform:uppercase;letter-spacing:.3px;line-height:1.4;margin-bottom:6px}
 .tm{display:flex;gap:5px;flex-wrap:wrap;align-items:center;opacity:.5}
 .tag{font-size:var(--tg);padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
 .bbadge{display:inline-flex;align-items:center;gap:3px;font-size:var(--tg);padding:2px 8px;border-radius:4px;font-weight:700;background:var(--red-d);color:var(--red);text-transform:uppercase;cursor:pointer}
@@ -128,6 +131,22 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tgl-lb{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--t3)}
 .setnow-b{padding:6px 12px;border-radius:4px;background:var(--gold-d);color:var(--gold);border:1px solid rgba(212,175,55,.2);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;font-family:'Outfit';transition:var(--tr)}
 .setnow-b:hover{background:rgba(212,175,55,.2)}
+.cal-btn{padding:6px 10px;border-radius:4px;background:var(--bg-4);color:var(--t2);border:1px solid var(--b1);font-size:14px;cursor:pointer;font-family:'Outfit';transition:var(--tr);display:flex;align-items:center;justify-content:center}
+.cal-btn:hover{border-color:var(--gold);color:var(--gold)}
+.cal-wrap{position:relative;display:inline-block}
+.cal-pop{position:absolute;top:100%;right:0;z-index:200;background:var(--bg-3);border:1px solid var(--b1);border-radius:var(--rl);padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.6);display:none;min-width:260px;margin-top:4px}
+.cal-pop.open{display:block}
+.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.cal-hdr span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t1)}
+.cal-nav{background:none;border:1px solid var(--b1);border-radius:4px;color:var(--t2);cursor:pointer;font-size:12px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.cal-nav:hover{border-color:var(--gold);color:var(--gold)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;text-align:center}
+.cal-dow{font-size:.5rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--t3);padding:4px 0}
+.cal-day{font-family:'JetBrains Mono';font-size:.68rem;padding:6px 2px;border-radius:4px;cursor:pointer;transition:var(--tr);color:var(--t2);border:1px solid transparent}
+.cal-day:hover{background:var(--gold-d);color:var(--gold);border-color:rgba(212,175,55,.2)}
+.cal-day.today{color:var(--gold);font-weight:700;border-color:rgba(212,175,55,.3)}
+.cal-day.selected{background:var(--gold);color:var(--bg-0);font-weight:700}
+.cal-day.other{opacity:.25}
 
 .csec{margin-top:20px}
 .chdr{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
@@ -295,7 +314,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div><label class="fl">Priority</label><select class="fs" id="fPr"><option value="1">1 — URGENT</option><option value="2">2 — HIGH</option><option value="3" selected>3 — NORMAL</option><option value="4">4 — LOW</option><option value="5">5 — MINIMAL</option></select></div>
       </div>
       <div class="fr fr3">
-        <div><label class="fl">Due Date</label><div style="display:flex;gap:4px;align-items:center"><input type="date" class="fi" id="fDu" style="flex:1"><button type="button" class="setnow-b" id="fDuToday" style="white-space:nowrap;padding:8px 10px">TODAY</button></div></div>
+        <div><label class="fl">Due Date</label><div style="display:flex;gap:4px;align-items:center"><input type="date" class="fi" id="fDu" style="flex:1"><button type="button" class="setnow-b" id="fDuToday" style="white-space:nowrap;padding:8px 10px">TODAY</button><div class="cal-wrap"><button type="button" class="cal-btn" id="fDuCal">📅</button><div class="cal-pop" id="fDuCalPop"></div></div></div></div>
         <div class="sug-w"><label class="fl">Blocked By</label><input type="text" class="fi" id="fBl" placeholder="Leave empty" autocomplete="off"><div class="sug-l" id="sugBl"></div></div>
         <div><label class="fl">Notes</label><input type="text" class="fi" id="fNo" placeholder="Optional..."></div>
       </div>
@@ -355,7 +374,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <div class="mbg" id="eMdl"><div class="mdl"><h3>✎ Edit Task</h3>
   <div class="fg"><label class="fl">Task Name</label><input type="text" class="fi" id="eN"></div>
   <div class="fr fr4"><div class="fg"><label class="fl">Project</label><select class="fs" id="eP"></select></div><div class="fg sug-w"><label class="fl">Assignee</label><input type="text" class="fi" id="ePe" autocomplete="off"><div class="sug-l" id="sugEPe"></div></div><div class="fg sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="ePa" autocomplete="off"><div class="sug-l" id="sugEPa"></div></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="ePr"><option value="1">1-URGENT</option><option value="2">2-HIGH</option><option value="3">3-NORMAL</option><option value="4">4-LOW</option><option value="5">5-MINIMAL</option></select></div></div>
-  <div class="fr fr2"><div class="fg"><label class="fl">Due Date</label><input type="date" class="fi" id="eDu"></div><div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eNo"></div></div>
+  <div class="fr fr2"><div class="fg"><label class="fl">Due Date</label><div style="display:flex;gap:4px;align-items:center"><input type="date" class="fi" id="eDu" style="flex:1"><button type="button" class="setnow-b" id="eDuToday" style="white-space:nowrap;padding:8px 10px">TODAY</button><div class="cal-wrap"><button type="button" class="cal-btn" id="eDuCal">📅</button><div class="cal-pop" id="eDuCalPop"></div></div></div></div><div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eNo"></div></div>
   <div class="mdla"><button class="btn btn-r" id="eTDel" style="margin-right:auto">DELETE</button><button class="btn btn-gh" id="eTC">CANCEL</button><button class="btn btn-g" id="eTS">SAVE</button></div></div></div>
 
 <!-- Edit Deadline Modal -->
@@ -522,9 +541,8 @@ function renderT(){
   cl.querySelectorAll('.tc').forEach(x=>x.onclick=()=>tglD(+x.dataset.id));
   el.querySelectorAll('.tbb').forEach(x=>x.onclick=()=>{const t=D.tasks.find(t=>t.id===+x.dataset.id);if(t.blocked){pH('unblock');t.blocked=false;t.blockedBy=null;toast('UNBLOCKED','gld');renderT()}else{bId=+x.dataset.id;$('blInp').value='';$('bMdl').classList.add('op');$('blInp').focus()}});
   el.querySelectorAll('.tedb').forEach(x=>x.onclick=()=>openET(+x.dataset.id));
-  el.querySelectorAll('.note-ic').forEach(x=>x.onclick=()=>openET(+x.dataset.id));
   // Drag
-  el.querySelectorAll('.tsk:not(.struck)').forEach(node=>{node.setAttribute('draggable','true');
+  el.querySelectorAll('.tsk').forEach(node=>{node.setAttribute('draggable','true');
     node.addEventListener('dragstart',e=>{dragId=+node.dataset.id;node.classList.add('dragging');e.dataTransfer.effectAllowed='move';skipSort=true;renderT()}); // Enable manual order mode
     node.addEventListener('dragend',()=>{node.classList.remove('dragging');dragId=null;skipSort=false;document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));renderT()}); // Disable and re-render
     node.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';node.classList.add('drag-over')});
@@ -540,8 +558,7 @@ function tkEl(t,isDT=false,isArch=false){
   if(t.due&&!t.done){if(days<0){dc='ov';dt=Math.abs(days)+'D OVERDUE'}else if(days===0){dc='tod';dt='TODAY'}else if(days===1){dc='tmr';dt='TOMORROW'}else dt=fD(t.due)}else if(t.due)dt=fD(t.due);
   const pc=gpc(t.project),prc=t.person?gc(PP,t.person):null,pac=t.partner?gc(PA,t.partner):null;
   const cls=['tsk',isDT?'struck':'',t.blocked?'blk':''].filter(Boolean).join(' ');
-  const ni=t.notes?`<span class="note-ic" data-id="${t.id}" title="${t.notes.replace(/"/g,'&quot;').substring(0,60)}">📝</span>`:'';
-  return`<div class="${cls}" data-id="${t.id}"><div class="tc" data-id="${t.id}">${t.done?'✓':''}</div><div class="tp p${t.priority}"></div><div class="tb"><div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.5;font-size:0.85em">${pc.code}</span> `:''}${t.name}</div><div class="tm">${t.person?tg(t.person,prc):''}${t.partner&&pac?tg(t.partner,pac):''}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}${ni}</div></div><div class="tr">${t.due?`<div class="td ${dc}">${dt}</div>`:''}<div class="tact">${!isArch?`<button class="tedb" data-id="${t.id}">✎</button><button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div></div></div>`
+  return`<div class="${cls}" data-id="${t.id}">${!isArch?'<div class="drag-h"><span></span><span></span><span></span></div>':''}<div class="tc" data-id="${t.id}">${t.done?'✓':''}</div><div class="tp p${t.priority}"></div><div class="tb"><div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.5;font-size:0.85em">${pc.code}</span> `:''}${t.name}</div><div class="tm">${t.person?tg(t.person,prc):''}${t.partner&&pac?tg(t.partner,pac):''}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}</div></div><div class="tr">${t.due?`<div class="td ${dc}">${dt}</div>`:''}<div class="tact">${!isArch?`<button class="tedb" data-id="${t.id}">✎</button><button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div></div></div>`
 }
 
 function tglD(id){let t=D.tasks.find(x=>x.id===id);const fromCompleted=!t;if(!t){t=D.completed.find(x=>x.id===id);if(!t)return;pH('restore');t.done=false;t.doneDate=null;t.completedAt=null;D.completed=D.completed.filter(x=>x.id!==id);const mx=D.tasks.length?Math.max(...D.tasks.map(x=>x.order)):0;t.order=mx+1;D.tasks.push(t);D.monthly[D.monthly.length-1].c=Math.max(0,D.monthly[D.monthly.length-1].c-1);toast('RESTORED','gld');renderT();return}pH(t.done?'reopen':'complete');t.done=!t.done;t.doneDate=t.done?td():null;t.completedAt=t.done?nowI():null;
@@ -561,6 +578,35 @@ function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)retur
 // Task form
 $('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();$('fN').focus()}};
 $('fDuToday').onclick=()=>{$('fDu').value=td()};
+$('eDuToday').onclick=()=>{$('eDu').value=td()};
+
+// Mini calendar popup
+function initCal(btnId,popId,inputId){
+  const btn=$(btnId),pop=$(popId),inp=$(inputId);
+  let cY=new Date().getFullYear(),cM=new Date().getMonth();
+  function render(){
+    const todayS=td(),selV=inp.value;
+    const d1=new Date(cY,cM,1),dow=d1.getDay(),dim=new Date(cY,cM+1,0).getDate();
+    const prevDim=new Date(cY,cM,0).getDate();
+    const mn=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+    let h=`<div class="cal-hdr"><button class="cal-nav" data-d="-1">◀</button><span>${mn[cM]} ${cY}</span><button class="cal-nav" data-d="1">▶</button></div>`;
+    h+=`<div class="cal-grid">`;
+    ['MO','TU','WE','TH','FR','SA','SU'].forEach(d=>h+=`<div class="cal-dow">${d}</div>`);
+    const startDow=(dow+6)%7;
+    for(let i=startDow-1;i>=0;i--){const d=prevDim-i;h+=`<div class="cal-day other" data-v="${cY}-${String(cM).padStart(2,'0')}-${String(d).padStart(2,'0')}">${d}</div>`}
+    for(let d=1;d<=dim;d++){const v=`${cY}-${String(cM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const cls=['cal-day',v===todayS?'today':'',v===selV?'selected':''].filter(Boolean).join(' ');h+=`<div class="${cls}" data-v="${v}">${d}</div>`}
+    const total=startDow+dim,rem=(7-total%7)%7;
+    for(let d=1;d<=rem;d++){h+=`<div class="cal-day other">${d}</div>`}
+    h+=`</div>`;
+    pop.innerHTML=h;
+    pop.querySelectorAll('.cal-nav').forEach(n=>n.onclick=e=>{e.stopPropagation();cM+=+n.dataset.d;if(cM>11){cM=0;cY++}else if(cM<0){cM=11;cY--}render()});
+    pop.querySelectorAll('.cal-day:not(.other)').forEach(d=>d.onclick=e=>{e.stopPropagation();inp.value=d.dataset.v;pop.classList.remove('open')});
+  }
+  btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));if(!wasOpen){const v=inp.value;if(v){const p=new Date(v);cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open')}};
+  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
+}
+initCal('fDuCal','fDuCalPop','fDu');
+initCal('eDuCal','eDuCalPop','eDu');
 $('cTask').onclick=()=>$('tFrm').classList.remove('open');
 $('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mx=D.tasks.length?Math.max(...D.tasks.map(t=>t.order)):0;
   D.tasks.push({id:D.nid++,name:n,project:$('fP').value,person:$('fPe').value.trim().toUpperCase(),partner:$('fPa').value.trim().toUpperCase(),priority:+$('fPr').value,due:$('fDu').value||null,done:false,doneDate:null,blocked:!!bl,blockedBy:bl||null,order:mx+1,notes:$('fNo').value.trim(),createdAt:nowI(),completedAt:null});
