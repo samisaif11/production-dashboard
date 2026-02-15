@@ -6,22 +6,30 @@
 <title>ALI N' / FNM — Production Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg-0:#060608;--bg-1:#0c0c10;--bg-2:#121216;--bg-3:#18181e;--bg-4:#1f1f28;--bg-h:#24242e;--b0:#1e1e28;--b1:#2a2a36;--b2:#36364a;--t0:#f0eeea;--t1:#c0beb8;--t2:#8a8898;--t3:#5c5a6e;--gold:#d4af37;--gold-d:rgba(212,175,55,.12);--red:#ef4444;--red-d:rgba(239,68,68,.10);--green:#22c55e;--green-d:rgba(34,197,94,.10);--blue:#3b82f6;--blue-d:rgba(59,130,246,.10);--orange:#f59e0b;--orange-d:rgba(245,158,11,.10);--r:8px;--rl:12px;--tr:.2s cubic-bezier(.4,0,.2,1);}
-@media(min-width:1200px){:root{--tf:1.15rem;--hf:1.1rem;--sn:2.6rem;--sl:.7rem;--st:1rem;--cf:.72rem;--tg:.65rem;--df:.75rem;--ff:.85rem;}}
-@media(max-width:1199px){:root{--tf:.85rem;--hf:.85rem;--sn:1.8rem;--sl:.6rem;--st:.75rem;--cf:.62rem;--tg:.58rem;--df:.68rem;--ff:.78rem;}}
-*{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-height:100vh;-webkit-font-smoothing:antialiased;}
+:root{--bg-0:#060608;--bg-1:#0c0c10;--bg-2:#121216;--bg-3:#18181e;--bg-4:#1f1f28;--bg-h:#24242e;--b0:#1e1e28;--b1:#2a2a36;--b2:#36364a;--t0:#f0eeea;--t1:#c0beb8;--t2:#8a8898;--t3:#5c5a6e;--gold:#d4af37;--gold-d:rgba(212,175,55,.12);--red:#ef4444;--red-d:rgba(239,68,68,.10);--green:#22c55e;--green-d:rgba(34,197,94,.10);--blue:#3b82f6;--blue-d:rgba(59,130,246,.10);--orange:#f59e0b;--orange-d:rgba(245,158,11,.10);--purple:#a855f7;--purple-d:rgba(168,85,247,.10);--cyan:#06b6d4;--cyan-d:rgba(6,182,212,.10);--r:8px;--rl:12px;--tr:.2s cubic-bezier(.4,0,.2,1)}
+@media(min-width:1200px){:root{--tf:1.15rem;--hf:1.1rem;--sn:2.6rem;--sl:.7rem;--st:1rem;--cf:.72rem;--tg:.65rem;--df:.75rem;--ff:.85rem}}
+@media(max-width:1199px){:root{--tf:.85rem;--hf:.85rem;--sn:1.8rem;--sl:.6rem;--st:.75rem;--cf:.62rem;--tg:.58rem;--df:.68rem;--ff:.78rem}}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-height:100vh;-webkit-font-smoothing:antialiased;position:relative}
+body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.025'/%3E%3C/svg%3E");pointer-events:none;z-index:0}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--b1);border-radius:3px}
 
-.hdr{position:sticky;top:0;z-index:100;background:rgba(6,6,8,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--b0);padding:0 24px;height:62px;display:flex;align-items:center;justify-content:space-between}
+.hdr{position:sticky;top:0;z-index:100;background:rgba(6,6,8,.92);backdrop-filter:blur(24px);border-bottom:1px solid var(--b0);padding:0 24px;height:62px;display:flex;align-items:center;justify-content:space-between}
 @media(min-width:1200px){.hdr{height:72px;padding:0 32px}}
-.logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700;color:var(--gold);white-space:nowrap}
-@media(min-width:1200px){.logo{font-size:1.35rem}}
+.logo-wrap{display:flex;align-items:center;gap:14px;flex-shrink:0}
+/* LOGO: Replace with <img class="logo-img" src="https://raw.githubusercontent.com/samisaif11/production-dashboard/main/logo.png"> — Recommended: 240×80px white PNG */
+.logo-img{height:44px;width:auto;filter:brightness(0) invert(1);opacity:.88;transition:var(--tr)}
+.logo-img:hover{opacity:1;filter:brightness(0) invert(1) sepia(1) saturate(5) hue-rotate(15deg)}
+@media(min-width:1200px){.logo-img{height:52px}}
+.logo-text{font-family:'Playfair Display',serif;font-size:1.15rem;font-weight:700;color:var(--gold);white-space:nowrap;display:flex;align-items:center;gap:8px}
+@media(min-width:1200px){.logo-text{font-size:1.4rem}}
+.logo-div{width:1px;height:22px;background:var(--b2)}
 .logo-sub{color:var(--t3);font-family:'Outfit';font-weight:400;font-size:.72rem;margin-left:8px}
 @media(min-width:1200px){.logo-sub{font-size:.82rem}}
 .nav{display:flex;gap:3px}
-.nav-tab{padding:7px 16px;border-radius:6px;font-size:var(--hf);font-weight:700;color:var(--t3);cursor:pointer;transition:var(--tr);border:none;background:none;text-transform:uppercase;letter-spacing:1.2px;font-family:'Outfit'}
+.nav-tab{padding:7px 16px;border-radius:6px;font-size:var(--hf);font-weight:700;color:var(--t3);cursor:pointer;transition:var(--tr);border:none;background:none;text-transform:uppercase;letter-spacing:1.2px;font-family:'Outfit';position:relative}
 .nav-tab:hover{color:var(--t2)}.nav-tab.active{color:var(--gold);background:var(--gold-d)}
+.nav-tab.active::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:14px;height:2px;background:var(--gold);border-radius:1px}
 .hdr-r{display:flex;align-items:center;gap:12px;flex-shrink:0}
 .clk{font-family:'JetBrains Mono';font-size:1rem;font-weight:600;color:var(--gold)}
 @media(min-width:1200px){.clk{font-size:1.15rem}}
@@ -30,25 +38,29 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
 .gear{width:36px;height:36px;border-radius:6px;border:1px solid var(--b1);background:var(--bg-2);color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);font-size:16px}
 .gear:hover{border-color:var(--gold);color:var(--gold)}
 
-.main{max-width:1440px;margin:0 auto;padding:18px 24px}
+.main{max-width:1440px;margin:0 auto;padding:18px 24px;position:relative;z-index:1}
 @media(min-width:1200px){.main{padding:24px 32px}}
 .vw{display:none}.vw.active{display:block}
 
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
 @media(min-width:1200px){.stats{gap:16px;margin-bottom:22px}}
-.st{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:16px 20px}
+.st{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:16px 20px;position:relative;overflow:hidden}
 @media(min-width:1200px){.st{padding:20px 24px}}
+.st::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;opacity:.4}
+.st:nth-child(1)::after{background:var(--blue)}.st:nth-child(2)::after{background:var(--red)}.st:nth-child(3)::after{background:var(--green)}.st:nth-child(4)::after{background:var(--orange)}
 .st-n{font-family:'Playfair Display';font-size:var(--sn);font-weight:800;line-height:1}
 .st-l{font-size:var(--sl);font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-top:4px}
 
-.flts{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap}
+.flts{display:flex;gap:5px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
 .chip{padding:5px 13px;border-radius:20px;font-size:var(--cf);font-weight:700;border:1px solid var(--b1);background:transparent;color:var(--t3);cursor:pointer;transition:var(--tr);text-transform:uppercase;letter-spacing:.8px;font-family:'Outfit';white-space:nowrap}
 .chip:hover{border-color:var(--t3);color:var(--t2)}.chip.active{border-color:var(--gold);color:var(--gold);background:var(--gold-d)}
 .chip.tf.active{border-color:var(--orange);color:var(--orange);background:var(--orange-d)}
 .chip.bf.active{border-color:var(--red);color:var(--red);background:var(--red-d)}
 .chip-c{font-family:'JetBrains Mono';font-size:.6rem;margin-left:4px;opacity:.7}
+.sort-tgl{margin-left:auto;padding:4px 10px;border-radius:4px;font-size:.58rem;font-weight:700;color:var(--t3);background:var(--bg-2);border:1px solid var(--b0);cursor:pointer;text-transform:uppercase;letter-spacing:.8px;font-family:'Outfit';transition:var(--tr)}
+.sort-tgl:hover{border-color:var(--gold);color:var(--gold)}
 
-.tsk{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);margin-bottom:5px;transition:var(--tr);cursor:grab;user-select:none}
+.tsk{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);margin-bottom:5px;transition:all .3s cubic-bezier(.4,0,.2,1);cursor:grab;user-select:none;position:relative;overflow:hidden}
 @media(min-width:1200px){.tsk{padding:16px 20px;gap:14px;margin-bottom:6px}}
 .tsk:hover{border-color:var(--b1);background:var(--bg-3)}
 .tsk.struck .tsk-txt{text-decoration:line-through;text-decoration-color:var(--green);text-decoration-thickness:2.5px;opacity:.45}
@@ -56,20 +68,26 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
 .tsk.blk{border-left:3px solid var(--red);background:var(--red-d)}
 .tsk.dragging{opacity:.35;border:1px dashed var(--gold)}
 .tsk.drag-over{border-top:2px solid var(--gold)}
+@keyframes shimmer{0%{left:-100%}100%{left:200%}}
+.tsk.shimmer::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(34,197,94,.15),transparent);animation:shimmer .6s ease-out;pointer-events:none}
 .tc{width:24px;height:24px;min-width:24px;border-radius:50%;border:2px solid var(--b2);cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;font-weight:800;margin-top:2px}
-.tc:hover{border-color:var(--green)}
+.tc:hover{border-color:var(--green);background:rgba(34,197,94,.06)}
 .tp{width:4px;min-width:4px;height:32px;border-radius:2px;margin-top:2px}
 .tp.p1{background:var(--red);box-shadow:0 0 8px rgba(239,68,68,.3)}.tp.p2{background:var(--orange)}.tp.p3{background:var(--gold)}.tp.p4{background:var(--blue)}.tp.p5{background:var(--t3)}
 .tb{flex:1;min-width:0}
 .tsk-txt{font-size:var(--tf);font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.4;margin-bottom:6px}
-.tm{display:flex;gap:5px;flex-wrap:wrap;align-items:center;opacity:.7}
+.tm{display:flex;gap:5px;flex-wrap:wrap;align-items:center;opacity:.5}
 .tag{font-size:var(--tg);padding:2px 8px;border-radius:4px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;white-space:nowrap}
 .bbadge{display:inline-flex;align-items:center;gap:3px;font-size:var(--tg);padding:2px 8px;border-radius:4px;font-weight:700;background:var(--red-d);color:var(--red);text-transform:uppercase;cursor:pointer}
+.note-ic{font-size:13px;cursor:pointer;opacity:.6;transition:var(--tr);color:var(--t2);padding:0 3px}
+.note-ic:hover{opacity:1;color:var(--gold)}
 .tr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;min-width:80px}
 .td{font-family:'JetBrains Mono';font-size:var(--df);font-weight:600;color:var(--t3)}
 .td.ov{color:var(--red)}.td.tod{color:var(--gold)}.td.tmr{color:var(--orange)}
-.tbb{font-size:14px;cursor:pointer;background:none;border:none;color:var(--t3);transition:var(--tr);padding:2px;opacity:0}
-.tsk:hover .tbb{opacity:1}.tbb:hover{color:var(--red)}
+.tact{display:flex;gap:2px;align-items:center}
+.tbb,.tedb{font-size:13px;cursor:pointer;background:none;border:none;color:var(--t3);transition:var(--tr);padding:2px;opacity:0}
+.tsk:hover .tbb,.tsk:hover .tedb{opacity:1}
+.tbb:hover{color:var(--red)}.tedb:hover{color:var(--gold)}
 
 .ntbar{margin-bottom:10px}
 .nbtn{display:flex;align-items:center;gap:8px;padding:12px 18px;border:1px dashed var(--b1);border-radius:var(--r);background:transparent;color:var(--t3);font-size:var(--cf);font-weight:700;cursor:pointer;transition:var(--tr);width:100%;font-family:'Outfit';text-transform:uppercase;letter-spacing:1px}
@@ -86,7 +104,30 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
 .btn{padding:10px 22px;border-radius:6px;font-family:'Outfit';font-size:var(--cf);font-weight:700;cursor:pointer;transition:var(--tr);text-transform:uppercase;letter-spacing:1px;border:none}
 .btn-g{background:var(--gold);color:var(--bg-0)}.btn-g:hover{filter:brightness(1.1)}
 .btn-gh{background:transparent;color:var(--t3);border:1px solid var(--b1)}.btn-gh:hover{border-color:var(--t3)}
-.btn-r{background:var(--red);color:#fff}
+.btn-r{background:var(--red);color:#fff}.btn-r:hover{filter:brightness(1.1)}
+
+/* Auto-suggest */
+.sug-w{position:relative}
+.sug-l{position:absolute;top:100%;left:0;right:0;background:var(--bg-4);border:1px solid var(--b1);border-radius:6px;max-height:150px;overflow-y:auto;z-index:50;display:none;margin-top:2px;box-shadow:0 8px 20px rgba(0,0,0,.5)}
+.sug-l.open{display:block}
+.sug-i{padding:7px 12px;cursor:pointer;font-size:.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;display:flex;align-items:center;gap:8px;transition:var(--tr)}
+.sug-i:hover{background:var(--gold-d)}
+.sug-d{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Live Preview */
+.lprev{display:inline-flex;align-items:center;padding:3px 10px;border-radius:4px;font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;transition:var(--tr);margin-left:8px}
+
+/* Toggle */
+.tgl-row{display:flex;align-items:center;gap:10px}
+.tgl-sw{position:relative;width:34px;height:18px;cursor:pointer;flex-shrink:0}
+.tgl-sw input{opacity:0;width:0;height:0}
+.tgl-sl{position:absolute;inset:0;background:var(--b1);border-radius:9px;transition:var(--tr)}
+.tgl-sl::before{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:var(--t2);bottom:2px;left:2px;transition:var(--tr)}
+.tgl-sw input:checked+.tgl-sl{background:var(--gold)}
+.tgl-sw input:checked+.tgl-sl::before{transform:translateX(16px);background:var(--bg-0)}
+.tgl-lb{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--t3)}
+.setnow-b{padding:6px 12px;border-radius:4px;background:var(--gold-d);color:var(--gold);border:1px solid rgba(212,175,55,.2);font-size:.58rem;font-weight:700;text-transform:uppercase;letter-spacing:.8px;cursor:pointer;font-family:'Outfit';transition:var(--tr)}
+.setnow-b:hover{background:rgba(212,175,55,.2)}
 
 .csec{margin-top:20px}
 .chdr{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
@@ -98,88 +139,125 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
 .clist{display:none}.clist.op{display:block}
 .clist .tsk{opacity:.3;border-color:transparent;cursor:default}.clist .tsk-txt{text-decoration:line-through;text-decoration-color:var(--green)}
 
-.dlg{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px}
-@media(min-width:1200px){.dlg{grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px}}
-.dlc{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:20px;display:flex;flex-direction:column;gap:10px;position:relative;overflow:hidden}
-.dlc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.dlc.urg::before{background:var(--red)}.dlc.soon::before{background:var(--orange)}.dlc.ok::before{background:var(--green)}
-.dlt{font-size:var(--tf);font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.35}
-.dldb{font-family:'JetBrains Mono';font-size:.7rem;color:var(--t3);background:var(--bg-1);padding:4px 10px;border-radius:4px;border:1px solid var(--b0);flex-shrink:0;white-space:nowrap}
-.dltm{font-family:'JetBrains Mono';font-size:1.3rem;font-weight:700;letter-spacing:1px;line-height:1}
-@media(min-width:1200px){.dltm{font-size:1.6rem}}
-.dltm.urg{color:var(--red)}.dltm.soon{color:var(--orange)}.dltm.ok{color:var(--green)}.dltm.past{color:var(--t3);opacity:.4}
-.dltp{display:flex;justify-content:space-between;align-items:flex-start}
+/* Deadlines: full-width stacked cards */
+.dl-stack{display:flex;flex-direction:column;gap:10px}
+.dlc{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:24px 28px;display:flex;align-items:center;gap:24px;position:relative;overflow:hidden;transition:var(--tr)}
+@media(max-width:768px){.dlc{flex-direction:column;padding:16px;gap:12px;align-items:flex-start}}
+.dlc::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px}
+.dlc.urg::before{background:var(--red)}.dlc.soon::before{background:var(--orange)}.dlc.ok::before{background:var(--green)}.dlc.past::before{background:var(--t3)}
+.dlc:hover{border-color:var(--b1)}
+.dl-tc{text-align:center;min-width:170px;flex-shrink:0}
+.dltm{font-family:'JetBrains Mono';font-size:2rem;font-weight:700;letter-spacing:1px;line-height:1}
+@media(min-width:1200px){.dltm{font-size:2.5rem}}
+.dltm.urg{color:var(--red)}.dltm.soon{color:var(--orange)}.dltm.ok{color:var(--green)}.dltm.past{color:var(--t3);opacity:.5}
+.dltm-sub{font-family:'JetBrains Mono';font-size:.6rem;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+.dl-info{flex:1;min-width:0}
+.dlt{font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.35;margin-bottom:6px}
+@media(min-width:1200px){.dlt{font-size:1.2rem}}
+.dldb{font-family:'JetBrains Mono';font-size:.68rem;color:var(--t3);background:var(--bg-1);padding:4px 10px;border-radius:4px;border:1px solid var(--b0);display:inline-block;margin-bottom:6px}
 .dltags{display:flex;gap:5px;flex-wrap:wrap;opacity:.7}
+.dl-acts{display:flex;gap:6px;flex-shrink:0;align-items:center}
+.dl-eb,.dl-db{width:28px;height:28px;border-radius:6px;border:1px solid var(--b0);background:transparent;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:var(--tr);opacity:0}
+.dlc:hover .dl-eb,.dlc:hover .dl-db{opacity:1}
+.dl-eb:hover{border-color:var(--gold);color:var(--gold)}
+.dl-db:hover{border-color:var(--red);color:var(--red)}
 .dlnb{margin-bottom:16px}
 
+/* Projects */
 .psec{margin-bottom:16px}
 .psh{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:10px 0}
 .psh h3{font-size:var(--st);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t2)}
 .psh .ch{font-size:.6rem;color:var(--t3);transition:var(--tr)}.psh .ch.op{transform:rotate(90deg)}
 .psb{display:none}.psb.op{display:block}
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:8px}
-.pc{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);position:relative;overflow:hidden;transition:var(--tr)}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px}
+@media(max-width:768px){.pgrid{grid-template-columns:1fr}}
+.pc{display:flex;align-items:stretch;gap:0;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);position:relative;overflow:hidden;transition:var(--tr)}
 .pc:hover{border-color:var(--b1)}
 .pc.arch{opacity:.45}
-.pi{flex:1}.pn{font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
+.poster-w{width:90px;min-width:90px;height:135px;background:var(--bg-4);border-right:1px solid var(--b0);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+@media(min-width:1200px){.poster-w{width:100px;min-width:100px;height:150px}}
+.poster-w img{width:100%;height:100%;object-fit:cover}
+.poster-ph{font-family:'Playfair Display';font-size:.65rem;color:var(--t3);text-align:center;padding:6px;text-transform:uppercase;letter-spacing:1px;line-height:1.3}
+.pi{flex:1;padding:14px 16px 14px 14px;display:flex;flex-direction:column;justify-content:center}
+.pn{font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px}
 @media(min-width:1200px){.pn{font-size:1rem}}
-.pd{font-size:.7rem;color:var(--t3);margin-top:2px}
-.pbs{display:flex;gap:5px;flex-shrink:0;align-items:center}
+.pd{font-size:.7rem;color:var(--t3);margin-top:4px;line-height:1.4}
+.pbs{display:flex;gap:5px;flex-shrink:0;align-items:center;margin-top:6px;flex-wrap:wrap}
 .sb{font-size:.55rem;padding:3px 9px;border-radius:20px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
 @media(min-width:1200px){.sb{font-size:.62rem}}
-.sb.idea{background:#55556a18;color:var(--t3)}.sb.dev{background:rgba(168,85,247,.1);color:#a855f7}.sb.funding{background:rgba(249,115,22,.1);color:#f97316}.sb.post{background:rgba(6,182,212,.1);color:#06b6d4}.sb.delivery{background:var(--green-d);color:var(--green)}.sb.closed{background:#55556a10;color:var(--t3)}
-.pmove{font-size:11px;cursor:pointer;background:none;border:none;color:var(--t3);opacity:0;transition:var(--tr);padding:4px}
-.pc:hover .pmove{opacity:1}.pmove:hover{color:var(--gold)}
+.sb.idea{background:#55556a18;color:var(--t3)}.sb.dev{background:rgba(168,85,247,.1);color:#a855f7}.sb.funding{background:rgba(249,115,22,.1);color:#f97316}.sb.pre-production{background:var(--cyan-d);color:var(--cyan)}.sb.shooting{background:var(--red-d);color:var(--red)}.sb.post{background:rgba(6,182,212,.1);color:#06b6d4}.sb.distribution{background:var(--blue-d);color:var(--blue)}.sb.delivery{background:var(--green-d);color:var(--green)}.sb.closed{background:#55556a10;color:var(--t3)}
+.pstdd{font-size:.52rem;padding:2px 6px;border-radius:3px;background:transparent;border:1px solid transparent;color:var(--t3);cursor:pointer;font-family:'Outfit';font-weight:500;text-transform:uppercase;letter-spacing:.4px;opacity:0.5;transition:var(--tr)}
+.pc:hover .pstdd{opacity:0.7;background:var(--bg-1);border-color:var(--b0)}
+.pmove{font-size:10px;cursor:pointer;background:none;border:none;color:var(--t3);opacity:0;transition:var(--tr);padding:3px}
+.pc:hover .pmove{opacity:0.4}.pmove:hover{opacity:1;color:var(--t2)}
 
-.trow{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
-@media(max-width:800px){.trow{grid-template-columns:1fr}}
-.cbox{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:20px}
-.ctitle{font-size:var(--st);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);margin-bottom:14px}
-.carea{height:260px;position:relative}
-@media(min-width:1200px){.carea{height:300px}}
-.tcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+/* Trend Heatmaps */
+.trnd-t{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;text-align:center}
+.trnd-sub{font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);text-align:center;margin-bottom:16px}
+.hm-panel{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:22px;margin-bottom:14px}
+.hm-row{display:flex;gap:3px;align-items:center;margin-bottom:3px}
+.hm-lb{font-size:.5rem;font-weight:600;color:var(--t3);width:28px;text-align:right;margin-right:4px;text-transform:uppercase;font-family:'JetBrains Mono'}
+.hm-cell{width:28px;height:28px;border-radius:3px;background:var(--bg-4);position:relative;transition:var(--tr);cursor:default}
+@media(min-width:1200px){.hm-cell{width:32px;height:32px}}
+.hm-cell:hover{transform:scale(1.15);z-index:2}
+.hm-cell[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:calc(100%+4px);left:50%;transform:translateX(-50%);background:var(--bg-4);border:1px solid var(--b1);padding:3px 8px;border-radius:4px;font-size:.55rem;font-family:'JetBrains Mono';color:var(--t0);white-space:nowrap;z-index:10;pointer-events:none}
+.hm-cols{display:flex;gap:3px;margin-left:32px;margin-bottom:3px}
+.hm-col{font-size:.45rem;font-weight:600;color:var(--t3);text-align:center;font-family:'JetBrains Mono';width:28px}
+@media(min-width:1200px){.hm-col{width:32px}}
+.hm-leg{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:10px}
+.hm-leg span{font-size:.52rem;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.hm-leg-c{width:12px;height:12px;border-radius:2px;display:inline-block}
+.tcards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:16px}
 @media(max-width:600px){.tcards{grid-template-columns:1fr}}
 .tcrd{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:18px}
 .tcn{font-family:'Playfair Display';font-size:2rem;font-weight:800}
 .tcl{font-size:.6rem;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);margin-top:2px}
 .tcs{font-size:.7rem;color:var(--t2);margin-top:2px}
 
+/* Settings */
 .sov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:200;display:none}.sov.op{display:block}
-.sdr{position:fixed;top:0;right:-500px;width:500px;height:100vh;background:var(--bg-1);border-left:1px solid var(--b1);z-index:201;transition:right .35s cubic-bezier(.4,0,.2,1);overflow-y:auto}.sdr.op{right:0}
+.sdr{position:fixed;top:0;right:-520px;width:520px;height:100vh;background:var(--bg-1);border-left:1px solid var(--b1);z-index:201;transition:right .35s cubic-bezier(.4,0,.2,1);overflow-y:auto}.sdr.op{right:0}
 .shdr{padding:20px 22px;border-bottom:1px solid var(--b0);display:flex;align-items:center;justify-content:space-between}
 .stitle{font-family:'Playfair Display';font-size:1.1rem;font-weight:700}
 .scl{width:30px;height:30px;border-radius:6px;border:1px solid var(--b1);background:transparent;color:var(--t2);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center}.scl:hover{border-color:var(--red);color:var(--red)}
 .sbdy{padding:20px 22px}
 .ssec{margin-bottom:24px}
-.sst{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:10px}
+.sst{font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--t3);margin-bottom:10px;display:flex;align-items:center;gap:8px}
 .prow{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg-2);border:1px solid var(--b0);border-radius:6px;margin-bottom:4px;flex-wrap:wrap}
 .pcode{font-family:'JetBrains Mono';font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:4px;min-width:40px;text-align:center}
 .pnm{font-size:.78rem;font-weight:500;flex:1;min-width:60px}.prl{font-size:.62rem;color:var(--t3)}
-.pdel{width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}.pdel:hover{color:var(--red)}
+.pdel,.pedit{width:20px;height:20px;border-radius:4px;border:none;background:transparent;color:var(--t3);cursor:pointer;font-size:11px;display:flex;align-items:center;justify-content:center;transition:var(--tr)}.pdel:hover{color:var(--red)}.pedit:hover{color:var(--gold)}
 .arow{display:grid;gap:5px;margin-top:8px}.arow .fi{padding:6px 8px;font-size:.7rem}
 .arow4{grid-template-columns:60px 1fr 1fr 32px}
 .arow5{grid-template-columns:60px 1fr 36px 36px 32px}
 .aproj{grid-template-columns:1fr 60px 36px 36px 32px}
-.abtn{background:var(--gold);color:var(--bg-0);border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer}
+.abtn{background:var(--gold);color:var(--bg-0);border:none;border-radius:6px;font-size:16px;font-weight:700;cursor:pointer;transition:var(--tr)}
+.abtn:hover{filter:brightness(1.1)}
 .clr-i{width:36px;height:28px;border:1px solid var(--b1);border-radius:4px;background:var(--bg-1);cursor:pointer;padding:0}
 .clr-i::-webkit-color-swatch-wrapper{padding:2px}.clr-i::-webkit-color-swatch{border:none;border-radius:2px}
 
-.mbg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:250;display:none;align-items:center;justify-content:center}.mbg.op{display:flex}
-.mdl{background:var(--bg-4);border:1px solid var(--b1);border-radius:var(--rl);padding:24px;width:380px;max-width:90vw}
+/* Modals */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:250;display:none;align-items:center;justify-content:center;backdrop-filter:blur(3px)}.mbg.op{display:flex}
+.mdl{background:var(--bg-4);border:1px solid var(--b1);border-radius:var(--rl);padding:24px;width:480px;max-width:92vw;max-height:90vh;overflow-y:auto;animation:mdIn .2s ease}
+@keyframes mdIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
 .mdl h3{font-size:.9rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px}
 .mdl .fg{margin-bottom:12px}
 .mdla{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
 
-.toast{position:fixed;bottom:20px;right:20px;padding:10px 20px;border-radius:8px;font-size:.75rem;font-weight:700;z-index:300;opacity:0;transform:translateY(8px);transition:all .3s ease;pointer-events:none;text-transform:uppercase;letter-spacing:.8px}
-.toast.show{opacity:1;transform:translateY(0)}.toast.grn{background:var(--green);color:#fff}.toast.rd{background:var(--red);color:#fff}.toast.gld{background:var(--gold);color:var(--bg-0)}
+.toast{position:fixed;bottom:20px;right:20px;padding:10px 20px;border-radius:8px;font-size:.72rem;font-weight:700;z-index:300;opacity:0;transform:translateY(8px);transition:all .3s ease;pointer-events:none;text-transform:uppercase;letter-spacing:.8px}
+.toast.show{opacity:1;transform:translateY(0)}.toast.grn{background:var(--green);color:#fff}.toast.rd{background:var(--red);color:#fff}.toast.gld{background:var(--gold);color:var(--bg-0)}.toast.und{background:var(--bg-4);color:var(--t0);border:1px solid var(--b1)}
 
-@media(max-width:768px){.hdr{padding:0 12px;height:52px}.main{padding:12px}.stats{grid-template-columns:repeat(2,1fr);gap:8px}.sdr{width:100%;right:-100%}.fr4,.fr3{grid-template-columns:1fr 1fr}.trow{grid-template-columns:1fr}.tcards,.pgrid,.dlg{grid-template-columns:1fr}.logo-sub{display:none}}
+@media(max-width:768px){.hdr{padding:0 12px;height:52px}.main{padding:12px}.stats{grid-template-columns:repeat(2,1fr);gap:8px}.sdr{width:100%;right:-100%}.fr4,.fr3{grid-template-columns:1fr 1fr}.tcards,.pgrid{grid-template-columns:1fr}.logo-sub{display:none}.nav-tab{padding:5px 10px;font-size:.62rem;letter-spacing:.8px}.poster-w{width:70px;min-width:70px;height:105px}}
 </style>
 </head>
 <body>
 
 <header class="hdr">
-  <div class="logo">ALI N' / FNM<span class="logo-sub">Production Dashboard</span></div>
+  <div class="logo-wrap" id="logoContainer">
+    <!-- Logo will be rendered here by JavaScript based on COMPANY_LOGO setting -->
+    <div class="logo-text"><span>ALI N'</span><span class="logo-div"></span><span>FNM</span></div>
+    <span class="logo-sub">Production Dashboard</span>
+  </div>
   <nav class="nav">
     <button class="nav-tab active" data-v="tasks">Tasks</button>
     <button class="nav-tab" data-v="deadlines">Deadlines</button>
@@ -195,7 +273,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
 
 <div class="main">
 
-<!-- TASKS -->
 <div class="vw active" id="v-tasks">
   <div class="stats">
     <div class="st"><div class="st-n" id="sO" style="color:var(--blue)">—</div><div class="st-l">Open</div></div>
@@ -210,13 +287,13 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
       <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Task Name</label><input type="text" class="fi" id="fN" placeholder="E.G., SEND DCP SPECS TO FILMS BOUTIQUE"></div></div>
       <div class="fr fr4">
         <div><label class="fl">Project</label><select class="fs" id="fP"></select></div>
-        <div><label class="fl">Assignee</label><select class="fs" id="fPe"></select></div>
-        <div><label class="fl">Partner</label><select class="fs" id="fPa"></select></div>
+        <div class="sug-w"><label class="fl">Assignee</label><input type="text" class="fi" id="fPe" placeholder="Type to search..." autocomplete="off"><div class="sug-l" id="sugPe"></div></div>
+        <div class="sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="fPa" placeholder="Type to search..." autocomplete="off"><div class="sug-l" id="sugPa"></div></div>
         <div><label class="fl">Priority</label><select class="fs" id="fPr"><option value="1">1 — URGENT</option><option value="2">2 — HIGH</option><option value="3" selected>3 — NORMAL</option><option value="4">4 — LOW</option><option value="5">5 — MINIMAL</option></select></div>
       </div>
       <div class="fr fr3">
         <div><label class="fl">Due Date</label><input type="date" class="fi" id="fDu"></div>
-        <div><label class="fl">Blocked By</label><input type="text" class="fi" id="fBl" placeholder="Leave empty if not blocked"></div>
+        <div class="sug-w"><label class="fl">Blocked By</label><input type="text" class="fi" id="fBl" placeholder="Leave empty" autocomplete="off"><div class="sug-l" id="sugBl"></div></div>
         <div><label class="fl">Notes</label><input type="text" class="fi" id="fNo" placeholder="Optional..."></div>
       </div>
       <div class="fac"><button class="btn btn-gh" id="cTask">CANCEL</button><button class="btn btn-g" id="sTask">CREATE TASK</button></div>
@@ -229,7 +306,6 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
   </div>
 </div>
 
-<!-- DEADLINES -->
 <div class="vw" id="v-deadlines">
   <div class="dlnb">
     <button class="nbtn" id="ndTgl">+ NEW DEADLINE</button>
@@ -237,496 +313,872 @@ body{font-family:'Outfit',sans-serif;background:var(--bg-0);color:var(--t0);min-
       <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Description</label><input type="text" class="fi" id="fdT" placeholder="E.G., CNC AVR1 APPLICATION"></div></div>
       <div class="fr fr4">
         <div><label class="fl">Project</label><select class="fs" id="fdP"></select></div>
-        <div><label class="fl">Due Date & Time</label><input type="datetime-local" class="fi" id="fdD"></div>
-        <div><label class="fl">Partner</label><select class="fs" id="fdPa"></select></div>
+        <div><label class="fl">Date & Time</label><input type="datetime-local" class="fi" id="fdD"></div>
+        <div class="sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="fdPa" placeholder="Type..." autocomplete="off"><div class="sug-l" id="sugDPa"></div></div>
         <div><label class="fl">Type</label><select class="fs" id="fdTy"><option value="hard">HARD</option><option value="soft">SOFT</option></select></div>
+      </div>
+      <div class="fr fr3">
+        <div class="tgl-row"><label class="tgl-sw"><input type="checkbox" id="fdAD"><span class="tgl-sl"></span></label><span class="tgl-lb">All-Day</span></div>
+        <div class="tgl-row"><label class="tgl-sw"><input type="checkbox" id="fdKC"><span class="tgl-sl"></span></label><span class="tgl-lb">Keep Counting After</span></div>
+        <div><button class="setnow-b" id="fdNow">⚡ SET TO NOW</button></div>
       </div>
       <div class="fac"><button class="btn btn-gh" id="cDl">CANCEL</button><button class="btn btn-g" id="sDl">ADD DEADLINE</button></div>
     </div>
   </div>
-  <div class="dlg" id="dlG"></div>
+  <div class="dl-stack" id="dlG"></div>
 </div>
 
-<!-- PROJECTS -->
 <div class="vw" id="v-projects"><div id="pSecs"></div></div>
 
-<!-- TREND -->
 <div class="vw" id="v-trend">
-  <div class="trow"><div class="cbox"><div class="ctitle">Tasks Completed / Month</div><div class="carea"><canvas id="lnC"></canvas></div></div><div class="cbox"><div class="ctitle">Tasks Completed / Project</div><div class="carea"><canvas id="brC"></canvas></div></div></div>
+  <div id="hmHourly" class="hm-panel"></div>
+  <div id="hmWeekly" class="hm-panel"></div>
+  <div id="hmMonthly" class="hm-panel"></div>
   <div class="tcards"><div class="tcrd"><div class="tcn" id="tcB">—</div><div class="tcl">Best Month</div><div class="tcs" id="tcBs"></div></div><div class="tcrd"><div class="tcn" id="tcA">—</div><div class="tcl">Average / Month</div></div><div class="tcrd"><div class="tcn" id="tcT">—</div><div class="tcl">Total All-Time</div></div></div>
 </div>
 </div>
 
-<!-- SETTINGS -->
 <div class="sov" id="sOv2"></div>
 <div class="sdr" id="sDr">
   <div class="shdr"><div class="stitle">Settings</div><button class="scl" id="clS">✕</button></div>
   <div class="sbdy">
     <div class="ssec"><div class="sst">People</div><div id="pList"></div>
-      <div class="arow arow4"><input type="text" class="fi" id="npC" placeholder="CODE"><input type="text" class="fi" id="npN" placeholder="Full Name"><input type="text" class="fi" id="npR" placeholder="Role"><button class="abtn" id="aPpl">+</button></div>
-    </div>
-    <div class="ssec"><div class="sst">Partners</div><div id="paList"></div>
-      <div class="arow arow5"><input type="text" class="fi" id="npaC" placeholder="CODE"><input type="text" class="fi" id="npaN" placeholder="Name"><input type="color" class="clr-i" id="npaBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="npaFg" value="#60a5fa" title="Text"><button class="abtn" id="aPa">+</button></div>
-    </div>
-    <div class="ssec"><div class="sst">Projects</div><div id="prjList"></div>
-      <div class="arow aproj"><input type="text" class="fi" id="nprN" placeholder="Project Name"><input type="text" class="fi" id="nprCd" placeholder="CODE"><input type="color" class="clr-i" id="nprBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="nprFg" value="#60a5fa" title="Text"><button class="abtn" id="aPrj">+</button></div>
-    </div>
+      <div class="arow arow4"><input type="text" class="fi" id="npC" placeholder="CODE"><input type="text" class="fi" id="npN" placeholder="Full Name"><input type="text" class="fi" id="npR" placeholder="Role"><button class="abtn" id="aPpl">+</button></div></div>
+    <div class="ssec"><div class="sst">Partners <span class="lprev" id="paPrv" style="background:rgba(96,165,250,.15);color:#60a5fa">PREVIEW</span></div><div id="paList"></div>
+      <div class="arow arow5"><input type="text" class="fi" id="npaC" placeholder="CODE"><input type="text" class="fi" id="npaN" placeholder="Name"><input type="color" class="clr-i" id="npaBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="npaFg" value="#60a5fa" title="Text"><button class="abtn" id="aPa">+</button></div></div>
+    <div class="ssec"><div class="sst">Projects <span class="lprev" id="prjPrv" style="background:rgba(96,165,250,.12);color:#60a5fa">PREVIEW</span></div><div id="prjList"></div>
+      <div class="arow aproj"><input type="text" class="fi" id="nprN" placeholder="Project Name"><input type="text" class="fi" id="nprCd" placeholder="CODE"><input type="color" class="clr-i" id="nprBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="nprFg" value="#60a5fa" title="Text"><button class="abtn" id="aPrj">+</button></div></div>
   </div>
 </div>
 
-<!-- BLOCK MODAL -->
-<div class="mbg" id="bMdl"><div class="mdl"><h3>🔒 Mark as Blocked</h3><div class="fg"><label class="fl">Blocked by</label><input type="text" class="fi" id="blInp" placeholder="E.G., CANAL+"></div><div class="mdla"><button class="btn btn-gh" id="cBl">CANCEL</button><button class="btn btn-r" id="cfBl">MARK BLOCKED</button></div></div></div>
+<!-- Block Modal -->
+<div class="mbg" id="bMdl"><div class="mdl"><h3>🔒 Mark as Blocked</h3><div class="fg sug-w"><label class="fl">Blocked by</label><input type="text" class="fi" id="blInp" placeholder="E.G., CANAL+" autocomplete="off"><div class="sug-l" id="sugBlM"></div></div><div class="mdla"><button class="btn btn-gh" id="cBl">CANCEL</button><button class="btn btn-r" id="cfBl">MARK BLOCKED</button></div></div></div>
+
+<!-- Edit Task Modal -->
+<div class="mbg" id="eMdl"><div class="mdl"><h3>✎ Edit Task</h3>
+  <div class="fg"><label class="fl">Task Name</label><input type="text" class="fi" id="eN"></div>
+  <div class="fr fr4"><div class="fg"><label class="fl">Project</label><select class="fs" id="eP"></select></div><div class="fg sug-w"><label class="fl">Assignee</label><input type="text" class="fi" id="ePe" autocomplete="off"><div class="sug-l" id="sugEPe"></div></div><div class="fg sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="ePa" autocomplete="off"><div class="sug-l" id="sugEPa"></div></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="ePr"><option value="1">1-URGENT</option><option value="2">2-HIGH</option><option value="3">3-NORMAL</option><option value="4">4-LOW</option><option value="5">5-MINIMAL</option></select></div></div>
+  <div class="fr fr2"><div class="fg"><label class="fl">Due Date</label><input type="date" class="fi" id="eDu"></div><div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eNo"></div></div>
+  <div class="mdla"><button class="btn btn-r" id="eTDel" style="margin-right:auto">DELETE</button><button class="btn btn-gh" id="eTC">CANCEL</button><button class="btn btn-g" id="eTS">SAVE</button></div></div></div>
+
+<!-- Edit Deadline Modal -->
+<div class="mbg" id="edMdl"><div class="mdl"><h3>✎ Edit Deadline</h3>
+  <div class="fg"><label class="fl">Description</label><input type="text" class="fi" id="edT"></div>
+  <div class="fr fr3"><div class="fg"><label class="fl">Project</label><select class="fs" id="edP"></select></div><div class="fg"><label class="fl">Date & Time</label><input type="datetime-local" class="fi" id="edD"></div><div class="fg sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="edPa" autocomplete="off"><div class="sug-l" id="sugEdPa"></div></div></div>
+  <div class="fr fr3"><div class="fg"><label class="fl">Type</label><select class="fs" id="edTy"><option value="hard">HARD</option><option value="soft">SOFT</option></select></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edAD"><span class="tgl-sl"></span></label><span class="tgl-lb">All-Day</span></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edKC"><span class="tgl-sl"></span></label><span class="tgl-lb">Keep Counting</span></div></div>
+  <div class="mdla"><button class="btn btn-r" id="edDDel" style="margin-right:auto">DELETE</button><button class="btn btn-gh" id="edDC">CANCEL</button><button class="btn btn-g" id="edDS">SAVE</button></div></div></div>
+
+<!-- Edit Person Modal -->
+<div class="mbg" id="epMdl"><div class="mdl"><h3>✎ Edit Person</h3>
+  <div class="fg"><label class="fl">Code</label><input type="text" class="fi" id="epCd"></div>
+  <div class="fg"><label class="fl">Full Name</label><input type="text" class="fi" id="epNm"></div>
+  <div class="fg"><label class="fl">Role</label><input type="text" class="fi" id="epRl"></div>
+  <div class="mdla"><button class="btn btn-gh" id="epCn">CANCEL</button><button class="btn btn-g" id="epSv">SAVE</button></div></div></div>
+
+<!-- Edit Partner Modal -->
+<div class="mbg" id="eprMdl"><div class="mdl"><h3>✎ Edit Partner</h3>
+  <div class="fg"><label class="fl">Name/Code</label><input type="text" class="fi" id="eprNm"></div>
+  <div class="fr fr2"><div class="fg"><label class="fl">Text Color</label><input type="color" class="clr-i" id="eprFg" style="width:100%;height:34px"></div><div class="fg"><label class="fl">BG</label><input type="color" class="clr-i" id="eprBg" style="width:100%;height:34px"></div></div>
+  <div class="mdla"><button class="btn btn-gh" id="eprCn">CANCEL</button><button class="btn btn-g" id="eprSv">SAVE</button></div></div></div>
 
 <div class="toast" id="toast"></div>
 
 <script>
-// ═══════════════════════════════════
-// COLOR MAPS
-// ═══════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
+   COLOR MAPS
+   ═══════════════════════════════════════════════════════════════ */
+const PC={'CALLE MÁLAGA':{c:'#d4af37',b:'rgba(212,175,55,.12)',code:'CMÁ'},'COURS, ET SANS TRISTESSE':{c:'#3b82f6',b:'rgba(59,130,246,.12)',code:'CST'},"L'ÉLUE":{c:'#a855f7',b:'rgba(168,85,247,.12)',code:"L'ÉLUE"},'TERRE ET CENDRES':{c:'#ec4899',b:'rgba(236,72,153,.12)',code:'TEC'},'ROIS SANS COURONNE':{c:'#06b6d4',b:'rgba(6,182,212,.12)',code:'ROSC'},'RAJA':{c:'#84cc16',b:'rgba(132,204,22,.12)',code:'RAJA'},"ESH EL TAMAA'":{c:'#f97316',b:'rgba(249,115,22,.12)',code:"ESHTMA'"},'BNAT LALLA MENNANA S03':{c:'#eab308',b:'rgba(234,179,8,.12)',code:'BNATLM'},'RASS JBEL':{c:'#22c55e',b:'rgba(34,197,94,.12)',code:'RASJBL'}};
+const PP={JR:{c:'#60a5fa',b:'rgba(96,165,250,.13)'},AMINE:{c:'#d4af37',b:'rgba(212,175,55,.13)'},NABIL:{c:'#f472b6',b:'rgba(244,114,182,.13)'},MARYAM:{c:'#c084fc',b:'rgba(192,132,252,.13)'},ZOUHAIR:{c:'#2dd4bf',b:'rgba(45,212,191,.13)'},SAID:{c:'#a3e635',b:'rgba(163,230,53,.13)'},SAMIR:{c:'#fb923c',b:'rgba(251,146,60,.13)'},YASSIR:{c:'#facc15',b:'rgba(250,204,21,.13)'},HAKIM:{c:'#4ade80',b:'rgba(74,222,128,.13)'},BAHIA:{c:'#f87171',b:'rgba(248,113,113,.13)'},RACHID:{c:'#c4b5fd',b:'rgba(196,181,253,.13)'},ZAHIRA:{c:'#fde68a',b:'rgba(253,230,138,.13)'},BERTRAND:{c:'#93c5fd',b:'rgba(147,197,253,.13)'},'CHLOÉ':{c:'#f9a8d4',b:'rgba(249,168,212,.13)'}};
+const PA={'TITRA':{c:'#60a5fa',b:'rgba(96,165,250,.15)'},'CNC':{c:'#f97316',b:'rgba(249,115,22,.15)'},'CCM':{c:'#22c55e',b:'rgba(34,197,94,.15)'},'ARTE':{c:'#a855f7',b:'rgba(168,85,247,.15)'},'CANAL+':{c:'#ef4444',b:'rgba(239,68,68,.15)'},'EURIMAGES':{c:'#06b6d4',b:'rgba(6,182,212,.15)'},'VELVET':{c:'#ec4899',b:'rgba(236,72,153,.15)'},'SFI':{c:'#eab308',b:'rgba(234,179,8,.15)'},'NFI':{c:'#84cc16',b:'rgba(132,204,22,.15)'},'COFILOISIRS':{c:'#d4af37',b:'rgba(212,175,55,.15)'},'2M':{c:'#f59e0b',b:'rgba(245,158,11,.15)'},'SNRT':{c:'#14b8a6',b:'rgba(20,184,166,.15)'},'MBC 5':{c:'#8b5cf6',b:'rgba(139,92,246,.15)'},'FILMS BOUTIQUE':{c:'#fb7185',b:'rgba(251,113,133,.15)'},'AD VITAM':{c:'#38bdf8',b:'rgba(56,189,248,.15)'},'LA RUCHE STUDIO':{c:'#a78bfa',b:'rgba(167,139,250,.15)'}};
 
-const PC={
-  'CALLE MÁLAGA':{c:'#d4af37',b:'rgba(212,175,55,.12)',code:'CMÁ'},
-  'COURS, ET SANS TRISTESSE':{c:'#3b82f6',b:'rgba(59,130,246,.12)',code:'CST'},
-  "L'ÉLUE":{c:'#a855f7',b:'rgba(168,85,247,.12)',code:"L'ÉLUE"},
-  'TERRE ET CENDRES':{c:'#ec4899',b:'rgba(236,72,153,.12)',code:'TEC'},
-  'ROIS SANS COURONNE':{c:'#06b6d4',b:'rgba(6,182,212,.12)',code:'ROSC'},
-  'RAJA':{c:'#84cc16',b:'rgba(132,204,22,.12)',code:'RAJA'},
-  "ESH EL TAMAA'":{c:'#f97316',b:'rgba(249,115,22,.12)',code:"ESHTMA'"},
-  'BNAT LALLA MENNANA S03':{c:'#eab308',b:'rgba(234,179,8,.12)',code:'BNATLM'},
-  'RASS JBEL':{c:'#22c55e',b:'rgba(34,197,94,.12)',code:'RASJBL'},
-};
-
-const PP={
-  JR:{c:'#60a5fa',b:'rgba(96,165,250,.13)'},AMINE:{c:'#d4af37',b:'rgba(212,175,55,.13)'},
-  NABIL:{c:'#f472b6',b:'rgba(244,114,182,.13)'},MARYAM:{c:'#c084fc',b:'rgba(192,132,252,.13)'},
-  ZOUHAIR:{c:'#2dd4bf',b:'rgba(45,212,191,.13)'},SAID:{c:'#a3e635',b:'rgba(163,230,53,.13)'},
-  SAMIR:{c:'#fb923c',b:'rgba(251,146,60,.13)'},YASSIR:{c:'#facc15',b:'rgba(250,204,21,.13)'},
-  HAKIM:{c:'#4ade80',b:'rgba(74,222,128,.13)'},BAHIA:{c:'#f87171',b:'rgba(248,113,113,.13)'},
-  RACHID:{c:'#c4b5fd',b:'rgba(196,181,253,.13)'},ZAHIRA:{c:'#fde68a',b:'rgba(253,230,138,.13)'},
-  BERTRAND:{c:'#93c5fd',b:'rgba(147,197,253,.13)'},'CHLOÉ':{c:'#f9a8d4',b:'rgba(249,168,212,.13)'},
-};
-
-const PA={
-  'TITRA':{c:'#60a5fa',b:'rgba(96,165,250,.15)'},
-  'CNC':{c:'#f97316',b:'rgba(249,115,22,.15)'},
-  'CCM':{c:'#22c55e',b:'rgba(34,197,94,.15)'},
-  'ARTE':{c:'#a855f7',b:'rgba(168,85,247,.15)'},
-  'CANAL+':{c:'#ef4444',b:'rgba(239,68,68,.15)'},
-  'EURIMAGES':{c:'#06b6d4',b:'rgba(6,182,212,.15)'},
-  'VELVET':{c:'#ec4899',b:'rgba(236,72,153,.15)'},
-  'SFI':{c:'#eab308',b:'rgba(234,179,8,.15)'},
-  'NFI':{c:'#84cc16',b:'rgba(132,204,22,.15)'},
-  'COFILOISIRS':{c:'#d4af37',b:'rgba(212,175,55,.15)'},
-  '2M':{c:'#f59e0b',b:'rgba(245,158,11,.15)'},
-  'SNRT':{c:'#14b8a6',b:'rgba(20,184,166,.15)'},
-  'MBC 5':{c:'#8b5cf6',b:'rgba(139,92,246,.15)'},
-  'FILMS BOUTIQUE':{c:'#fb7185',b:'rgba(251,113,133,.15)'},
-  'AD VITAM':{c:'#38bdf8',b:'rgba(56,189,248,.15)'},
-};
-
-function hexToRgba(hex, a) {
-  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
-  return `rgba(${r},${g},${b},${a})`;
-}
-
+function hexToRgba(h,a){const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return`rgba(${r},${g},${b},${a})`}
 const gc=(m,k)=>m[k]||{c:'#8a8898',b:'rgba(138,136,152,.10)'};
-const gpc=(n)=>PC[n]||{c:'#8a8898',b:'rgba(138,136,152,.10)',code:n?n.substring(0,4).toUpperCase():'?'};
+const gpc=n=>PC[n]||{c:'#8a8898',b:'rgba(138,136,152,.10)',code:n?n.substring(0,4).toUpperCase():'?'};
 const tg=(t,co)=>`<span class="tag" style="background:${co.b};color:${co.c}">${t}</span>`;
+const $=id=>document.getElementById(id);
 
-// ═══════════════════════════════════
-// DATA
-// ═══════════════════════════════════
+const STATUSES=['idea','dev','funding','pre-production','shooting','post','distribution','delivery','closed'];
+const SL={idea:'IDEA',dev:'DEVELOPMENT',funding:'FUNDING','pre-production':'PRE-PRODUCTION',shooting:'SHOOTING',post:'POST-PRODUCTION',distribution:'DISTRIBUTION',delivery:'FINAL DELIVERY',closed:'CLOSED'};
 
+/* ═══════════════════════════════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════════════════════════════ */
 const D={
-  people:[
-    {code:'JR',name:'Jean-Rémi Ducourtioux',role:'Gérant FNM / Dir. Adjoint'},
-    {code:'AMINE',name:'Amine Benjelloun',role:'DG Ali n\''},
-    {code:'NABIL',name:'Nabil Ayouch',role:'Prod. Délégué / Réalisateur'},
-    {code:'MARYAM',name:'Maryam Touzani',role:'Réalisatrice'},
-    {code:'ZOUHAIR',name:'Zouhair',role:'Post-production'},
-    {code:'SAID',name:'Said',role:'Post-production'},
-    {code:'SAMIR',name:'Samir',role:'Post-production'},
-    {code:'YASSIR',name:'Yassir',role:'Post-production'},
-    {code:'HAKIM',name:'Hakim',role:'Post-production'},
-    {code:'BAHIA',name:'Bahia',role:'Dir. Financière & RH'},
-    {code:'RACHID',name:'Rachid',role:'Comptable'},
-    {code:'ZAHIRA',name:'Zahira',role:'Secrétaire de production'},
-    {code:'BERTRAND',name:'Bertrand',role:'Freelance Prod Exec FNM'},
-    {code:'CHLOÉ',name:'Chloé',role:'Freelance Prod Asst FNM'},
-  ],
-  projects:[
-    {title:'CALLE MÁLAGA',year:2025,status:'delivery',type:'Feature Film',director:'Maryam Touzani'},
-    {title:'COURS, ET SANS TRISTESSE',year:2026,status:'funding',type:'Feature Film',director:'Nabil Ayouch'},
-    {title:"L'ÉLUE",year:2026,status:'dev',type:'Short Film',director:'Leyna Tahiri'},
-    {title:'TERRE ET CENDRES',year:2027,status:'dev',type:'Feature Film',director:'Leyna Tahiri'},
-    {title:'ROIS SANS COURONNE',year:2027,status:'dev',type:'Feature Film',director:'Arthure Beaupère'},
-    {title:'RAJA',year:2027,status:'idea',type:'Feature Doc',director:'Nabil Ayouch'},
-    {title:"ESH EL TAMAA'",year:2026,status:'post',type:'TV Series',director:'Ayoub Lahnoud'},
-    {title:'BNAT LALLA MENNANA S03',year:2026,status:'post',type:'TV Series',director:'Chaouki Ofir'},
-    {title:'RASS JBEL',year:2026,status:'post',type:'TV Series',director:'Ayoub Lahnoud'},
-  ],
-  closed:[
-    {title:'EVERYBODY LOVES TOUDA',year:2024,director:'Nabil Ayouch'},
-    {title:'LE BLEU DU CAFTAN',year:2022,director:'Maryam Touzani'},
-    {title:'HAUT ET FORT',year:2021,director:'Nabil Ayouch'},
-    {title:'ADAM',year:2019,director:'Maryam Touzani'},
-    {title:'RAZZIA',year:2017,director:'Nabil Ayouch'},
-    {title:'MUCH LOVED',year:2015,director:'Nabil Ayouch'},
-    {title:'LES CHEVAUX DE DIEU',year:2012,director:'Nabil Ayouch'},
-    {title:'MY LAND',year:2010,director:'Nabil Ayouch'},
-    {title:'WHATEVER LOLA WANTS',year:2006,director:'Nabil Ayouch'},
-    {title:'ALI ZAOUA',year:2000,director:'Nabil Ayouch'},
-  ],
-  deadlines:[
-    {id:1,date:'2026-02-16T18:00',title:'PAD AVEC AUDIODESCRIPTION — TITRA',project:'CALLE MÁLAGA',partner:'TITRA',type:'hard'},
-    {id:2,date:'2026-02-18T18:00',title:'LIVRAISON SME — TITRA',project:'CALLE MÁLAGA',partner:'TITRA',type:'hard'},
-    {id:3,date:'2026-02-18T23:59',title:'CNC AVR1 APPLICATION',project:"L'ÉLUE",partner:'CNC',type:'hard'},
-    {id:4,date:'2026-02-18T23:59',title:'CST — SFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'SFI',type:'hard'},
-    {id:5,date:'2026-02-24T23:59',title:'SFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'SFI',type:'hard'},
-    {id:6,date:'2026-02-26T23:59',title:'NFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'NFI',type:'hard'},
-    {id:7,date:'2026-03-12T23:59',title:'SØRFOND DÉPÔT (NFI)',project:'COURS, ET SANS TRISTESSE',partner:'NFI',type:'soft'},
-  ],
+  people:[{code:'JR',name:'Jean-Rémi Ducourtioux',role:'Gérant FNM / Dir. Adjoint'},{code:'AMINE',name:'Amine Benjelloun',role:"DG Ali n'"},{code:'NABIL',name:'Nabil Ayouch',role:'Prod. Délégué / Réalisateur'},{code:'MARYAM',name:'Maryam Touzani',role:'Réalisatrice'},{code:'ZOUHAIR',name:'Zouhair',role:'Post-production'},{code:'SAID',name:'Said',role:'Post-production'},{code:'SAMIR',name:'Samir',role:'Post-production'},{code:'YASSIR',name:'Yassir',role:'Post-production'},{code:'HAKIM',name:'Hakim',role:'Post-production'},{code:'BAHIA',name:'Bahia',role:'Dir. Financière & RH'},{code:'RACHID',name:'Rachid',role:'Comptable'},{code:'ZAHIRA',name:'Zahira',role:'Secrétaire de production'},{code:'BERTRAND',name:'Bertrand',role:'Freelance Prod Exec FNM'},{code:'CHLOÉ',name:'Chloé',role:'Freelance Prod Asst FNM'}],
+  projects:[{title:'CALLE MÁLAGA',year:2025,status:'delivery',type:'Feature Film',director:'Maryam Touzani'},{title:'COURS, ET SANS TRISTESSE',year:2026,status:'funding',type:'Feature Film',director:'Nabil Ayouch'},{title:"L'ÉLUE",year:2026,status:'dev',type:'Short Film',director:'Leyna Tahiri'},{title:'TERRE ET CENDRES',year:2027,status:'dev',type:'Feature Film',director:'Leyna Tahiri'},{title:'ROIS SANS COURONNE',year:2027,status:'dev',type:'Feature Film',director:'Arthure Beaupère'},{title:'RAJA',year:2027,status:'idea',type:'Feature Doc',director:'Nabil Ayouch'},{title:"ESH EL TAMAA'",year:2026,status:'post',type:'TV Series',director:'Ayoub Lahnoud'},{title:'BNAT LALLA MENNANA S03',year:2026,status:'post',type:'TV Series',director:'Chaouki Ofir'},{title:'RASS JBEL',year:2026,status:'post',type:'TV Series',director:'Ayoub Lahnoud'}],
+  closed:[{title:'EVERYBODY LOVES TOUDA',year:2024,director:'Nabil Ayouch'},{title:'LE BLEU DU CAFTAN',year:2022,director:'Maryam Touzani'},{title:'HAUT ET FORT',year:2021,director:'Nabil Ayouch'},{title:'ADAM',year:2019,director:'Maryam Touzani'},{title:'RAZZIA',year:2017,director:'Nabil Ayouch'},{title:'MUCH LOVED',year:2015,director:'Nabil Ayouch'},{title:'LES CHEVAUX DE DIEU',year:2012,director:'Nabil Ayouch'},{title:'MY LAND',year:2010,director:'Nabil Ayouch'},{title:'WHATEVER LOLA WANTS',year:2006,director:'Nabil Ayouch'},{title:'ALI ZAOUA',year:2000,director:'Nabil Ayouch'}],
+  deadlines:[{id:1,date:'2026-02-16T18:00',title:'PAD AVEC AUDIODESCRIPTION — TITRA',project:'CALLE MÁLAGA',partner:'TITRA',type:'hard',allDay:false,keepCount:false},{id:2,date:'2026-02-18T18:00',title:'LIVRAISON SME — TITRA',project:'CALLE MÁLAGA',partner:'TITRA',type:'hard',allDay:false,keepCount:false},{id:3,date:'2026-02-18T23:59',title:'CNC AVR1 APPLICATION',project:"L'ÉLUE",partner:'CNC',type:'hard',allDay:false,keepCount:false},{id:4,date:'2026-02-18T23:59',title:'CST — SFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'SFI',type:'hard',allDay:false,keepCount:false},{id:5,date:'2026-02-24T23:59',title:'SFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'SFI',type:'hard',allDay:false,keepCount:true},{id:6,date:'2026-02-26T23:59',title:'NFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'NFI',type:'hard',allDay:false,keepCount:false},{id:7,date:'2026-03-12T23:59',title:'SØRFOND DÉPÔT (NFI)',project:'COURS, ET SANS TRISTESSE',partner:'NFI',type:'soft',allDay:false,keepCount:false}],
   tasks:[
-    {id:1,name:'CONFIRM PAD DELIVERY WITH TITRA (AUDIODESCRIPTION)',project:'CALLE MÁLAGA',person:'JR',partner:'TITRA',priority:1,due:'2026-02-16',done:false,doneDate:null,blocked:false,blockedBy:null,order:0},
-    {id:2,name:'PREPARE CNC AVR1 DOSSIER — GATHER ALL DOCUMENTS',project:"L'ÉLUE",person:'JR',partner:'CNC',priority:1,due:'2026-02-17',done:false,doneDate:null,blocked:false,blockedBy:null,order:1},
-    {id:3,name:'COORDINATE SME SUBTITLE DELIVERY WITH TITRA',project:'CALLE MÁLAGA',person:'ZOUHAIR',partner:'TITRA',priority:1,due:'2026-02-18',done:false,doneDate:null,blocked:false,blockedBy:null,order:2},
-    {id:4,name:'COMPILE SFI CO-PRODUCTION DOCUMENTS',project:'COURS, ET SANS TRISTESSE',person:'JR',partner:'SFI',priority:2,due:'2026-02-23',done:false,doneDate:null,blocked:false,blockedBy:null,order:3},
-    {id:5,name:'FOLLOW UP WITH VELVET ON BELGIAN CO-PROD STATUS',project:'COURS, ET SANS TRISTESSE',person:'BERTRAND',partner:'VELVET',priority:2,due:'2026-02-20',done:false,doneDate:null,blocked:true,blockedBy:'VELVET',order:4},
-    {id:6,name:'NFI DÉPÔT — PREPARE NORWEGIAN CO-PROD MINORITY FILE',project:'COURS, ET SANS TRISTESSE',person:'JR',partner:'NFI',priority:2,due:'2026-02-25',done:false,doneDate:null,blocked:false,blockedBy:null,order:5},
-    {id:7,name:'SØRFOND APPLICATION DOCUMENTS — FIRST DRAFT',project:'COURS, ET SANS TRISTESSE',person:'CHLOÉ',partner:'NFI',priority:3,due:'2026-03-05',done:false,doneDate:null,blocked:false,blockedBy:null,order:6},
-    {id:8,name:'UPDATE DCP SPECS SHEET FOR ALL DISTRIBUTORS',project:'CALLE MÁLAGA',person:'SAMIR',partner:'',priority:3,due:'2026-02-28',done:false,doneDate:null,blocked:false,blockedBy:null,order:7},
-    {id:9,name:'REQUEST POST-PROD UPDATE ON RASS JBEL',project:'RASS JBEL',person:'ZOUHAIR',partner:'MBC 5',priority:3,due:'2026-02-20',done:false,doneDate:null,blocked:false,blockedBy:null,order:8},
-    {id:10,name:'REVIEW BNAT LALLA MENNANA S03 EDIT PROGRESS',project:'BNAT LALLA MENNANA S03',person:'SAID',partner:'2M',priority:4,due:'2026-03-01',done:false,doneDate:null,blocked:false,blockedBy:null,order:9},
-    {id:11,name:'FIND CANAL+ CONTRACT FOR JR AND BERTRAND',project:'CALLE MÁLAGA',person:'JR',partner:'CANAL+',priority:2,due:'2026-02-19',done:false,doneDate:null,blocked:true,blockedBy:'CANAL+',order:10},
+    {id:1,name:'CONFIRM PAD DELIVERY WITH TITRA (AUDIODESCRIPTION)',project:'CALLE MÁLAGA',person:'JR',partner:'TITRA',priority:1,due:'2026-02-16',done:false,doneDate:null,blocked:false,blockedBy:null,order:0,notes:'',createdAt:'2026-02-14T10:00',completedAt:null},
+    {id:2,name:'PREPARE CNC AVR1 DOSSIER — GATHER ALL DOCUMENTS',project:"L'ÉLUE",person:'JR',partner:'CNC',priority:1,due:'2026-02-17',done:false,doneDate:null,blocked:false,blockedBy:null,order:1,notes:'Check with Leyna for director statement',createdAt:'2026-02-13T09:30',completedAt:null},
+    {id:3,name:'COORDINATE SME SUBTITLE DELIVERY WITH TITRA',project:'CALLE MÁLAGA',person:'ZOUHAIR',partner:'TITRA',priority:1,due:'2026-02-18',done:false,doneDate:null,blocked:false,blockedBy:null,order:2,notes:'',createdAt:'2026-02-12T14:00',completedAt:null},
+    {id:4,name:'COMPILE SFI CO-PRODUCTION DOCUMENTS',project:'COURS, ET SANS TRISTESSE',person:'JR',partner:'SFI',priority:2,due:'2026-02-23',done:false,doneDate:null,blocked:false,blockedBy:null,order:3,notes:'',createdAt:'2026-02-10T11:00',completedAt:null},
+    {id:5,name:'FOLLOW UP WITH VELVET ON BELGIAN CO-PROD STATUS',project:'COURS, ET SANS TRISTESSE',person:'BERTRAND',partner:'VELVET',priority:2,due:'2026-02-20',done:false,doneDate:null,blocked:true,blockedBy:'VELVET',order:4,notes:'Waiting for response since last week',createdAt:'2026-02-08T16:00',completedAt:null},
+    {id:6,name:'NFI DÉPÔT — PREPARE NORWEGIAN CO-PROD MINORITY FILE',project:'COURS, ET SANS TRISTESSE',person:'JR',partner:'NFI',priority:2,due:'2026-02-25',done:false,doneDate:null,blocked:false,blockedBy:null,order:5,notes:'',createdAt:'2026-02-09T10:30',completedAt:null},
+    {id:7,name:'SØRFOND APPLICATION DOCUMENTS — FIRST DRAFT',project:'COURS, ET SANS TRISTESSE',person:'CHLOÉ',partner:'NFI',priority:3,due:'2026-03-05',done:false,doneDate:null,blocked:false,blockedBy:null,order:6,notes:'',createdAt:'2026-02-07T09:00',completedAt:null},
+    {id:8,name:'UPDATE DCP SPECS SHEET FOR ALL DISTRIBUTORS',project:'CALLE MÁLAGA',person:'SAMIR',partner:'',priority:3,due:'2026-02-28',done:false,doneDate:null,blocked:false,blockedBy:null,order:7,notes:'',createdAt:'2026-02-06T15:00',completedAt:null},
+    {id:9,name:'REQUEST POST-PROD UPDATE ON RASS JBEL',project:'RASS JBEL',person:'ZOUHAIR',partner:'MBC 5',priority:3,due:'2026-02-20',done:false,doneDate:null,blocked:false,blockedBy:null,order:8,notes:'',createdAt:'2026-02-05T11:30',completedAt:null},
+    {id:10,name:'REVIEW BNAT LALLA MENNANA S03 EDIT PROGRESS',project:'BNAT LALLA MENNANA S03',person:'SAID',partner:'2M',priority:4,due:'2026-03-01',done:false,doneDate:null,blocked:false,blockedBy:null,order:9,notes:'',createdAt:'2026-02-04T14:00',completedAt:null},
+    {id:11,name:'FIND CANAL+ CONTRACT FOR JR AND BERTRAND',project:'CALLE MÁLAGA',person:'JR',partner:'CANAL+',priority:2,due:'2026-02-19',done:false,doneDate:null,blocked:true,blockedBy:'CANAL+',order:10,notes:'Legal dept not responding',createdAt:'2026-02-03T10:00',completedAt:null}
   ],
   completed:[],
   monthly:[{m:'Sep 25',c:18},{m:'Oct 25',c:24},{m:'Nov 25',c:21},{m:'Dec 25',c:15},{m:'Jan 26',c:29},{m:'Feb 26',c:3}],
   projDone:{'CALLE MÁLAGA':32,'COURS, ET SANS TRISTESSE':18,"L'ÉLUE":5,'RASS JBEL':12,'BNAT LALLA MENNANA S03':8,"ESH EL TAMAA'":6,'TERRE ET CENDRES':2,'RAJA':1},
-  nid:12,dlid:8,
+  nid:12,dlid:8
 };
 
-// ═══════════════════════════════════
-// UTILS
-// ═══════════════════════════════════
+// Poster images - add your poster URLs here using GitHub raw URLs
+// Format: 'PROJECT TITLE': 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/posters/filename.jpg'
+const POSTERS = {
+  'CALLE MÁLAGA': '', // Example: 'https://raw.githubusercontent.com/samisaif11/production-dashboard/main/posters/calle-málaga.jpg'
+  'COURS, ET SANS TRISTESSE': '',
+  "L'ÉLUE": '',
+  'TERRE ET CENDRES': '',
+  'ROIS SANS COURONNE': '',
+  'RAJA': '',
+  "ESH EL TAMAA'": '',
+  'BNAT LALLA MENNANA S03': '',
+  'RASS JBEL': ''
+};
 
+// Company Logo - replace with your logo URL
+// Use GitHub raw URL like: 'https://raw.githubusercontent.com/samisaif11/production-dashboard/main/logo.png'
+// Recommended: Place your logo in the root folder of your GitHub repository and name it 'logo.png'
+let COMPANY_LOGO = ''; // Add your logo URL here (e.g., 'https://raw.githubusercontent.com/samisaif11/production-dashboard/main/logo.png')
+
+/* ═══════ UNDO HISTORY ═══════ */
+const HS=[];const MH=30;let hLock=false;
+function pH(label){if(hLock)return;HS.push({s:JSON.parse(JSON.stringify({tasks:D.tasks,completed:D.completed,deadlines:D.deadlines,projects:D.projects,closed:D.closed,people:D.people,monthly:D.monthly,projDone:D.projDone,nid:D.nid,dlid:D.dlid})),l:label});if(HS.length>MH)HS.shift();toast('✓ '+label.toUpperCase(),'gld')}
+function popH(){if(!HS.length){toast('NOTHING TO UNDO','rd');return}hLock=true;Object.assign(D,HS.pop().s);hLock=false;toast('↶ UNDONE','und');fullR()}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();popH()}});
+
+/* ═══════ UTILS ═══════ */
 const td=()=>new Date().toISOString().split('T')[0];
-const dB=(s)=>{const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+'T00:00:00')-n)/864e5);};
-const fD=(s)=>new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();
-function toast(m,t='grn'){const e=$('toast');e.textContent=m;e.className='toast '+t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2200);}
-const $=id=>document.getElementById(id);
+const nowI=()=>new Date().toISOString();
+const dB=s=>{const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+'T00:00:00')-n)/864e5)};
+const fD=s=>new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();
+function toast(m,t='grn'){const e=$('toast');e.textContent=m;e.className='toast '+t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2e3)}
+function playSuccessSound(){/* Upload audio: new Audio('success.mp3').play() */}
 
-// ═══════════════════════════════════
-// CLOCK
-// ═══════════════════════════════════
+/* ═══════ CLOCK ═══════ */
+function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('dtb').textContent=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase()}
+tick();setInterval(tick,1e3);
 
-function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('dtb').textContent=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();}
-tick();setInterval(tick,1000);
+/* ═══════ NAV ═══════ */
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj();if(t.dataset.v==='trend')renderTrend()}));
 
-// NAV
-document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{
-  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
-  document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));
-  t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');
-  if(t.dataset.v==='deadlines')renderDL();
-  if(t.dataset.v==='projects')renderProj();
-  if(t.dataset.v==='trend'){drawLn();drawBr();renderTC();}
-}));
+/* ═══════ AUTO-SUGGEST ═══════ */
+function mkSug(iid,lid,getI,onSel){
+  const inp=$(iid),list=$(lid);if(!inp||!list)return;
+  inp.addEventListener('input',()=>{const v=inp.value.trim().toUpperCase();if(!v){list.classList.remove('open');return}
+    const items=getI().filter(i=>i.n.includes(v));if(!items.length){list.classList.remove('open');return}
+    list.innerHTML=items.map(i=>`<div class="sug-i" data-v="${i.n}"><span class="sug-d" style="background:${i.c}"></span>${i.n}</div>`).join('');
+    list.classList.add('open');
+    list.querySelectorAll('.sug-i').forEach(si=>si.addEventListener('mousedown',e=>{e.preventDefault();inp.value=si.dataset.v;list.classList.remove('open');if(onSel)onSel(si.dataset.v)}))});
+  inp.addEventListener('blur',()=>setTimeout(()=>list.classList.remove('open'),150));
+  inp.addEventListener('focus',()=>{if(inp.value.trim())inp.dispatchEvent(new Event('input'))})
+}
+const gPS=()=>D.people.map(p=>({n:p.code,c:gc(PP,p.code).c}));
+const gPaS=()=>Object.keys(PA).map(k=>({n:k,c:gc(PA,k).c}));
+const gAll=()=>[...gPS(),...gPaS()];
+function initSug(){mkSug('fPe','sugPe',gPS);mkSug('fPa','sugPa',gPaS);mkSug('fBl','sugBl',gAll);mkSug('fdPa','sugDPa',gPaS);mkSug('blInp','sugBlM',gAll);mkSug('ePe','sugEPe',gPS);mkSug('ePa','sugEPa',gPaS);mkSug('edPa','sugEdPa',gPaS)}
+function renderLogo(){const c=$('logoContainer');if(!c)return;if(COMPANY_LOGO){c.innerHTML=`<img class="logo-img" src="${COMPANY_LOGO}" alt="Company Logo" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\'logo-text\\'><span>ALI N\\'</span><span class=\\'logo-div\\'></span><span>FNM</span></div><span class=\\'logo-sub\\'>Production Dashboard</span>'">`}}
 
-// ═══════════════════════════════════
-// TASKS
-// ═══════════════════════════════════
+/* ═══════ LIVE PREVIEW ═══════ */
+['npaFg','npaBg'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('npaFg').value;$('paPrv').style.background=hexToRgba(fg,.15);$('paPrv').style.color=fg;$('paPrv').textContent=($('npaC').value||$('npaN').value||'PREVIEW').toUpperCase()}));
+['npaC','npaN'].forEach(id=>$(id).addEventListener('input',()=>{$('paPrv').textContent=($('npaC').value||$('npaN').value||'PREVIEW').toUpperCase()}));
+['nprFg','nprBg'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('nprFg').value;$('prjPrv').style.background=hexToRgba(fg,.12);$('prjPrv').style.color=fg;$('prjPrv').textContent=($('nprCd').value||$('nprN').value||'PREVIEW').toUpperCase()}));
+['nprN','nprCd'].forEach(id=>$(id).addEventListener('input',()=>{$('prjPrv').textContent=($('nprCd').value||$('nprN').value||'PREVIEW').toUpperCase()}));
 
-let tF='all',bId=null,dragId=null;
+/* ═══════════════════════════════════════════════════════════════
+   TASKS
+   ═══════════════════════════════════════════════════════════════ */
+let tF='all',bId=null,dragId=null,sortDue=true,skipSort=false;
 
 function renderT(){
   const el=$('tList'),cl=$('cList');el.innerHTML='';cl.innerHTML='';
-  const all=[...D.tasks].sort((a,b)=>a.order-b.order);
-  const ff=t=>{if(tF==='all')return true;if(tF==='today')return t.due&&dB(t.due)<=0;if(tF==='blocked')return t.blocked;return t.project===tF;};
-  const vis=all.filter(ff);
-
-  // Completed stay in place (struck), only move to archive on END DAY
-  vis.forEach(t=>el.innerHTML+=tkEl(t,t.done));
-
-  // Archived completed (from END DAY)
-  const compF=D.completed.filter(ff).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
-  $('cCnt').textContent=compF.length;
-  compF.forEach(t=>cl.innerHTML+=tkEl(t,false,true));
-
-  // Bind checks
-  el.querySelectorAll('.tc').forEach(x=>x.addEventListener('click',()=>tglDone(+x.dataset.id)));
-  cl.querySelectorAll('.tc').forEach(x=>x.addEventListener('click',()=>tglDone(+x.dataset.id)));
-  // Bind block buttons
-  el.querySelectorAll('.tbb').forEach(x=>x.addEventListener('click',()=>{
-    const t=D.tasks.find(t=>t.id===+x.dataset.id);
-    if(t.blocked){t.blocked=false;t.blockedBy=null;toast('UNBLOCKED','gld');renderT();}
-    else{bId=+x.dataset.id;$('blInp').value='';$('bMdl').classList.add('op');$('blInp').focus();}
-  }));
-
-  // DRAG & DROP
-  el.querySelectorAll('.tsk').forEach(node=>{
-    node.setAttribute('draggable','true');
-    node.addEventListener('dragstart',e=>{dragId=+node.dataset.id;node.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    node.addEventListener('dragend',()=>{node.classList.remove('dragging');dragId=null;document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));});
-    node.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';node.classList.add('drag-over');});
+  let all=[...D.tasks];
+  // Fixed: Use skipSort flag to preserve manual drag order
+  if(skipSort) {
+    all.sort((a,b)=>a.order-b.order);
+  } else if(sortDue) {
+    all.sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;if(!a.due&&!b.due)return a.order-b.order;if(!a.due)return 1;if(!b.due)return-1;return a.due.localeCompare(b.due)||a.order-b.order});
+  } else {
+    all.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  }
+  const ff=t=>{if(tF==='all')return true;if(tF==='today')return t.due&&dB(t.due)<=0;if(tF==='blocked')return t.blocked;return t.project===tF};
+  all.filter(ff).forEach(t=>el.innerHTML+=tkEl(t,t.done));
+  const cF=D.completed.filter(ff).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
+  $('cCnt').textContent=cF.length;cF.forEach(t=>cl.innerHTML+=tkEl(t,false,true));
+  // Bind
+  el.querySelectorAll('.tc').forEach(x=>x.onclick=()=>tglD(+x.dataset.id));
+  cl.querySelectorAll('.tc').forEach(x=>x.onclick=()=>tglD(+x.dataset.id));
+  el.querySelectorAll('.tbb').forEach(x=>x.onclick=()=>{const t=D.tasks.find(t=>t.id===+x.dataset.id);if(t.blocked){pH('unblock');t.blocked=false;t.blockedBy=null;toast('UNBLOCKED','gld');renderT()}else{bId=+x.dataset.id;$('blInp').value='';$('bMdl').classList.add('op');$('blInp').focus()}});
+  el.querySelectorAll('.tedb').forEach(x=>x.onclick=()=>openET(+x.dataset.id));
+  el.querySelectorAll('.note-ic').forEach(x=>x.onclick=()=>openET(+x.dataset.id));
+  // Drag
+  el.querySelectorAll('.tsk:not(.struck)').forEach(node=>{node.setAttribute('draggable','true');
+    node.addEventListener('dragstart',e=>{dragId=+node.dataset.id;node.classList.add('dragging');e.dataTransfer.effectAllowed='move';skipSort=true;renderT()}); // Enable manual order mode
+    node.addEventListener('dragend',()=>{node.classList.remove('dragging');dragId=null;skipSort=false;document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));renderT()}); // Disable and re-render
+    node.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';node.classList.add('drag-over')});
     node.addEventListener('dragleave',()=>node.classList.remove('drag-over'));
-    node.addEventListener('drop',e=>{
-      e.preventDefault();node.classList.remove('drag-over');
-      const dropId=+node.dataset.id;if(dragId===null||dragId===dropId)return;
-      const di=D.tasks.findIndex(t=>t.id===dragId),ri=D.tasks.findIndex(t=>t.id===dropId);
-      if(di<0||ri<0)return;
-      // Reorder: remove drag item, insert before drop item
-      const [item]=D.tasks.splice(di,1);D.tasks.splice(ri,0,item);
-      D.tasks.forEach((t,i)=>t.order=i);
-      renderT();
-    });
-  });
-
-  renderFlts();updateSts();fillDD();
+    node.addEventListener('drop',e=>{e.preventDefault();node.classList.remove('drag-over');const did=+node.dataset.id;if(dragId===null||dragId===did)return;pH('reorder');const di=D.tasks.findIndex(t=>t.id===dragId),ri=D.tasks.findIndex(t=>t.id===did);if(di<0||ri<0)return;const[item]=D.tasks.splice(di,1);D.tasks.splice(ri,0,item);D.tasks.forEach((t,i)=>t.order=i);renderT()})});
+  // Mobile swipe
+  if('ontouchstart'in window)el.querySelectorAll('.tsk').forEach(n=>{let sx=0,dx=0;n.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;dx=0},{passive:true});n.addEventListener('touchmove',e=>{dx=e.touches[0].clientX-sx;if(Math.abs(dx)>10)n.style.transform=`translateX(${dx*.3}px)`},{passive:true});n.addEventListener('touchend',()=>{n.style.transform='';const id=+n.dataset.id;if(dx<-80)tglD(id);else if(dx>80){bId=id;$('blInp').value='';$('bMdl').classList.add('op')}})});
+  renderFlts();updateSts();fillDD()
 }
 
 function tkEl(t,isDT=false,isArch=false){
   const days=t.due?dB(t.due):null;let dc='',dt='';
-  if(t.due&&!t.done){if(days<0){dc='ov';dt=Math.abs(days)+'D OVERDUE';}else if(days===0){dc='tod';dt='TODAY';}else if(days===1){dc='tmr';dt='TOMORROW';}else dt=fD(t.due);}else if(t.due)dt=fD(t.due);
-  const pc=gpc(t.project);const prc=t.person?gc(PP,t.person):null;const pac=t.partner?gc(PA,t.partner):null;
+  if(t.due&&!t.done){if(days<0){dc='ov';dt=Math.abs(days)+'D OVERDUE'}else if(days===0){dc='tod';dt='TODAY'}else if(days===1){dc='tmr';dt='TOMORROW'}else dt=fD(t.due)}else if(t.due)dt=fD(t.due);
+  const pc=gpc(t.project),prc=t.person?gc(PP,t.person):null,pac=t.partner?gc(PA,t.partner):null;
   const cls=['tsk',isDT?'struck':'',t.blocked?'blk':''].filter(Boolean).join(' ');
-  return `<div class="${cls}" data-id="${t.id}">
-    <div class="tc" data-id="${t.id}">${t.done?'✓':''}</div>
-    <div class="tp p${t.priority}"></div>
-    <div class="tb">
-      <div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.6">[${pc.code}]</span> `:''}${t.name}</div>
-      <div class="tm">${t.person?tg(t.person,prc):''}${t.partner&&pac?tg(t.partner,pac):''}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}</div>
-    </div>
-    <div class="tr">${t.due?`<div class="td ${dc}">${dt}</div>`:''}${!isArch?`<button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div>
-  </div>`;
+  const ni=t.notes?`<span class="note-ic" data-id="${t.id}" title="${t.notes.replace(/"/g,'&quot;').substring(0,60)}">📝</span>`:'';
+  return`<div class="${cls}" data-id="${t.id}"><div class="tc" data-id="${t.id}">${t.done?'✓':''}</div><div class="tp p${t.priority}"></div><div class="tb"><div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.5;font-size:0.85em">${pc.code}</span> `:''}${t.name}</div><div class="tm">${t.person?tg(t.person,prc):''}${t.partner&&pac?tg(t.partner,pac):''}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}${ni}</div></div><div class="tr">${t.due?`<div class="td ${dc}">${dt}</div>`:''}<div class="tact">${!isArch?`<button class="tedb" data-id="${t.id}">✎</button><button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div></div></div>`
 }
 
-function tglDone(id){
-  const t=D.tasks.find(x=>x.id===id);if(!t)return;
-  t.done=!t.done;t.doneDate=t.done?td():null;
-  if(t.done){t.blocked=false;t.blockedBy=null;D.monthly[D.monthly.length-1].c++;toast('✓ COMPLETED');}
-  else{D.monthly[D.monthly.length-1].c=Math.max(0,D.monthly[D.monthly.length-1].c-1);toast('REOPENED','gld');}
-  renderT();
-}
+function tglD(id){const t=D.tasks.find(x=>x.id===id);if(!t)return;pH(t.done?'reopen':'complete');t.done=!t.done;t.doneDate=t.done?td():null;t.completedAt=t.done?nowI():null;
+  if(t.done){t.blocked=false;t.blockedBy=null;D.monthly[D.monthly.length-1].c++;playSuccessSound();toast('✓ COMPLETED');setTimeout(()=>{const el=document.querySelector(`.tsk[data-id="${id}"]`);if(el)el.classList.add('shimmer')},50)}
+  else{D.monthly[D.monthly.length-1].c=Math.max(0,D.monthly[D.monthly.length-1].c-1);toast('REOPENED','gld')}renderT()}
 
-function renderFlts(){
-  const fb=$('tFlts');fb.innerHTML='';const op=D.tasks.filter(t=>!t.done);
+function renderFlts(){const fb=$('tFlts');fb.innerHTML='';const op=D.tasks.filter(t=>!t.done);
   const fs=[{k:'all',l:'ALL',n:D.tasks.length,cl:''},{k:'today',l:'TODAY+OVERDUE',n:op.filter(t=>t.due&&dB(t.due)<=0).length,cl:'tf'},{k:'blocked',l:'BLOCKED',n:op.filter(t=>t.blocked).length,cl:'bf'}];
-  [...new Set(D.tasks.map(t=>t.project).filter(Boolean))].forEach(p=>{const pc=gpc(p);fs.push({k:p,l:pc.code,n:op.filter(t=>t.project===p).length,cl:''});});
-  fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT();};fb.appendChild(b);});
-}
+  [...new Set(D.tasks.map(t=>t.project).filter(Boolean))].forEach(p=>{const pc=gpc(p);fs.push({k:p,l:pc.code,n:op.filter(t=>t.project===p).length,cl:''})});
+  fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT()};fb.appendChild(b)});
+  const sb=document.createElement('button');sb.className='sort-tgl';sb.textContent=skipSort?'↕ MANUAL':(sortDue?'↕ DUE DATE':'↕ ADDED');sb.onclick=()=>{skipSort=!skipSort;if(skipSort){sortDue=false};renderT()};fb.appendChild(sb)}
 
-function updateSts(){
-  const o=D.tasks.filter(t=>!t.done);
-  $('sO').textContent=o.length;$('sB').textContent=o.filter(t=>t.blocked).length;
-  $('sD').textContent=D.tasks.filter(t=>t.done).length;$('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length;
-}
+function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.length;$('sB').textContent=o.filter(t=>t.blocked).length;$('sD').textContent=D.tasks.filter(t=>t.done).length;$('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length}
 
-function fillDD(){
-  ['fP','fdP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);});
-  const ps=$('fPe');if(ps){ps.innerHTML='<option value="">—</option>';D.people.forEach(p=>ps.innerHTML+=`<option value="${p.code}">${p.code} — ${p.name}</option>`);}
-  ['fPa','fdPa'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';Object.keys(PA).forEach(k=>s.innerHTML+=`<option value="${k}">${k}</option>`);});
-}
+function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`)})}
 
 // Task form
-$('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();$('fN').focus();}};
+$('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open'))$('fN').focus()};
 $('cTask').onclick=()=>$('tFrm').classList.remove('open');
-$('sTask').onclick=()=>{
-  const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return;}
-  const bl=$('fBl').value.trim().toUpperCase();const maxO=D.tasks.length?Math.max(...D.tasks.map(t=>t.order)):0;
-  D.tasks.push({id:D.nid++,name:n,project:$('fP').value,person:$('fPe').value,partner:$('fPa').value,priority:+$('fPr').value,due:$('fDu').value||null,done:false,doneDate:null,blocked:!!bl,blockedBy:bl||null,order:maxO+1});
-  ['fN','fBl','fNo'].forEach(i=>$(i).value='');$('fPr').value='3';
-  toast('TASK CREATED','gld');$('tFrm').classList.remove('open');renderT();
-};
+$('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mx=D.tasks.length?Math.max(...D.tasks.map(t=>t.order)):0;
+  D.tasks.push({id:D.nid++,name:n,project:$('fP').value,person:$('fPe').value.trim().toUpperCase(),partner:$('fPa').value.trim().toUpperCase(),priority:+$('fPr').value,due:$('fDu').value||null,done:false,doneDate:null,blocked:!!bl,blockedBy:bl||null,order:mx+1,notes:$('fNo').value.trim(),createdAt:nowI(),completedAt:null});
+  ['fN','fBl','fNo','fPe','fPa'].forEach(i=>$(i).value='');$('fPr').value='3';$('fDu').value='';toast('TASK CREATED','gld');$('tFrm').classList.remove('open');renderT()};
 
-// Completed
-$('cTgl').onclick=()=>{$('cList').classList.toggle('op');document.querySelector('.ctgl .ch').classList.toggle('op');};
-$('edBtn').onclick=()=>{
-  const done=D.tasks.filter(t=>t.done);if(!done.length){toast('NO TASKS TO ARCHIVE','rd');return;}
-  D.completed.push(...done);D.tasks=D.tasks.filter(t=>!t.done);D.tasks.forEach((t,i)=>t.order=i);
-  toast(`☀ ${done.length} TASKS ARCHIVED`);renderT();
-};
+$('cTgl').onclick=()=>{$('cList').classList.toggle('op');document.querySelector('.ctgl .ch').classList.toggle('op')};
+$('edBtn').onclick=()=>{const d=D.tasks.filter(t=>t.done);if(!d.length){toast('NO TASKS','rd');return}pH('end day');D.completed.push(...d);D.tasks=D.tasks.filter(t=>!t.done);D.tasks.forEach((t,i)=>t.order=i);toast(`☀ ${d.length} ARCHIVED`);renderT()};
+$('cBl').onclick=()=>{$('bMdl').classList.remove('op');bId=null};
+$('cfBl').onclick=()=>{if(bId===null)return;pH('block');const t=D.tasks.find(x=>x.id===bId);if(t){t.blocked=true;t.blockedBy=$('blInp').value.trim().toUpperCase()||'?';toast('🔒 BLOCKED','rd')}$('bMdl').classList.remove('op');bId=null;renderT()};
 
-// Block
-$('cBl').onclick=()=>{$('bMdl').classList.remove('op');bId=null;};
-$('cfBl').onclick=()=>{if(bId===null)return;const t=D.tasks.find(x=>x.id===bId);if(t){t.blocked=true;t.blockedBy=$('blInp').value.trim().toUpperCase()||'?';toast('🔒 BLOCKED','rd');}$('bMdl').classList.remove('op');bId=null;renderT();};
+/* ═══════ EDIT TASK ═══════ */
+let eTid=null;
+function openET(id){const t=D.tasks.find(x=>x.id===id)||D.completed.find(x=>x.id===id);if(!t)return;eTid=id;$('eN').value=t.name;$('ePe').value=t.person||'';$('ePa').value=t.partner||'';$('ePr').value=t.priority;$('eDu').value=t.due||'';$('eNo').value=t.notes||'';fillDD();if(t.project)$('eP').value=t.project;$('eMdl').classList.add('op');$('eN').focus()}
+$('eTC').onclick=()=>{$('eMdl').classList.remove('op');eTid=null};
+$('eTS').onclick=()=>{if(eTid===null)return;const t=D.tasks.find(x=>x.id===eTid)||D.completed.find(x=>x.id===eTid);if(!t)return;pH('edit task');t.name=$('eN').value.trim().toUpperCase();t.project=$('eP').value;t.person=$('ePe').value.trim().toUpperCase();t.partner=$('ePa').value.trim().toUpperCase();t.priority=+$('ePr').value;t.due=$('eDu').value||null;t.notes=$('eNo').value.trim();toast('UPDATED','gld');$('eMdl').classList.remove('op');eTid=null;renderT()};
+$('eTDel').onclick=()=>{if(eTid===null)return;pH('delete task');D.tasks=D.tasks.filter(t=>t.id!==eTid);D.completed=D.completed.filter(t=>t.id!==eTid);toast('DELETED','rd');$('eMdl').classList.remove('op');eTid=null;renderT()};
 
-// ═══════════════════════════════════
-// DEADLINES
-// ═══════════════════════════════════
-
+/* ═══════════════════════════════════════════════════════════════
+   DEADLINES
+   ═══════════════════════════════════════════════════════════════ */
 function renderDL(){
   const el=$('dlG');el.innerHTML='';
   [...D.deadlines].sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
-    const dt=new Date(d.date),now=new Date(),diff=dt-now;
-    const days=Math.floor(diff/864e5),hrs=Math.floor((diff%864e5)/36e5),mins=Math.floor((diff%36e5)/6e4),secs=Math.floor((diff%6e4)/1e3);
-    const past=diff<0;let urg=past?'past':days<=3?'urg':days<=7?'soon':'ok';
-    const pc=gpc(d.project);const pac=d.partner?gc(PA,d.partner):null;
+    const dt=new Date(d.date),now=new Date(),diff=dt-now,past=diff<0;
+    let urg=past?'past':Math.floor(diff/864e5)<=3?'urg':Math.floor(diff/864e5)<=7?'soon':'ok';
+    const pc=gpc(d.project),pac=d.partner?gc(PA,d.partner):null;
     const fdt=dt.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();
-    el.innerHTML+=`<div class="dlc ${urg}"><div class="dltp"><div class="dlt">${d.title}</div><div class="dldb">${fdt}</div></div>
-      <div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}</div>
-      <div class="dltm ${urg}" id="dl-${d.id}">${past?'PASSED':`${days}D ${hrs}H ${mins}M ${secs}S`}</div></div>`;
-  });
+    const tStr=d.allDay?'ALL DAY':dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    let tmr='';
+    if(past&&d.keepCount){const a=Math.abs(Math.floor(diff/864e5));tmr=`${a}D AGO`}
+    else if(past)tmr='PASSED';
+    else{const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);tmr=`${dy}D ${hr}H ${mn}M ${sc}S`}
+    el.innerHTML+=`<div class="dlc ${urg}" data-dlid="${d.id}"><div class="dl-tc"><div class="dltm ${urg}" id="dl-${d.id}">${tmr}</div><div class="dltm-sub">${tStr}</div></div><div class="dl-info"><div class="dlt">${d.title}</div><div class="dldb">${fdt}</div><div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}<span class="tag" style="background:${d.type==='hard'?'var(--red-d)':'var(--orange-d)'};color:${d.type==='hard'?'var(--red)':'var(--orange)'}">${d.type.toUpperCase()}</span></div></div><div class="dl-acts"><button class="dl-eb" data-dlid="${d.id}">✎</button><button class="dl-db" data-dlid="${d.id}">✕</button></div></div>`});
+  el.querySelectorAll('.dl-eb').forEach(b=>b.onclick=()=>openEDL(+b.dataset.dlid));
+  el.querySelectorAll('.dl-db').forEach(b=>b.onclick=()=>{pH('del deadline');D.deadlines=D.deadlines.filter(d=>d.id!==+b.dataset.dlid);toast('DELETED','rd');renderDL()})
 }
 
-setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;const diff=new Date(d.date)-new Date();if(diff<0){el.textContent='PASSED';el.className='dltm past';return;}const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);el.textContent=`${dy}D ${hr}H ${mn}M ${sc}S`;});},1000);
+setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;const diff=new Date(d.date)-new Date();if(diff<0){if(d.keepCount){const a=Math.abs(Math.floor(diff/864e5));el.textContent=`${a}D AGO`;el.className='dltm past'}else{el.textContent='PASSED';el.className='dltm past'}return}const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);el.textContent=`${dy}D ${hr}H ${mn}M ${sc}S`})},1e3);
 
-$('ndTgl').onclick=()=>{const f=$('dFrm');f.classList.toggle('open');if(f.classList.contains('open'))$('fdT').focus();};
+$('ndTgl').onclick=()=>{const f=$('dFrm');f.classList.toggle('open');if(f.classList.contains('open'))$('fdT').focus()};
 $('cDl').onclick=()=>$('dFrm').classList.remove('open');
-$('sDl').onclick=()=>{
-  const t=$('fdT').value.trim().toUpperCase();if(!t){toast('ENTER DESCRIPTION','rd');return;}
-  D.deadlines.push({id:D.dlid++,title:t,project:$('fdP').value,partner:$('fdPa').value,date:$('fdD').value||new Date().toISOString().slice(0,16),type:$('fdTy').value});
-  ['fdT','fdD'].forEach(i=>$(i).value='');toast('DEADLINE ADDED','gld');$('dFrm').classList.remove('open');renderDL();
-};
+$('fdNow').onclick=()=>{const n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());$('fdD').value=n.toISOString().slice(0,16)};
+$('sDl').onclick=()=>{const t=$('fdT').value.trim().toUpperCase();if(!t){toast('ENTER DESCRIPTION','rd');return}pH('add deadline');D.deadlines.push({id:D.dlid++,title:t,project:$('fdP').value,partner:$('fdPa').value.trim().toUpperCase(),date:$('fdD').value||new Date().toISOString().slice(0,16),type:$('fdTy').value,allDay:$('fdAD').checked,keepCount:$('fdKC').checked});['fdT','fdD','fdPa'].forEach(i=>$(i).value='');$('fdAD').checked=false;$('fdKC').checked=false;toast('DEADLINE ADDED','gld');$('dFrm').classList.remove('open');renderDL()};
 
-// ═══════════════════════════════════
-// PROJECTS
-// ═══════════════════════════════════
+/* Edit Deadline */
+let eDLid=null;
+function openEDL(id){const d=D.deadlines.find(x=>x.id===id);if(!d)return;eDLid=id;$('edT').value=d.title;$('edD').value=d.date;$('edTy').value=d.type;$('edAD').checked=!!d.allDay;$('edKC').checked=!!d.keepCount;$('edPa').value=d.partner||'';fillDD();if(d.project)$('edP').value=d.project;$('edMdl').classList.add('op')}
+$('edDC').onclick=()=>{$('edMdl').classList.remove('op');eDLid=null};
+$('edDS').onclick=()=>{if(eDLid===null)return;const d=D.deadlines.find(x=>x.id===eDLid);if(!d)return;pH('edit deadline');d.title=$('edT').value.trim().toUpperCase();d.project=$('edP').value;d.partner=$('edPa').value.trim().toUpperCase();d.date=$('edD').value;d.type=$('edTy').value;d.allDay=$('edAD').checked;d.keepCount=$('edKC').checked;toast('UPDATED','gld');$('edMdl').classList.remove('op');eDLid=null;renderDL()};
+$('edDDel').onclick=()=>{if(eDLid===null)return;pH('delete deadline');D.deadlines=D.deadlines.filter(d=>d.id!==eDLid);toast('DELETED','rd');$('edMdl').classList.remove('op');eDLid=null;renderDL()};
 
+/* ═══════════════════════════════════════════════════════════════
+   PROJECTS
+   ═══════════════════════════════════════════════════════════════ */
 function renderProj(){
-  const el=$('pSecs');el.innerHTML='';
-  const groups={};D.projects.forEach(p=>{(groups[p.status]=groups[p.status]||[]).push(p);});
-  const order=['delivery','funding','post','dev','idea'];
-  const labels={delivery:'FINAL DELIVERY',funding:'FUNDING',post:'POST-PRODUCTION',dev:'DEVELOPMENT',idea:'IDEA'};
-  order.forEach(s=>{
-    if(!groups[s])return;
-    el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch op">▶</span><h3>${labels[s]} (${groups[s].length})</h3></div>
-      <div class="psb op" id="ps-${s}"><div class="pgrid">${groups[s].map(p=>{
-        const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length;const pc=gpc(p.title);
-        return `<div class="pc"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${pc.c}"></div>
-          <div class="pi"><div class="pn" style="color:${pc.c}">[${pc.code}] ${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div>
-          <div class="pd">dir. ${p.director} · ${p.type}${tc?' · '+tc+' task'+(tc>1?'s':''):''}</div></div>
-          <div class="pbs"><span class="sb ${s}">${labels[s]}</span><button class="pmove" data-proj="${p.title}" title="Move to CLOSED">→ CLOSE</button></div></div>`;
-      }).join('')}</div></div></div>`;
-  });
-  // CLOSED
-  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div>
-    <div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map(p=>`<div class="pc arch"><div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--t3)"></div>
-      <div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div></div></div>`).join('')}</div></div></div>`;
-
-  document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op');});
-  document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{
-    e.stopPropagation();const title=b.dataset.proj;const idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;
-    const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director});D.projects.splice(idx,1);
-    toast(`${title} → CLOSED`,'gld');renderProj();
-  });
+  const el=$('pSecs');el.innerHTML='';const groups={};D.projects.forEach(p=>{(groups[p.status]=groups[p.status]||[]).push(p)});
+  STATUSES.filter(s=>s!=='closed').forEach(s=>{if(!groups[s])return;
+    el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch op">▶</span><h3>${SL[s]} (${groups[s].length})</h3></div><div class="psb op" id="ps-${s}"><div class="pgrid">${groups[s].map(p=>{
+      const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length,pc=gpc(p.title);
+      const posterUrl=POSTERS[p.title]||'';
+      const posterHtml=posterUrl?`<img src="${posterUrl}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`:`<div class="poster-ph" style="color:${pc.c}">🎬<br>${pc.code}</div>`;
+      return`<div class="pc"><div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director} · ${p.type}${tc?' · '+tc+' task'+(tc>1?'s':''):''}</div><div class="pbs"><select class="pstdd" data-proj="${p.title}">${STATUSES.map(st=>`<option value="${st}"${st===p.status?' selected':''}>${SL[st]}</option>`).join('')}</select><button class="pmove" data-proj="${p.title}">Move →</button></div></div></div>`}).join('')}</div></div></div>`});
+  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map(p=>`<div class="pc arch"><div class="poster-w"><div class="poster-ph">🎬<br>${p.title.substring(0,6)}</div></div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div></div></div>`).join('')}</div></div></div>`;
+  document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
+  document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
+  document.querySelectorAll('.pstdd').forEach(dd=>dd.onchange=()=>{const proj=D.projects.find(p=>p.title===dd.dataset.proj);if(!proj)return;pH('status');proj.status=dd.value;toast(proj.title+' → '+SL[dd.value],'gld');renderProj()})
 }
 
-// ═══════════════════════════════════
-// CHARTS
-// ═══════════════════════════════════
+/* ═══════════════════════════════════════════════════════════════
+   TREND — CASABLANCA HEATMAPS
+   ═══════════════════════════════════════════════════════════════ */
+function renderTrend(){hmHourly();hmWeekly();hmMonthly();renderTC()}
 
-function drawLn(){
-  const c=$('lnC');if(!c)return;const x=c.getContext('2d');const r=c.parentElement.getBoundingClientRect();
-  c.width=r.width*2;c.height=r.height*2;c.style.width=r.width+'px';c.style.height=r.height+'px';x.scale(2,2);
-  const w=r.width,h=r.height,d=D.monthly,mx=Math.max(...d.map(v=>v.c),1)*1.3;
-  const pL=42,pR=16,pT=20,pB=36,cW=w-pL-pR,cH=h-pT-pB;
-  x.clearRect(0,0,w,h);
-  for(let i=0;i<=4;i++){const y=pT+(cH/4)*i;x.strokeStyle='#1e1e28';x.lineWidth=.5;x.beginPath();x.moveTo(pL,y);x.lineTo(w-pR,y);x.stroke();x.fillStyle='#5c5a6e';x.font='500 10px JetBrains Mono';x.textAlign='right';x.fillText(Math.round(mx-(mx/4)*i),pL-6,y+3);}
-  const pts=d.map((v,i)=>({x:pL+(i/Math.max(d.length-1,1))*cW,y:pT+cH-(v.c/mx)*cH}));
-  const g=x.createLinearGradient(0,pT,0,pT+cH);g.addColorStop(0,'rgba(212,175,55,.18)');g.addColorStop(1,'rgba(212,175,55,0)');
-  x.beginPath();x.moveTo(pts[0].x,pT+cH);pts.forEach(p=>x.lineTo(p.x,p.y));x.lineTo(pts[pts.length-1].x,pT+cH);x.fillStyle=g;x.fill();
-  x.beginPath();pts.forEach((p,i)=>i===0?x.moveTo(p.x,p.y):x.lineTo(p.x,p.y));x.strokeStyle='#d4af37';x.lineWidth=2.5;x.lineJoin='round';x.stroke();
-  pts.forEach((p,i)=>{x.beginPath();x.arc(p.x,p.y,5,0,Math.PI*2);x.fillStyle=i===d.length-1?'#d4af37':'#121216';x.fill();x.strokeStyle='#d4af37';x.lineWidth=2;x.stroke();x.fillStyle='#f0eeea';x.font='700 11px JetBrains Mono';x.textAlign='center';x.fillText(d[i].c,p.x,p.y-12);x.fillStyle='#5c5a6e';x.font='500 10px Outfit';x.fillText(d[i].m,p.x,pT+cH+18);});
+function goldI(v,mx){if(!v||!mx)return'var(--bg-4)';const r=Math.min(v/mx,1);return`rgba(212,175,55,${(.12+r*.78).toFixed(2)})`}
+
+function getAllDates(){const d=[];const add=(arr)=>arr.forEach(t=>{if(t.createdAt)d.push({type:'C',d:new Date(t.createdAt)});if(t.completedAt)d.push({type:'D',d:new Date(t.completedAt)})});add(D.tasks);add(D.completed);return d}
+
+function hmLeg(mx){return`<div class="hm-leg"><span>Less</span>${[0,.25,.5,.75,1].map(r=>`<span class="hm-leg-c" style="background:${r?`rgba(212,175,55,${(.12+r*.78).toFixed(2)})`:'var(--bg-4)'}"></span>`).join('')}<span>More (max ${mx})</span></div>`}
+
+function hmHourly(){
+  const p=$('hmHourly'),dates=getAllDates(),dN=['MON','TUE','WED','THU','FRI'],hrs=[];for(let h=9;h<19;h++)hrs.push(h);
+  const g={};let mx=0;dN.forEach((d,di)=>hrs.forEach(h=>{g[di+'-'+h]={C:0,D:0}}));
+  dates.forEach(d=>{const dow=d.d.getDay(),h=d.d.getHours();if(dow>=1&&dow<=5&&h>=9&&h<19){const k=(dow-1)+'-'+h;if(g[k]){g[k][d.type]++;const t=g[k].C+g[k].D;if(t>mx)mx=t}}});
+  let h=`<div class="trnd-t">Hourly Activity</div><div class="trnd-sub">Work Hours · Casablanca Time</div><div style="overflow-x:auto"><div style="display:inline-block;min-width:420px"><div class="hm-cols">${hrs.map(h=>`<div class="hm-col">${h}h</div>`).join('')}</div>`;
+  dN.forEach((d,di)=>{h+=`<div class="hm-row"><div class="hm-lb">${d}</div>`;hrs.forEach(hr=>{const c=g[di+'-'+hr];const t=c.C+c.D;h+=`<div class="hm-cell" style="background:${goldI(t,mx||1)}" data-tip="${d} ${hr}:00 — C:${c.C} D:${c.D}"></div>`});h+=`</div>`});
+  h+=`</div></div>${hmLeg(mx)}`;p.innerHTML=h
 }
 
-function drawBr(){
-  const c=$('brC');if(!c)return;const x=c.getContext('2d');const r=c.parentElement.getBoundingClientRect();
-  c.width=r.width*2;c.height=r.height*2;c.style.width=r.width+'px';c.style.height=r.height+'px';x.scale(2,2);
-  const w=r.width,h=r.height;const entries=Object.entries(D.projDone).sort((a,b)=>b[1]-a[1]);
-  const mx=Math.max(...entries.map(e=>e[1]),1)*1.2;const pL=10,pR=10,pT=10;
-  const barH=Math.min(28,(h-pT-entries.length*4)/entries.length);const cW=w-pL-pR-120;
-  x.clearRect(0,0,w,h);
-  entries.forEach(([name,count],i)=>{
-    const y=pT+i*(barH+6);const bw=(count/mx)*cW;const col=gpc(name);
-    x.fillStyle=col.b;x.beginPath();const rd=4;
-    x.moveTo(pL+120+rd,y);x.lineTo(pL+120+bw-rd,y);x.quadraticCurveTo(pL+120+bw,y,pL+120+bw,y+rd);
-    x.lineTo(pL+120+bw,y+barH-rd);x.quadraticCurveTo(pL+120+bw,y+barH,pL+120+bw-rd,y+barH);
-    x.lineTo(pL+120+rd,y+barH);x.quadraticCurveTo(pL+120,y+barH,pL+120,y+barH-rd);
-    x.lineTo(pL+120,y+rd);x.quadraticCurveTo(pL+120,y,pL+120+rd,y);x.fill();
-    x.fillStyle=col.c+'44';x.beginPath();
-    x.moveTo(pL+120+rd,y);x.lineTo(pL+120+bw-rd,y);x.quadraticCurveTo(pL+120+bw,y,pL+120+bw,y+rd);
-    x.lineTo(pL+120+bw,y+barH-rd);x.quadraticCurveTo(pL+120+bw,y+barH,pL+120+bw-rd,y+barH);
-    x.lineTo(pL+120+rd,y+barH);x.quadraticCurveTo(pL+120,y+barH,pL+120,y+barH-rd);
-    x.lineTo(pL+120,y+rd);x.quadraticCurveTo(pL+120,y,pL+120+rd,y);x.fill();
-    x.fillStyle=col.c;x.font='600 10px Outfit';x.textAlign='right';
-    const short=name.length>16?name.substring(0,16)+'…':name;x.fillText(short,pL+114,y+barH/2+3);
-    x.fillStyle='#f0eeea';x.font='700 11px JetBrains Mono';x.textAlign='left';x.fillText(count,pL+120+bw+8,y+barH/2+4);
-  });
+function hmWeekly(){
+  const p=$('hmWeekly'),dates=getAllDates(),dN=['MON','TUE','WED','THU','FRI'],W=12,now=new Date();
+  const g={};let mx=0;for(let w=0;w<W;w++)for(let d=0;d<5;d++)g[w+'-'+d]={C:0,D:0};
+  dates.forEach(d=>{const dow=d.d.getDay();if(dow<1||dow>5)return;const wk=Math.floor((now-d.d)/864e5/7);if(wk>=0&&wk<W){const k=(W-1-wk)+'-'+(dow-1);if(g[k]){g[k][d.type]++;const t=g[k].C+g[k].D;if(t>mx)mx=t}}});
+  let h=`<div class="trnd-t">Weekly Activity</div><div class="trnd-sub">Mon–Fri · Last ${W} Weeks</div><div style="overflow-x:auto"><div style="display:inline-block;min-width:420px"><div class="hm-cols">${Array.from({length:W},(_,i)=>`<div class="hm-col">W${i+1}</div>`).join('')}</div>`;
+  dN.forEach((d,di)=>{h+=`<div class="hm-row"><div class="hm-lb">${d}</div>`;for(let w=0;w<W;w++){const c=g[w+'-'+di]||{C:0,D:0};const t=c.C+c.D;h+=`<div class="hm-cell" style="background:${goldI(t,mx||1)}" data-tip="W${w+1} ${d} — C:${c.C} D:${c.D}"></div>`}h+=`</div>`});
+  h+=`</div></div>${hmLeg(mx)}`;p.innerHTML=h
 }
 
-function renderTC(){
-  const counts=D.monthly.map(d=>d.c);const bi=counts.indexOf(Math.max(...counts));const total=counts.reduce((a,b)=>a+b,0)+D.completed.length;
-  $('tcB').textContent=D.monthly[bi].c;$('tcBs').textContent=D.monthly[bi].m;
-  $('tcA').textContent=(counts.reduce((a,b)=>a+b,0)/counts.length).toFixed(1);$('tcT').textContent=total;
+function hmMonthly(){
+  const p=$('hmMonthly'),dates=getAllDates(),mN=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+  const now=new Date(),cY=now.getFullYear();const yrs=[cY-1,cY];
+  const g={};let mx=0;yrs.forEach(y=>mN.forEach((m,mi)=>{g[y+'-'+mi]={C:0,D:0}}));
+  dates.forEach(d=>{const y=d.d.getFullYear(),m=d.d.getMonth();if(g[y+'-'+(m-1)]){g[y+'-'+(m-1)][d.type]++;const t=g[y+'-'+(m-1)].C+g[y+'-'+(m-1)].D;if(t>mx)mx=t}});
+  let h=`<div class="trnd-t">Monthly Activity</div><div class="trnd-sub">Created & Completed · ${yrs.join(' – ')}</div><div style="overflow-x:auto"><div style="display:inline-block;min-width:420px"><div class="hm-cols">${mN.map(m=>`<div class="hm-col">${m}</div>`).join('')}</div>`;
+  yrs.forEach(y=>{h+=`<div class="hm-row"><div class="hm-lb">${y}</div>`;mN.forEach((m,mi)=>{const c=g[y+'-'+mi]||{C:0,D:0};const t=c.C+c.D;h+=`<div class="hm-cell" style="background:${goldI(t,mx||1)}" data-tip="${m} ${y} — C:${c.C} D:${c.D}"></div>`});h+=`</div>`});
+  h+=`</div></div>${hmLeg(mx)}`;p.innerHTML=h
 }
 
-// ═══════════════════════════════════
-// SETTINGS
-// ═══════════════════════════════════
+function renderTC(){const c=D.monthly.map(d=>d.c),bi=c.indexOf(Math.max(...c)),total=c.reduce((a,b)=>a+b,0)+D.completed.length;$('tcB').textContent=D.monthly[bi].c;$('tcBs').textContent=D.monthly[bi].m;$('tcA').textContent=(c.reduce((a,b)=>a+b,0)/c.length).toFixed(1);$('tcT').textContent=total}
 
-$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa();renderPrjSet();};
-const closeSt=()=>{$('sOv2').classList.remove('op');$('sDr').classList.remove('op');};
+/* ═══════════════════════════════════════════════════════════════
+   SETTINGS
+   ═══════════════════════════════════════════════════════════════ */
+$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa();renderPrjSet()};
+const closeSt=()=>{$('sOv2').classList.remove('op');$('sDr').classList.remove('op')};
 $('clS').onclick=closeSt;$('sOv2').onclick=closeSt;
 
-// People
-function renderPpl(){
-  const el=$('pList');el.innerHTML='';
-  D.people.forEach((p,i)=>{const c=gc(PP,p.code);el.innerHTML+=`<div class="prow"><span class="pcode" style="background:${c.b};color:${c.c}">${p.code}</span><span class="pnm">${p.name}</span><span class="prl">${p.role}</span><button class="pdel" data-i="${i}" data-type="ppl">✕</button></div>`;});
-  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{D.people.splice(+b.dataset.i,1);renderPpl();fillDD();toast('REMOVED','rd');});
-}
+/* People */
+let epIdx=null;
+function renderPpl(){const el=$('pList');el.innerHTML='';D.people.forEach((p,i)=>{const c=gc(PP,p.code);el.innerHTML+=`<div class="prow"><span class="pcode" style="background:${c.b};color:${c.c}">${p.code}</span><span class="pnm">${p.name}</span><span class="prl">${p.role}</span><button class="pedit" data-i="${i}">✎</button><button class="pdel" data-i="${i}">✕</button></div>`});
+  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del person');D.people.splice(+b.dataset.i,1);renderPpl();fillDD();toast('REMOVED','rd')});
+  el.querySelectorAll('.pedit').forEach(b=>b.onclick=()=>{epIdx=+b.dataset.i;const p=D.people[epIdx];$('epCd').value=p.code;$('epNm').value=p.name;$('epRl').value=p.role;$('epMdl').classList.add('op')})}
 
-$('aPpl').onclick=()=>{
-  const c=$('npC').value.trim().toUpperCase(),n=$('npN').value.trim(),r=$('npR').value.trim();
-  if(!c||!n){toast('CODE+NAME REQUIRED','rd');return;}
-  D.people.push({code:c,name:n,role:r});PP[c]={c:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),b:'rgba(128,128,128,.13)'};
-  ['npC','npN','npR'].forEach(i=>$(i).value='');renderPpl();fillDD();toast('ADDED','gld');
-};
+$('aPpl').onclick=()=>{const c=$('npC').value.trim().toUpperCase(),n=$('npN').value.trim(),r=$('npR').value.trim();if(!c||!n){toast('CODE+NAME REQUIRED','rd');return}pH('add person');D.people.push({code:c,name:n,role:r});PP[c]={c:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),b:'rgba(128,128,128,.13)'};['npC','npN','npR'].forEach(i=>$(i).value='');renderPpl();fillDD();toast('ADDED','gld')};
+$('epCn').onclick=()=>{$('epMdl').classList.remove('op');epIdx=null};
+$('epSv').onclick=()=>{if(epIdx===null)return;pH('edit person');const old=D.people[epIdx].code;D.people[epIdx]={code:$('epCd').value.trim().toUpperCase(),name:$('epNm').value.trim(),role:$('epRl').value.trim()};const nc=D.people[epIdx].code;if(old!==nc&&PP[old]){PP[nc]=PP[old];delete PP[old]}toast('UPDATED','gld');$('epMdl').classList.remove('op');epIdx=null;renderPpl();fillDD()};
 
-// Partners
-function renderPa(){
-  const el=$('paList');el.innerHTML='';
-  Object.entries(PA).forEach(([k,v],i)=>{
-    el.innerHTML+=`<div class="prow"><span class="pcode" style="background:${v.b};color:${v.c}">${k}</span><span class="pnm" style="flex:1"></span><button class="pdel" data-k="${k}" data-type="pa">✕</button></div>`;
-  });
-  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{delete PA[b.dataset.k];renderPa();fillDD();toast('REMOVED','rd');});
-}
+/* Partners */
+let eprKey=null;
+function renderPa(){const el=$('paList');el.innerHTML='';Object.entries(PA).forEach(([k,v])=>{el.innerHTML+=`<div class="prow"><span class="pcode" style="background:${v.b};color:${v.c}">${k}</span><span class="pnm" style="flex:1"></span><button class="pedit" data-k="${k}">✎</button><button class="pdel" data-k="${k}">✕</button></div>`});
+  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del partner');delete PA[b.dataset.k];renderPa();fillDD();toast('REMOVED','rd')});
+  el.querySelectorAll('.pedit').forEach(b=>b.onclick=()=>{eprKey=b.dataset.k;const v=PA[eprKey];$('eprNm').value=eprKey;$('eprFg').value=v.c;$('eprBg').value=v.b.includes('rgba')?v.c:'#333333';$('eprMdl').classList.add('op')})}
 
-$('aPa').onclick=()=>{
-  const c=$('npaC').value.trim().toUpperCase(),n=$('npaN').value.trim(),bg=$('npaBg').value,fg=$('npaFg').value;
-  const key=c||n;if(!key){toast('CODE OR NAME REQUIRED','rd');return;}
-  PA[key.toUpperCase()]={c:fg,b:hexToRgba(fg,0.15)};
-  ['npaC','npaN'].forEach(i=>$(i).value='');renderPa();fillDD();toast('PARTNER ADDED','gld');
-};
+$('aPa').onclick=()=>{const c=$('npaC').value.trim().toUpperCase(),n=$('npaN').value.trim(),fg=$('npaFg').value;const key=c||n;if(!key){toast('CODE OR NAME REQUIRED','rd');return}pH('add partner');PA[key.toUpperCase()]={c:fg,b:hexToRgba(fg,.15)};['npaC','npaN'].forEach(i=>$(i).value='');renderPa();fillDD();toast('PARTNER ADDED','gld')};
+$('eprCn').onclick=()=>{$('eprMdl').classList.remove('op');eprKey=null};
+$('eprSv').onclick=()=>{if(!eprKey)return;pH('edit partner');const nn=$('eprNm').value.trim().toUpperCase(),fg=$('eprFg').value;if(nn!==eprKey){PA[nn]=PA[eprKey];delete PA[eprKey]}PA[nn]={c:fg,b:hexToRgba(fg,.15)};toast('UPDATED','gld');$('eprMdl').classList.remove('op');eprKey=null;renderPa();fillDD()};
 
-// Projects (in settings)
-function renderPrjSet(){
-  const el=$('prjList');el.innerHTML='';
-  D.projects.forEach((p,i)=>{
-    const pc=gpc(p.title);
-    el.innerHTML+=`<div class="prow"><span class="tag" style="background:${pc.b};color:${pc.c}">[${pc.code}] ${p.title}</span><span class="prl">${p.status}</span><button class="pdel" data-i="${i}" data-type="prj">✕</button></div>`;
-  });
-  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{const title=D.projects[+b.dataset.i].title;D.projects.splice(+b.dataset.i,1);delete PC[title];renderPrjSet();fillDD();toast('PROJECT REMOVED','rd');});
-}
+/* Projects (settings) */
+function renderPrjSet(){const el=$('prjList');el.innerHTML='';D.projects.forEach((p,i)=>{const pc=gpc(p.title);el.innerHTML+=`<div class="prow"><span class="tag" style="background:${pc.b};color:${pc.c}">[${pc.code}] ${p.title}</span><span class="prl">${SL[p.status]||p.status}</span><button class="pdel" data-i="${i}">✕</button></div>`});
+  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del project');const title=D.projects[+b.dataset.i].title;D.projects.splice(+b.dataset.i,1);delete PC[title];renderPrjSet();fillDD();toast('REMOVED','rd')})}
 
-$('aPrj').onclick=()=>{
-  const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),bg=$('nprBg').value,fg=$('nprFg').value;
-  if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return;}
-  PC[n]={c:fg,b:hexToRgba(fg,0.12),code:cd};
-  D.projects.push({title:n,year:new Date().getFullYear(),status:'idea',type:'Feature Film',director:'TBD'});
-  ['nprN','nprCd'].forEach(i=>$(i).value='');renderPrjSet();fillDD();toast('PROJECT ADDED','gld');
-};
+$('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value;if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:new Date().getFullYear(),status:'idea',type:'Feature Film',director:'TBD'});['nprN','nprCd'].forEach(i=>$(i).value='');renderPrjSet();fillDD();toast('PROJECT ADDED','gld')};
 
-// ═══════════════════════════════════
-// RESIZE
-// ═══════════════════════════════════
+/* ═══════ FULL RENDER ═══════ */
+function fullR(){renderT();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='deadlines')renderDL();if(v==='projects')renderProj();if(v==='trend')renderTrend()}
 
-let rT;window.addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='trend'){drawLn();drawBr();}},200);});
+/* ═══════ RESIZE ═══════ */
+let rT;window.addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='trend')renderTrend()},200)});
 
-// ═══════════════════════════════════
-// INIT
-// ═══════════════════════════════════
+/* ═══════ INIT ═══════ */
+initSug();renderLogo();renderT();
+</script>
 
-renderT();
+<script>
+/**
+ * Iframe 元素高亮注入脚本
+ * 需要在目标网站中引入此脚本来支持跨域 iframe 高亮功能
+ *
+ * 使用方法：
+ * 1. 将此脚本添加到目标网站的 HTML 中
+ * 2. 或通过浏览器扩展、用户脚本等方式注入
+ */
+
+(function () {
+  "use strict";
+
+  // 检查是否在 iframe 中
+  if (window.self === window.top) {
+    return; // 不在 iframe 中，不执行
+  }
+
+  // 检查是否已经初始化过
+  if (window.__iframeHighlightInitialized) {
+    return;
+  }
+  window.__iframeHighlightInitialized = true;
+  console.log("Iframe 高亮脚本已加载");
+
+  // 创建高亮覆盖层
+  var overlay = document.createElement("div");
+  overlay.id = "iframe-highlight-overlay";
+  overlay.style.cssText = "\n    position: fixed;\n    top: 0;\n    left: 0;\n    width: 100vw;\n    height: 100vh;\n    pointer-events: none;\n    z-index: 999999;\n    overflow: hidden;\n  ";
+
+  // 创建悬停高亮框（虚线边框）
+  var highlightBox = document.createElement("div");
+  highlightBox.id = "iframe-highlight-box";
+  highlightBox.style.cssText = "\n    position: absolute;\n    border: 2px dashed #007AFF;\n    background: rgba(0, 122, 255, 0.08);\n    pointer-events: none;\n    display: none;\n    transition: all 0.1s ease;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.8);\n    border-radius: 2px;\n  ";
+
+  // 创建选中节点的常驻高亮框（实线边框）
+  var selectedBox = document.createElement("div");
+  selectedBox.id = "iframe-selected-box";
+  selectedBox.style.cssText = "\n    position: absolute;\n    border: 2px solid #007AFF;\n    pointer-events: none;\n    display: none;\n    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.9), 0 0 8px rgba(255, 107, 53, 0.4);\n    border-radius: 2px;\n    z-index: 1000000;\n  ";
+
+  // 创建悬停标签显示
+  var tagLabel = document.createElement("div");
+  tagLabel.id = "iframe-tag-label";
+  tagLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 2px 6px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 2px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000001;\n    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);\n    font-weight: 500;\n  ";
+
+  // 创建选中节点标签
+  var selectedLabel = document.createElement("div");
+  selectedLabel.id = "iframe-selected-label";
+  selectedLabel.style.cssText = "\n    position: absolute;\n    background: #007AFF;\n    color: white;\n    padding: 3px 8px;\n    font-size: 11px;\n    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;\n    border-radius: 3px;\n    pointer-events: none;\n    display: none;\n    white-space: nowrap;\n    z-index: 1000002;\n    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);\n    font-weight: 600;\n  ";
+  overlay.appendChild(highlightBox);
+  overlay.appendChild(selectedBox);
+  overlay.appendChild(tagLabel);
+  overlay.appendChild(selectedLabel);
+  document.body.appendChild(overlay);
+
+  // 存储当前选中的元素
+  var selectedElement = null;
+  var highlightEnabled = false;
+
+  // 更新选中元素的高亮显示
+  function updateSelectedHighlight(element) {
+    console.log("updateSelectedHighlight called with:", element);
+    if (!element) {
+      selectedBox.style.display = "none";
+      selectedLabel.style.display = "none";
+      selectedElement = null;
+      console.log("Cleared selected highlight");
+      return;
+    }
+    selectedElement = element;
+    var rect = element.getBoundingClientRect();
+    console.log("Selected element rect:", rect);
+
+    // 更新选中高亮框位置
+    selectedBox.style.display = "block";
+    selectedBox.style.left = "".concat(rect.left - 2, "px");
+    selectedBox.style.top = "".concat(rect.top - 2, "px");
+    selectedBox.style.width = "".concat(rect.width + 4, "px");
+    selectedBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新选中标签位置和内容
+    selectedLabel.style.display = "block";
+    selectedLabel.textContent = "\u2713 <".concat(element.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 28;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 5) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    var labelWidth = selectedLabel.offsetWidth || 100; // 预估宽度
+    if (labelLeft + labelWidth > window.innerWidth - 10) {
+      labelLeft = window.innerWidth - labelWidth - 10;
+    }
+    selectedLabel.style.left = "".concat(Math.max(5, labelLeft), "px");
+    selectedLabel.style.top = "".concat(labelTop, "px");
+    console.log("Selected highlight positioned at:", {
+      left: selectedBox.style.left,
+      top: selectedBox.style.top,
+      width: selectedBox.style.width,
+      height: selectedBox.style.height
+    });
+  }
+  function getElementSelector(element) {
+    if (!(element instanceof Element)) throw new Error('Argument must be a DOM element');
+    var segments = [];
+    var current = element;
+    while (current !== document.documentElement) {
+      var selector = '';
+      // 优先检查唯一ID
+      if (current.id && document.querySelectorAll("#".concat(current.id)).length === 1) {
+        segments.unshift("#".concat(current.id));
+        break; // ID唯一，无需继续向上
+      }
+
+      // 生成类名选择器（取第一个有效类名）
+      var classes = Array.from(current.classList).filter(function (c) {
+        return !c.startsWith('js-');
+      });
+      var className = classes.length > 0 ? ".".concat(classes[0]) : '';
+
+      // 生成位置索引（nth-child）
+      var tag = current.tagName.toLowerCase();
+      if (!className) {
+        var siblings = Array.from(current.parentNode.children);
+        var index = siblings.findIndex(function (el) {
+          return el === current;
+        }) + 1;
+        selector = "".concat(tag, ":nth-child(").concat(index, ")");
+      } else {
+        selector = className;
+      }
+      segments.unshift(selector);
+      current = current.parentElement;
+    }
+
+    // 处理根元素
+    if (current === document.documentElement) {
+      segments.unshift('html');
+    }
+    return segments.join(' > ');
+  }
+
+  // 获取元素文本内容
+  function getElementText(element) {
+    var _element$textContent;
+    if (element.tagName === "INPUT") {
+      return element.value || element.placeholder || "";
+    }
+    if (element.tagName === "TEXTAREA") {
+      return element.value || element.placeholder || "";
+    }
+    var text = ((_element$textContent = element.textContent) === null || _element$textContent === void 0 ? void 0 : _element$textContent.trim()) || "";
+    return text.length > 50 ? text.substring(0, 50) + "..." : text;
+  }
+
+  // 获取元素属性信息
+  function getElementAttributes(element) {
+    var attrs = {};
+    for (var i = 0; i < element.attributes.length; i++) {
+      var attr = element.attributes[i];
+      attrs[attr.name] = attr.value;
+    }
+    return attrs;
+  }
+
+  // 鼠标悬停事件处理
+  function handleMouseOver(e) {
+    if (!highlightEnabled) return;
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免高亮 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 如果是已选中的元素，不显示悬停高亮
+    if (target === selectedElement) {
+      highlightBox.style.display = "none";
+      tagLabel.style.display = "none";
+      return;
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+
+    // 更新悬停高亮框位置
+    highlightBox.style.display = "block";
+    highlightBox.style.left = "".concat(rect.left - 2, "px");
+    highlightBox.style.top = "".concat(rect.top - 2, "px");
+    highlightBox.style.width = "".concat(rect.width + 4, "px");
+    highlightBox.style.height = "".concat(rect.height + 4, "px");
+
+    // 更新标签位置和内容
+    tagLabel.style.display = "block";
+    tagLabel.textContent = "<".concat(target.tagName.toLowerCase(), ">");
+
+    // 计算标签位置，确保不超出视窗
+    var labelTop = rect.top - 22;
+    var labelLeft = rect.left;
+
+    // 如果标签会超出顶部，显示在元素下方
+    if (labelTop < 0) {
+      labelTop = rect.bottom + 5;
+    }
+
+    // 如果标签会超出右侧，向左调整
+    if (labelLeft + tagLabel.offsetWidth > window.innerWidth) {
+      labelLeft = window.innerWidth - tagLabel.offsetWidth - 5;
+    }
+    tagLabel.style.left = "".concat(Math.max(0, labelLeft), "px");
+    tagLabel.style.top = "".concat(labelTop, "px");
+
+    // 发送消息到父窗口
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 鼠标离开事件处理
+  function handleMouseOut(e) {
+    if (!highlightEnabled) return;
+    var relatedTarget = e.relatedTarget;
+
+    // 如果鼠标移动到高亮相关元素上，不隐藏高亮
+    if (relatedTarget && (relatedTarget === highlightBox || relatedTarget === tagLabel || relatedTarget === overlay || relatedTarget === selectedBox || relatedTarget === selectedLabel)) {
+      return;
+    }
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-hover",
+        data: null,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 点击事件处理
+  function handleClick(e) {
+    var target = e.target;
+    if (!target || target === overlay || target === highlightBox || target === tagLabel || target === selectedBox || target === selectedLabel) {
+      return;
+    }
+
+    // 避免处理 html 和 body 元素
+    if (target === document.documentElement || target === document.body) {
+      return;
+    }
+
+    // 检查是否是交互元素，这些元素需要保留默认行为
+    var isInteractiveElement = ['input', 'textarea', 'select', 'button', 'a'].includes(target.tagName.toLowerCase());
+
+    // 如果高亮功能启用，对于非交互元素阻止默认行为和事件传播
+    if (highlightEnabled) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    var rect = target.getBoundingClientRect();
+    var selector = getElementSelector(target);
+    var text = getElementText(target);
+    var attributes = getElementAttributes(target);
+    console.log("Element clicked:", {
+      tagName: target.tagName,
+      selector: selector,
+      rect: rect
+    });
+
+    // 立即更新选中高亮
+    updateSelectedHighlight(target);
+
+    // 隐藏悬停高亮，因为现在是选中状态
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    var elementInfo = {
+      tagName: target.tagName.toLowerCase(),
+      rect: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        width: rect.width,
+        height: rect.height,
+        x: rect.x,
+        y: rect.y
+      },
+      selector: selector,
+      text: text,
+      attributes: attributes,
+      url: window.location.href,
+      path: window.location.pathname,
+      timestamp: Date.now()
+    };
+    try {
+      window.parent.postMessage({
+        type: "iframe-element-click",
+        data: elementInfo,
+        source: "iframe-highlight-injector"
+      }, "*");
+    } catch (error) {
+      console.warn("无法发送消息到父窗口:", error);
+    }
+  }
+
+  // 监听来自父窗口的消息
+  function handleParentMessage(event) {
+    console.log("Received message from parent:", event.data);
+    if (event.data.type === "iframe-highlight-toggle") {
+      var enabled = event.data.enabled;
+      console.log("Highlight toggle:", enabled);
+      if (enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "enable-iframe-highlight") {
+      console.log("Enable iframe highlight");
+      enableHighlight();
+    } else if (event.data.type === "disable-iframe-highlight") {
+      console.log("Disable iframe highlight");
+      disableHighlight();
+    } else if (event.data.type === "toggle-iframe-highlight") {
+      var _enabled = event.data.enabled !== undefined ? event.data.enabled : !highlightEnabled;
+      console.log("Toggle iframe highlight to:", _enabled);
+      if (_enabled) {
+        enableHighlight();
+      } else {
+        disableHighlight();
+      }
+    } else if (event.data.type === "update-selected-element") {
+      var selector = event.data.selector;
+      console.log("Update selected element with selector:", selector);
+      if (selector) {
+        try {
+          var element = document.querySelector(selector);
+          console.log("Found element by selector:", element);
+          updateSelectedHighlight(element);
+        } catch (error) {
+          console.warn("Failed to select element:", error);
+          updateSelectedHighlight(null);
+        }
+      } else {
+        updateSelectedHighlight(null);
+      }
+    } else if (event.data.type === "clear-selected-element") {
+      console.log("Clear selected element");
+      updateSelectedHighlight(null);
+    }
+  }
+
+  // 启用高亮功能
+  function enableHighlight() {
+    console.log("Enabling highlight");
+    document.addEventListener("mouseover", handleMouseOver, true);
+    document.addEventListener("mouseout", handleMouseOut, true);
+    document.addEventListener("click", handleClick, true);
+    highlightEnabled = true;
+    overlay.style.display = "block";
+  }
+
+  // 禁用高亮功能
+  function disableHighlight() {
+    console.log("Disabling highlight");
+    highlightEnabled = false;
+    // 保持事件监听器，但通过 highlightEnabled 变量控制行为
+    // 这样可以保留选中状态的显示
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    // 不隐藏 selectedBox 和 selectedLabel，保留选中状态
+  }
+
+  // 完全禁用高亮功能（移除所有监听器）
+  function fullyDisableHighlight() {
+    console.log("Fully disabling highlight");
+    highlightEnabled = false;
+    document.removeEventListener("mouseover", handleMouseOver, true);
+    document.removeEventListener("mouseout", handleMouseOut, true);
+    document.removeEventListener("click", handleClick, true);
+    overlay.style.display = "none";
+    highlightBox.style.display = "none";
+    tagLabel.style.display = "none";
+    selectedBox.style.display = "none";
+    selectedLabel.style.display = "none";
+  }
+
+  // 添加事件监听
+  enableHighlight();
+  window.addEventListener("message", handleParentMessage);
+
+  // 暴露全局函数供外部调用
+  window.__iframeHighlightControl = {
+    enable: enableHighlight,
+    disable: disableHighlight,
+    fullyDisable: fullyDisableHighlight,
+    isEnabled: function isEnabled() {
+      return highlightEnabled;
+    },
+    getSelectedElement: function getSelectedElement() {
+      return selectedElement;
+    },
+    updateSelected: updateSelectedHighlight,
+    // 通过消息发送开关控制
+    sendToggleMessage: function sendToggleMessage(enabled) {
+      window.parent.postMessage({
+        type: 'iframe-highlight-status',
+        enabled: enabled || highlightEnabled,
+        source: 'iframe-highlight-injector'
+      }, '*');
+    }
+  };
+
+  // 通知父窗口脚本已加载
+  try {
+    window.parent.postMessage({
+      type: "iframe-highlight-ready",
+      data: {
+        url: window.location.href,
+        userAgent: navigator.userAgent,
+        timestamp: Date.now()
+      },
+      source: "iframe-highlight-injector"
+    }, "*");
+  } catch (error) {
+    console.warn("无法发送就绪消息到父窗口:", error);
+  }
+
+  // 清理函数
+  window.__iframeHighlightCleanup = function () {
+    fullyDisableHighlight();
+    window.removeEventListener("message", handleParentMessage);
+    if (overlay.parentElement) {
+      overlay.parentElement.removeChild(overlay);
+    }
+    delete window.__iframeHighlightInitialized;
+    delete window.__iframeHighlightCleanup;
+  };
+})();
+
 </script>
 </body>
 </html>
