@@ -299,6 +299,30 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .toast.show{opacity:1;transform:translateY(0)}.toast.grn{background:var(--green);color:#fff}.toast.rd{background:var(--red);color:#fff}.toast.gld{background:var(--gold);color:var(--bg-0)}.toast.und{background:var(--bg-4);color:var(--t0);border:1px solid var(--b1)}
 
 @media(max-width:768px){.hdr{padding:0 12px;height:52px}.main{padding:12px}.stats{grid-template-columns:repeat(2,1fr);gap:8px}.sdr{width:100%;right:-100%}.fr4,.fr3{grid-template-columns:1fr 1fr}.tcards,.pgrid{grid-template-columns:1fr}.logo-sub{display:none}.nav-tab{padding:5px 10px;font-size:.62rem;letter-spacing:.8px}.poster-w{width:70px;min-width:70px;height:105px}}
+/* ═══════ CLOUD SYNC STYLES ═══════ */
+.sync-indicator{position:fixed;bottom:20px;left:20px;z-index:400;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:var(--bg-3);border:1px solid var(--b1);color:var(--t3);opacity:0;transform:translateY(8px);transition:all .3s ease;pointer-events:none}
+.sync-indicator.visible{opacity:1;transform:translateY(0);pointer-events:auto}
+.sync-indicator.saving{border-color:var(--gold);color:var(--gold)}
+.sync-indicator.saved{border-color:var(--green);color:var(--green)}
+.sync-indicator.error{border-color:var(--red);color:var(--red);cursor:pointer}
+.sync-indicator.loading{border-color:var(--blue);color:var(--blue)}
+.sync-dot{width:8px;height:8px;border-radius:50%}
+.sync-indicator.saving .sync-dot{background:var(--gold);animation:syncPulse 1s infinite}
+.sync-indicator.saved .sync-dot{background:var(--green)}
+.sync-indicator.error .sync-dot{background:var(--red)}
+.sync-indicator.loading .sync-dot{background:var(--blue);animation:syncPulse .8s infinite}
+@keyframes syncPulse{0%,100%{opacity:.4}50%{opacity:1}}
+.sync-btn{position:fixed;bottom:20px;left:62px;z-index:399;width:32px;height:32px;border-radius:6px;border:1px solid var(--b1);background:var(--bg-2);color:var(--t3);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:var(--tr)}
+.sync-btn:hover{border-color:var(--gold);color:var(--gold)}
+.sync-btn.spinning{animation:spin 1s linear infinite}
+@keyframes spin{100%{transform:rotate(360deg)}}
+.loading-overlay{position:fixed;inset:0;z-index:500;background:var(--bg-0);display:flex;flex-direction:column;align-items:center;justify-content:center;transition:opacity .4s ease}
+.loading-overlay.fade-out{opacity:0;pointer-events:none}
+.loading-title{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700;color:var(--gold);margin-bottom:12px}
+.loading-bar{width:200px;height:3px;background:var(--b1);border-radius:2px;overflow:hidden}
+.loading-fill{width:30%;height:100%;background:var(--gold);border-radius:2px;animation:loadSlide 1.2s ease-in-out infinite}
+@keyframes loadSlide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
+.loading-msg{font-size:.65rem;color:var(--t3);margin-top:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px}
 </style>
 </head>
 <body>
@@ -426,8 +450,118 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="mdla"><button class="btn btn-gh" id="eprCn">CANCEL</button><button class="btn btn-g" id="eprSv">SAVE</button></div></div></div>
 
 <div class="toast" id="toast"></div>
-
+<!-- Cloud Sync UI -->
+<div class="sync-indicator" id="syncInd"><span class="sync-dot"></span><span id="syncTxt">SYNCED</span></div>
+<button class="sync-btn" id="syncBtn" title="Sync from cloud">⟳</button>
+<div class="loading-overlay" id="loadOv">
+  <div class="loading-title">ALI N' · FNM</div>
+  <div class="loading-bar"><div class="loading-fill"></div></div>
+  <div class="loading-msg" id="loadMsg">Connecting to cloud...</div>
+</div>
 <script>
+	/* ═══════ GOOGLE SHEETS SYNC CONFIG ═══════ */
+const SHEET_API_URL = 'const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';'; // ← PASTE YOUR URL HERE
+
+let _saving = false, _saveQueue = null, _lastSavedAt = '', _loaded = false, _saveTimer = null;
+const SAVE_DEBOUNCE_MS = 1500;
+
+function showSync(state, msg, duration = 0) {
+  const ind = $('syncInd'), txt = $('syncTxt');
+  if (!ind || !txt) return;
+  ind.className = 'sync-indicator visible ' + state;
+  txt.textContent = msg || state.toUpperCase();
+  if (state === 'error') ind.onclick = () => { saveToSheet(); ind.onclick = null; };
+  if (duration > 0) setTimeout(() => ind.classList.remove('visible'), duration);
+}
+
+function scheduleSave() {
+  if (SHEET_API_URL === 'const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';') return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => saveToSheet(), SAVE_DEBOUNCE_MS);
+}
+
+async function saveToSheet() {
+  if (SHEET_API_URL === 'const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';') return;
+  if (_saving) { _saveQueue = true; return; }
+  _saving = true;
+  showSync('saving', 'SAVING...');
+  try {
+    const payload = {
+      tasks: D.tasks, completed: D.completed, deadlines: D.deadlines,
+      projects: D.projects, closed: D.closed, people: D.people,
+      monthly: D.monthly, projDone: D.projDone, nid: D.nid, dlid: D.dlid,
+      partners: PA, projectColors: PC, peopleColors: PP,
+      _expectedSavedAt: _lastSavedAt
+    };
+    const res = await fetch(SHEET_API_URL, {
+      method: 'POST', redirect: 'follow',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const result = await res.json();
+    if (result.error === 'CONFLICT') {
+      showSync('error', '⚠ CONFLICT — TAP TO FORCE');
+      toast('DATA CONFLICT — SOMEONE ELSE SAVED', 'rd');
+      _lastSavedAt = '';
+    } else if (result.error) throw new Error(result.error);
+    else { _lastSavedAt = result.savedAt || ''; showSync('saved', '✓ SAVED', 2000); }
+  } catch (err) {
+    console.error('Save failed:', err);
+    showSync('error', '✕ SAVE FAILED — TAP TO RETRY');
+  } finally {
+    _saving = false;
+    if (_saveQueue) { _saveQueue = false; setTimeout(() => saveToSheet(), 500); }
+  }
+}
+
+async function loadFromSheet(manual = false) {
+  if (SHEET_API_URL === 'const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';') { hideLoading(); return; }
+  if (manual) { $('syncBtn').classList.add('spinning'); showSync('loading', 'LOADING...'); }
+  try {
+    const res = await fetch(SHEET_API_URL, { method: 'GET', redirect: 'follow' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    // Apply data
+    if (data.tasks) D.tasks = data.tasks;
+    if (data.completed) D.completed = data.completed;
+    if (data.deadlines) D.deadlines = data.deadlines;
+    if (data.projects && data.projects.length > 0) D.projects = data.projects;
+    if (data.closed) D.closed = data.closed;
+    if (data.people && data.people.length > 0) D.people = data.people;
+    if (data.monthly && data.monthly.length > 0) D.monthly = data.monthly;
+    if (data.projDone) D.projDone = data.projDone;
+    if (data.nid) D.nid = data.nid;
+    if (data.dlid) D.dlid = data.dlid;
+    if (data.savedAt) _lastSavedAt = data.savedAt;
+    // Apply color maps
+    if (data.partners && Object.keys(data.partners).length > 0) {
+      Object.keys(PA).forEach(k => delete PA[k]); Object.assign(PA, data.partners);
+    }
+    if (data.projectColors && Object.keys(data.projectColors).length > 0) {
+      Object.keys(PC).forEach(k => delete PC[k]); Object.assign(PC, data.projectColors);
+    }
+    if (data.peopleColors && Object.keys(data.peopleColors).length > 0) {
+      Object.keys(PP).forEach(k => delete PP[k]); Object.assign(PP, data.peopleColors);
+    }
+    _loaded = true;
+    fullR(); initSug();
+    if (manual) { showSync('saved', '✓ SYNCED', 2000); toast('SYNCED FROM CLOUD', 'gld'); }
+  } catch (err) {
+    console.error('Load failed:', err);
+    if (manual) { showSync('error', '✕ LOAD FAILED'); toast('SYNC FAILED: ' + err.message, 'rd'); }
+    else console.warn('Using local defaults (cloud unavailable).');
+  } finally {
+    $('syncBtn')?.classList.remove('spinning');
+    hideLoading();
+  }
+}
+
+function hideLoading() {
+  const ov = $('loadOv');
+  if (ov) { ov.classList.add('fade-out'); setTimeout(() => ov.remove(), 500); }
+}
 /* ═══════════════════════════════════════════════════════════════
    COLOR MAPS
    ═══════════════════════════════════════════════════════════════ */
@@ -501,7 +635,7 @@ let COMPANY_LOGO = 'logo.png';
 
 /* ═══════ UNDO HISTORY ═══════ */
 const HS=[];const MH=30;let hLock=false;
-function pH(label){if(hLock)return;HS.push({s:JSON.parse(JSON.stringify({tasks:D.tasks,completed:D.completed,deadlines:D.deadlines,projects:D.projects,closed:D.closed,people:D.people,monthly:D.monthly,projDone:D.projDone,nid:D.nid,dlid:D.dlid})),l:label});if(HS.length>MH)HS.shift();toast('✓ '+label.toUpperCase(),'gld')}
+function pH(label){if(hLock)return;HS.push({s:JSON.parse(JSON.stringify({tasks:D.tasks,completed:D.completed,deadlines:D.deadlines,projects:D.projects,closed:D.closed,people:D.people,monthly:D.monthly,projDone:D.projDone,nid:D.nid,dlid:D.dlid})),l:label});if(HS.length>MH)HS.shift();toast('✓ '+label.toUpperCase(),'gld');scheduleSave()}
 function popH(){if(!HS.length){toast('NOTHING TO UNDO','rd');return}hLock=true;Object.assign(D,HS.pop().s);hLock=false;toast('↶ UNDONE','und');fullR()}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){e.preventDefault();popH()}});
 
@@ -803,6 +937,8 @@ function fullR(){renderT();const v=document.querySelector('.nav-tab.active').dat
 
 /* ═══════ INIT ═══════ */
 initSug();renderLogo();renderT();
+$('syncBtn').onclick = () => loadFromSheet(true);
+loadFromSheet(); // Initial cloud load
 </script>
 
 <script>
