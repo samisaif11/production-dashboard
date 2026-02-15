@@ -434,7 +434,17 @@ const POSTERS = {
   'RAJA': 'raja.jpg',
   "ESH EL TAMAA'": 'esh-el-tamaa.jpg',
   'BNAT LALLA MENNANA S03': 'bnat-lalla-mennana-s03.jpg',
-  'RASS JBEL': 'rass-jbel.jpg'
+  'RASS JBEL': 'rass-jbel.jpg',
+  'EVERYBODY LOVES TOUDA': 'everybody-loves-touda.jpg',
+  'LE BLEU DU CAFTAN': 'le-bleu-du-caftan.jpg',
+  'HAUT ET FORT': 'haut-et-fort.jpg',
+  'ADAM': 'adam.jpg',
+  'RAZZIA': 'razzia.jpg',
+  'MUCH LOVED': 'much-loved.jpg',
+  'LES CHEVAUX DE DIEU': 'les-cheveaux-de-dieux.jpg',
+  'MY LAND': 'my-land.jpg',
+  'WHATEVER LOLA WANTS': 'whatever-lola-wants.jpg',
+  'ALI ZAOUA': 'ali-zaoua.jpg'
 };
 
 // Company Logo - replace with your logo URL
@@ -617,7 +627,7 @@ function renderProj(){
       const posterUrl=POSTERS[p.title]||'';
       const posterHtml=posterUrl?`<img src="${posterUrl}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`:`<div class="poster-ph" style="color:${pc.c}">🎬<br>${pc.code}</div>`;
       return`<div class="pc"><div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director} · ${p.type}${tc?' · '+tc+' task'+(tc>1?'s':''):''}</div><div class="pbs"><select class="pstdd" data-proj="${p.title}">${STATUSES.map(st=>`<option value="${st}"${st===p.status?' selected':''}>${SL[st]}</option>`).join('')}</select><button class="pmove" data-proj="${p.title}">Move →</button></div></div></div>`}).join('')}</div></div></div>`});
-  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>`<div class="pc arch"><div class="poster-w"><div class="poster-ph">🎬<br>${p.title.substring(0,6)}</div></div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button></div></div></div>`).join('')}</div></div></div>`;
+  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>{const pu=POSTERS[p.title]||'';const ph=pu?`<img src="${pu}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\'>🎬<br>${p.title.substring(0,6)}</div>'">`:`<div class="poster-ph">🎬<br>${p.title.substring(0,6)}</div>`;return`<div class="pc arch"><div class="poster-w">${ph}</div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button></div></div></div>`}).join('')}</div></div></div>`;
   document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
   document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
   document.querySelectorAll('.preopen').forEach(b=>b.onclick=e=>{e.stopPropagation();const ci=+b.dataset.ci;if(ci<0||ci>=D.closed.length)return;pH('reopen project');const proj=D.closed[ci];D.projects.push({title:proj.title,year:proj.year,status:'post',type:proj.type||'Feature Film',director:proj.director});D.closed.splice(ci,1);toast(proj.title+' → REOPENED','gld');renderProj()});
