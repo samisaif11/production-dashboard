@@ -460,7 +460,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 </div>
 <script>
 	/* ═══════ GOOGLE SHEETS SYNC CONFIG ═══════ */
-const SHEET_API_URL = const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';
 let _saving = false, _saveQueue = null, _lastSavedAt = '', _loaded = false, _saveTimer = null;
 const SAVE_DEBOUNCE_MS = 1500;
 
@@ -474,13 +474,11 @@ function showSync(state, msg, duration = 0) {
 }
 
 function scheduleSave() {
-  if (SHEET_API_URL === 'const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';') return;
   clearTimeout(_saveTimer);
   _saveTimer = setTimeout(() => saveToSheet(), SAVE_DEBOUNCE_MS);
 }
 
 async function saveToSheet() {
-  if (SHEET_API_URL === 'const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';') return;
   if (_saving) { _saveQueue = true; return; }
   _saving = true;
   showSync('saving', 'SAVING...');
@@ -515,7 +513,7 @@ async function saveToSheet() {
 }
 
 async function loadFromSheet(manual = false) {
-  if (SHEET_API_URL === 'const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxPiE8m3cgbvSXb5-XwWPXSsnW7fl2vBatiapGYFZQ-1MV4H7iaQAmkEaY-YM9YpF4NcA/exec';') { hideLoading(); return; }
+  1
   if (manual) { $('syncBtn').classList.add('spinning'); showSync('loading', 'LOADING...'); }
   try {
     const res = await fetch(SHEET_API_URL, { method: 'GET', redirect: 'follow' });
