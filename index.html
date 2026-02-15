@@ -146,15 +146,17 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .dlc::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px}
 .dlc.urg::before{background:var(--red)}.dlc.soon::before{background:var(--orange)}.dlc.ok::before{background:var(--green)}.dlc.past::before{background:var(--t3)}
 .dlc:hover{border-color:var(--b1)}
-.dl-tc{text-align:center;min-width:170px;flex-shrink:0}
-.dltm{font-family:'JetBrains Mono';font-size:2rem;font-weight:700;letter-spacing:1px;line-height:1}
-@media(min-width:1200px){.dltm{font-size:2.5rem}}
+.dl-tc{text-align:left;flex-shrink:0}
+.dltm{font-family:'JetBrains Mono';font-size:.85rem;font-weight:600;letter-spacing:1px;line-height:1}
+@media(min-width:1200px){.dltm{font-size:.95rem}}
 .dltm.urg{color:var(--red)}.dltm.soon{color:var(--orange)}.dltm.ok{color:var(--green)}.dltm.past{color:var(--t3);opacity:.5}
 .dltm-sub{font-family:'JetBrains Mono';font-size:.6rem;color:var(--t3);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
 .dl-info{flex:1;min-width:0}
-.dlt{font-size:1.1rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.35;margin-bottom:6px}
-@media(min-width:1200px){.dlt{font-size:1.2rem}}
-.dldb{font-family:'JetBrains Mono';font-size:.68rem;color:var(--t3);background:var(--bg-1);padding:4px 10px;border-radius:4px;border:1px solid var(--b0);display:inline-block;margin-bottom:6px}
+.dlt{font-size:2rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;line-height:1.25;margin-bottom:6px}
+@media(min-width:1200px){.dlt{font-size:2.5rem}}
+.dl-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.dltm-sep{color:var(--t3);opacity:.4;font-size:.7rem}
+.dldb{font-family:'JetBrains Mono';font-size:.68rem;color:var(--t3);white-space:nowrap}
 .dltags{display:flex;gap:5px;flex-wrap:wrap;opacity:.7}
 .dl-acts{display:flex;gap:6px;flex-shrink:0;align-items:center}
 .dl-eb,.dl-db{width:28px;height:28px;border-radius:6px;border:1px solid var(--b0);background:transparent;color:var(--t3);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;transition:var(--tr);opacity:0}
@@ -190,6 +192,8 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .pc:hover .pstdd{opacity:0.7;background:var(--bg-1);border-color:var(--b0)}
 .pmove{font-size:10px;cursor:pointer;background:none;border:none;color:var(--t3);opacity:0;transition:var(--tr);padding:3px}
 .pc:hover .pmove{opacity:0.4}.pmove:hover{opacity:1;color:var(--t2)}
+.preopen{font-size:.55rem;padding:3px 9px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;cursor:pointer;background:var(--gold-d);color:var(--gold);border:1px solid rgba(212,175,55,.2);font-family:'Outfit';transition:var(--tr);opacity:0}
+.pc:hover .preopen{opacity:.7}.preopen:hover{opacity:1!important;background:rgba(212,175,55,.2)}
 
 /* Trend Heatmaps */
 .trnd-t{font-family:'Playfair Display',serif;font-size:1.25rem;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px;text-align:center}
@@ -262,7 +266,6 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <button class="nav-tab active" data-v="tasks">Tasks</button>
     <button class="nav-tab" data-v="deadlines">Deadlines</button>
     <button class="nav-tab" data-v="projects">Projects</button>
-    <button class="nav-tab" data-v="trend">Trend</button>
   </nav>
   <div class="hdr-r">
     <div class="clk" id="clk"></div>
@@ -330,12 +333,6 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 <div class="vw" id="v-projects"><div id="pSecs"></div></div>
 
-<div class="vw" id="v-trend">
-  <div id="hmHourly" class="hm-panel"></div>
-  <div id="hmWeekly" class="hm-panel"></div>
-  <div id="hmMonthly" class="hm-panel"></div>
-  <div class="tcards"><div class="tcrd"><div class="tcn" id="tcB">—</div><div class="tcl">Best Month</div><div class="tcs" id="tcBs"></div></div><div class="tcrd"><div class="tcn" id="tcA">—</div><div class="tcl">Average / Month</div></div><div class="tcrd"><div class="tcn" id="tcT">—</div><div class="tcl">Total All-Time</div></div></div>
-</div>
 </div>
 
 <div class="sov" id="sOv2"></div>
@@ -465,7 +462,7 @@ function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en
 tick();setInterval(tick,1e3);
 
 /* ═══════ NAV ═══════ */
-document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj();if(t.dataset.v==='trend')renderTrend()}));
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj()}));
 
 /* ═══════ AUTO-SUGGEST ═══════ */
 function mkSug(iid,lid,getI,onSel){
@@ -502,7 +499,8 @@ function renderT(){
   if(skipSort) {
     all.sort((a,b)=>a.order-b.order);
   } else if(sortDue) {
-    all.sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;if(!a.due&&!b.due)return a.order-b.order;if(!a.due)return 1;if(!b.due)return-1;return a.due.localeCompare(b.due)||a.order-b.order});
+    // Done tasks stay in their position (no sorting done to bottom)
+    all.sort((a,b)=>{if(!a.due&&!b.due)return a.order-b.order;if(!a.due)return 1;if(!b.due)return-1;return a.due.localeCompare(b.due)||a.order-b.order});
   } else {
     all.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
   }
@@ -559,7 +557,11 @@ $('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast(
   ['fN','fBl','fNo','fPe','fPa'].forEach(i=>$(i).value='');$('fPr').value='3';$('fDu').value='';toast('TASK CREATED','gld');$('tFrm').classList.remove('open');renderT()};
 
 $('cTgl').onclick=()=>{$('cList').classList.toggle('op');document.querySelector('.ctgl .ch').classList.toggle('op')};
-$('edBtn').onclick=()=>{const d=D.tasks.filter(t=>t.done);if(!d.length){toast('NO TASKS','rd');return}pH('end day');D.completed.push(...d);D.tasks=D.tasks.filter(t=>!t.done);D.tasks.forEach((t,i)=>t.order=i);toast(`☀ ${d.length} ARCHIVED`);renderT()};
+function doEndDay(){const d=D.tasks.filter(t=>t.done);if(!d.length)return;pH('end day');D.completed.push(...d);D.tasks=D.tasks.filter(t=>!t.done);D.tasks.forEach((t,i)=>t.order=i);toast(`☀ ${d.length} ARCHIVED`);renderT()}
+$('edBtn').onclick=()=>{const d=D.tasks.filter(t=>t.done);if(!d.length){toast('NO TASKS','rd');return}doEndDay()};
+// Auto-collapse completed tasks at 19:00
+let _endDayFired=false;
+setInterval(()=>{const n=new Date();if(n.getHours()===19&&n.getMinutes()===0&&!_endDayFired){_endDayFired=true;doEndDay()}if(n.getHours()!==19||n.getMinutes()!==0)_endDayFired=false},3e4);
 $('cBl').onclick=()=>{$('bMdl').classList.remove('op');bId=null};
 $('cfBl').onclick=()=>{if(bId===null)return;pH('block');const t=D.tasks.find(x=>x.id===bId);if(t){t.blocked=true;t.blockedBy=$('blInp').value.trim().toUpperCase()||'?';toast('🔒 BLOCKED','rd')}$('bMdl').classList.remove('op');bId=null;renderT()};
 
@@ -585,7 +587,7 @@ function renderDL(){
     if(past&&d.keepCount){const a=Math.abs(Math.floor(diff/864e5));tmr=`${a}D AGO`}
     else if(past)tmr='PASSED';
     else{const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);tmr=`${dy}D ${hr}H ${mn}M ${sc}S`}
-    el.innerHTML+=`<div class="dlc ${urg}" data-dlid="${d.id}"><div class="dl-tc"><div class="dltm ${urg}" id="dl-${d.id}">${tmr}</div><div class="dltm-sub">${tStr}</div></div><div class="dl-info"><div class="dlt">${d.title}</div><div class="dldb">${fdt}</div><div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}<span class="tag" style="background:${d.type==='hard'?'var(--red-d)':'var(--orange-d)'};color:${d.type==='hard'?'var(--red)':'var(--orange)'}">${d.type.toUpperCase()}</span></div></div><div class="dl-acts"><button class="dl-eb" data-dlid="${d.id}">✎</button><button class="dl-db" data-dlid="${d.id}">✕</button></div></div>`});
+    el.innerHTML+=`<div class="dlc ${urg}" data-dlid="${d.id}"><div class="dl-info"><div class="dlt">${d.title}</div><div class="dl-meta"><div class="dltm ${urg}" id="dl-${d.id}">${tmr}</div><span class="dltm-sep">·</span><div class="dldb">${fdt}</div><span class="dltm-sep">·</span><div class="dltm-sub">${tStr}</div></div><div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}<span class="tag" style="background:${d.type==='hard'?'var(--red-d)':'var(--orange-d)'};color:${d.type==='hard'?'var(--red)':'var(--orange)'}">${d.type.toUpperCase()}</span></div></div><div class="dl-acts"><button class="dl-eb" data-dlid="${d.id}">✎</button><button class="dl-db" data-dlid="${d.id}">✕</button></div></div>`});
   el.querySelectorAll('.dl-eb').forEach(b=>b.onclick=()=>openEDL(+b.dataset.dlid));
   el.querySelectorAll('.dl-db').forEach(b=>b.onclick=()=>{pH('del deadline');D.deadlines=D.deadlines.filter(d=>d.id!==+b.dataset.dlid);toast('DELETED','rd');renderDL()})
 }
@@ -615,52 +617,13 @@ function renderProj(){
       const posterUrl=POSTERS[p.title]||'';
       const posterHtml=posterUrl?`<img src="${posterUrl}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`:`<div class="poster-ph" style="color:${pc.c}">🎬<br>${pc.code}</div>`;
       return`<div class="pc"><div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director} · ${p.type}${tc?' · '+tc+' task'+(tc>1?'s':''):''}</div><div class="pbs"><select class="pstdd" data-proj="${p.title}">${STATUSES.map(st=>`<option value="${st}"${st===p.status?' selected':''}>${SL[st]}</option>`).join('')}</select><button class="pmove" data-proj="${p.title}">Move →</button></div></div></div>`}).join('')}</div></div></div>`});
-  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map(p=>`<div class="pc arch"><div class="poster-w"><div class="poster-ph">🎬<br>${p.title.substring(0,6)}</div></div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div></div></div>`).join('')}</div></div></div>`;
+  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>`<div class="pc arch"><div class="poster-w"><div class="poster-ph">🎬<br>${p.title.substring(0,6)}</div></div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button></div></div></div>`).join('')}</div></div></div>`;
   document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
   document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
+  document.querySelectorAll('.preopen').forEach(b=>b.onclick=e=>{e.stopPropagation();const ci=+b.dataset.ci;if(ci<0||ci>=D.closed.length)return;pH('reopen project');const proj=D.closed[ci];D.projects.push({title:proj.title,year:proj.year,status:'post',type:proj.type||'Feature Film',director:proj.director});D.closed.splice(ci,1);toast(proj.title+' → REOPENED','gld');renderProj()});
   document.querySelectorAll('.pstdd').forEach(dd=>dd.onchange=()=>{const proj=D.projects.find(p=>p.title===dd.dataset.proj);if(!proj)return;pH('status');proj.status=dd.value;toast(proj.title+' → '+SL[dd.value],'gld');renderProj()})
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   TREND — CASABLANCA HEATMAPS
-   ═══════════════════════════════════════════════════════════════ */
-function renderTrend(){hmHourly();hmWeekly();hmMonthly();renderTC()}
-
-function goldI(v,mx){if(!v||!mx)return'var(--bg-4)';const r=Math.min(v/mx,1);return`rgba(212,175,55,${(.12+r*.78).toFixed(2)})`}
-
-function getAllDates(){const d=[];const add=(arr)=>arr.forEach(t=>{if(t.createdAt)d.push({type:'C',d:new Date(t.createdAt)});if(t.completedAt)d.push({type:'D',d:new Date(t.completedAt)})});add(D.tasks);add(D.completed);return d}
-
-function hmLeg(mx){return`<div class="hm-leg"><span>Less</span>${[0,.25,.5,.75,1].map(r=>`<span class="hm-leg-c" style="background:${r?`rgba(212,175,55,${(.12+r*.78).toFixed(2)})`:'var(--bg-4)'}"></span>`).join('')}<span>More (max ${mx})</span></div>`}
-
-function hmHourly(){
-  const p=$('hmHourly'),dates=getAllDates(),dN=['MON','TUE','WED','THU','FRI'],hrs=[];for(let h=9;h<19;h++)hrs.push(h);
-  const g={};let mx=0;dN.forEach((d,di)=>hrs.forEach(h=>{g[di+'-'+h]={C:0,D:0}}));
-  dates.forEach(d=>{const dow=d.d.getDay(),h=d.d.getHours();if(dow>=1&&dow<=5&&h>=9&&h<19){const k=(dow-1)+'-'+h;if(g[k]){g[k][d.type]++;const t=g[k].C+g[k].D;if(t>mx)mx=t}}});
-  let h=`<div class="trnd-t">Hourly Activity</div><div class="trnd-sub">Work Hours · Casablanca Time</div><div style="overflow-x:auto"><div style="display:inline-block;min-width:420px"><div class="hm-cols">${hrs.map(h=>`<div class="hm-col">${h}h</div>`).join('')}</div>`;
-  dN.forEach((d,di)=>{h+=`<div class="hm-row"><div class="hm-lb">${d}</div>`;hrs.forEach(hr=>{const c=g[di+'-'+hr];const t=c.C+c.D;h+=`<div class="hm-cell" style="background:${goldI(t,mx||1)}" data-tip="${d} ${hr}:00 — C:${c.C} D:${c.D}"></div>`});h+=`</div>`});
-  h+=`</div></div>${hmLeg(mx)}`;p.innerHTML=h
-}
-
-function hmWeekly(){
-  const p=$('hmWeekly'),dates=getAllDates(),dN=['MON','TUE','WED','THU','FRI'],W=12,now=new Date();
-  const g={};let mx=0;for(let w=0;w<W;w++)for(let d=0;d<5;d++)g[w+'-'+d]={C:0,D:0};
-  dates.forEach(d=>{const dow=d.d.getDay();if(dow<1||dow>5)return;const wk=Math.floor((now-d.d)/864e5/7);if(wk>=0&&wk<W){const k=(W-1-wk)+'-'+(dow-1);if(g[k]){g[k][d.type]++;const t=g[k].C+g[k].D;if(t>mx)mx=t}}});
-  let h=`<div class="trnd-t">Weekly Activity</div><div class="trnd-sub">Mon–Fri · Last ${W} Weeks</div><div style="overflow-x:auto"><div style="display:inline-block;min-width:420px"><div class="hm-cols">${Array.from({length:W},(_,i)=>`<div class="hm-col">W${i+1}</div>`).join('')}</div>`;
-  dN.forEach((d,di)=>{h+=`<div class="hm-row"><div class="hm-lb">${d}</div>`;for(let w=0;w<W;w++){const c=g[w+'-'+di]||{C:0,D:0};const t=c.C+c.D;h+=`<div class="hm-cell" style="background:${goldI(t,mx||1)}" data-tip="W${w+1} ${d} — C:${c.C} D:${c.D}"></div>`}h+=`</div>`});
-  h+=`</div></div>${hmLeg(mx)}`;p.innerHTML=h
-}
-
-function hmMonthly(){
-  const p=$('hmMonthly'),dates=getAllDates(),mN=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
-  const now=new Date(),cY=now.getFullYear();const yrs=[cY-1,cY];
-  const g={};let mx=0;yrs.forEach(y=>mN.forEach((m,mi)=>{g[y+'-'+mi]={C:0,D:0}}));
-  dates.forEach(d=>{const y=d.d.getFullYear(),m=d.d.getMonth();if(g[y+'-'+(m-1)]){g[y+'-'+(m-1)][d.type]++;const t=g[y+'-'+(m-1)].C+g[y+'-'+(m-1)].D;if(t>mx)mx=t}});
-  let h=`<div class="trnd-t">Monthly Activity</div><div class="trnd-sub">Created & Completed · ${yrs.join(' – ')}</div><div style="overflow-x:auto"><div style="display:inline-block;min-width:420px"><div class="hm-cols">${mN.map(m=>`<div class="hm-col">${m}</div>`).join('')}</div>`;
-  yrs.forEach(y=>{h+=`<div class="hm-row"><div class="hm-lb">${y}</div>`;mN.forEach((m,mi)=>{const c=g[y+'-'+mi]||{C:0,D:0};const t=c.C+c.D;h+=`<div class="hm-cell" style="background:${goldI(t,mx||1)}" data-tip="${m} ${y} — C:${c.C} D:${c.D}"></div>`});h+=`</div>`});
-  h+=`</div></div>${hmLeg(mx)}`;p.innerHTML=h
-}
-
-function renderTC(){const c=D.monthly.map(d=>d.c),bi=c.indexOf(Math.max(...c)),total=c.reduce((a,b)=>a+b,0)+D.completed.length;$('tcB').textContent=D.monthly[bi].c;$('tcBs').textContent=D.monthly[bi].m;$('tcA').textContent=(c.reduce((a,b)=>a+b,0)/c.length).toFixed(1);$('tcT').textContent=total}
 
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS
@@ -696,10 +659,9 @@ function renderPrjSet(){const el=$('prjList');el.innerHTML='';D.projects.forEach
 $('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value;if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:new Date().getFullYear(),status:'idea',type:'Feature Film',director:'TBD'});['nprN','nprCd'].forEach(i=>$(i).value='');renderPrjSet();fillDD();toast('PROJECT ADDED','gld')};
 
 /* ═══════ FULL RENDER ═══════ */
-function fullR(){renderT();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='deadlines')renderDL();if(v==='projects')renderProj();if(v==='trend')renderTrend()}
+function fullR(){renderT();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='deadlines')renderDL();if(v==='projects')renderProj()}
 
 /* ═══════ RESIZE ═══════ */
-let rT;window.addEventListener('resize',()=>{clearTimeout(rT);rT=setTimeout(()=>{const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='trend')renderTrend()},200)});
 
 /* ═══════ INIT ═══════ */
 initSug();renderLogo();renderT();
