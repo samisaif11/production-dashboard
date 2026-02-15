@@ -633,31 +633,77 @@ const SL = {
   delivery: 'FINAL DELIVERY',
   closed: 'CLOSED'
 };
+
 /* ═══════════════════════════════════════════════════════════════
    DATA
    ═══════════════════════════════════════════════════════════════ */
-const D={
-  people:[{code:'JR',name:'Jean-Rémi Ducourtioux',role:'Gérant FNM / Dir. Adjoint'},{code:'AMINE',name:'Amine Benjelloun',role:"DG Ali n'"},{code:'NABIL',name:'Nabil Ayouch',role:'Prod. Délégué / Réalisateur'},{code:'MARYAM',name:'Maryam Touzani',role:'Réalisatrice'},{code:'ZOUHAIR',name:'Zouhair',role:'Post-production'},{code:'SAID',name:'Said',role:'Post-production'},{code:'SAMIR',name:'Samir',role:'Post-production'},{code:'YASSIR',name:'Yassir',role:'Post-production'},{code:'HAKIM',name:'Hakim',role:'Post-production'},{code:'BAHIA',name:'Bahia',role:'Dir. Financière & RH'},{code:'RACHID',name:'Rachid',role:'Comptable'},{code:'ZAHIRA',name:'Zahira',role:'Secrétaire de production'},{code:'BERTRAND',name:'Bertrand',role:'Freelance Prod Exec FNM'},{code:'CHLOÉ',name:'Chloé',role:'Freelance Prod Asst FNM'}],
-  projects:[{title:'CALLE MÁLAGA',year:2025,status:'delivery',type:'Feature Film',director:'Maryam Touzani'},{title:'COURS, ET SANS TRISTESSE',year:2026,status:'funding',type:'Feature Film',director:'Nabil Ayouch'},{title:"L'ÉLUE",year:2026,status:'dev',type:'Short Film',director:'Leyna Tahiri'},{title:'TERRE ET CENDRES',year:2027,status:'dev',type:'Feature Film',director:'Leyna Tahiri'},{title:'ROIS SANS COURONNE',year:2027,status:'dev',type:'Feature Film',director:'Arthure Beaupère'},{title:'RAJA',year:2027,status:'idea',type:'Feature Doc',director:'Nabil Ayouch'},{title:"ESH EL TAMAA'",year:2026,status:'post',type:'TV Series',director:'Ayoub Lahnoud'},{title:'BNAT LALLA MENNANA S03',year:2026,status:'post',type:'TV Series',director:'Chaouki Ofir'},{title:'RASS JBEL',year:2026,status:'post',type:'TV Series',director:'Ayoub Lahnoud'}],
-  closed:[{title:'EVERYBODY LOVES TOUDA',year:2024,director:'Nabil Ayouch'},{title:'LE BLEU DU CAFTAN',year:2022,director:'Maryam Touzani'},{title:'HAUT ET FORT',year:2021,director:'Nabil Ayouch'},{title:'ADAM',year:2019,director:'Maryam Touzani'},{title:'RAZZIA',year:2017,director:'Nabil Ayouch'},{title:'MUCH LOVED',year:2015,director:'Nabil Ayouch'},{title:'LES CHEVAUX DE DIEU',year:2012,director:'Nabil Ayouch'},{title:'MY LAND',year:2010,director:'Nabil Ayouch'},{title:'WHATEVER LOLA WANTS',year:2006,director:'Nabil Ayouch'},{title:'ALI ZAOUA',year:2000,director:'Nabil Ayouch'}],
-  deadlines:[{id:1,date:'2026-02-16T18:00',title:'PAD AVEC AUDIODESCRIPTION — TITRA',project:'CALLE MÁLAGA',partner:'TITRA',type:'hard',allDay:false,keepCount:false},{id:2,date:'2026-02-18T18:00',title:'LIVRAISON SME — TITRA',project:'CALLE MÁLAGA',partner:'TITRA',type:'hard',allDay:false,keepCount:false},{id:3,date:'2026-02-18T23:59',title:'CNC AVR1 APPLICATION',project:"L'ÉLUE",partner:'CNC',type:'hard',allDay:false,keepCount:false},{id:4,date:'2026-02-18T23:59',title:'CST — SFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'SFI',type:'hard',allDay:false,keepCount:false},{id:5,date:'2026-02-24T23:59',title:'SFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'SFI',type:'hard',allDay:false,keepCount:true},{id:6,date:'2026-02-26T23:59',title:'NFI DÉPÔT COPRO MINORITAIRE',project:'COURS, ET SANS TRISTESSE',partner:'NFI',type:'hard',allDay:false,keepCount:false},{id:7,date:'2026-03-12T23:59',title:'SØRFOND DÉPÔT (NFI)',project:'COURS, ET SANS TRISTESSE',partner:'NFI',type:'soft',allDay:false,keepCount:false}],
-  tasks:[
-    {id:1,name:'CONFIRM PAD DELIVERY WITH TITRA (AUDIODESCRIPTION)',project:'CALLE MÁLAGA',person:'JR',partner:'TITRA',priority:1,due:'2026-02-16',done:false,doneDate:null,blocked:false,blockedBy:null,order:0,notes:'',createdAt:'2026-02-14T10:00',completedAt:null},
-    {id:2,name:'PREPARE CNC AVR1 DOSSIER — GATHER ALL DOCUMENTS',project:"L'ÉLUE",person:'JR',partner:'CNC',priority:1,due:'2026-02-17',done:false,doneDate:null,blocked:false,blockedBy:null,order:1,notes:'Check with Leyna for director statement',createdAt:'2026-02-13T09:30',completedAt:null},
-    {id:3,name:'COORDINATE SME SUBTITLE DELIVERY WITH TITRA',project:'CALLE MÁLAGA',person:'ZOUHAIR',partner:'TITRA',priority:1,due:'2026-02-18',done:false,doneDate:null,blocked:false,blockedBy:null,order:2,notes:'',createdAt:'2026-02-12T14:00',completedAt:null},
-    {id:4,name:'COMPILE SFI CO-PRODUCTION DOCUMENTS',project:'COURS, ET SANS TRISTESSE',person:'JR',partner:'SFI',priority:2,due:'2026-02-23',done:false,doneDate:null,blocked:false,blockedBy:null,order:3,notes:'',createdAt:'2026-02-10T11:00',completedAt:null},
-    {id:5,name:'FOLLOW UP WITH VELVET ON BELGIAN CO-PROD STATUS',project:'COURS, ET SANS TRISTESSE',person:'BERTRAND',partner:'VELVET',priority:2,due:'2026-02-20',done:false,doneDate:null,blocked:true,blockedBy:'VELVET',order:4,notes:'Waiting for response since last week',createdAt:'2026-02-08T16:00',completedAt:null},
-    {id:6,name:'NFI DÉPÔT — PREPARE NORWEGIAN CO-PROD MINORITY FILE',project:'COURS, ET SANS TRISTESSE',person:'JR',partner:'NFI',priority:2,due:'2026-02-25',done:false,doneDate:null,blocked:false,blockedBy:null,order:5,notes:'',createdAt:'2026-02-09T10:30',completedAt:null},
-    {id:7,name:'SØRFOND APPLICATION DOCUMENTS — FIRST DRAFT',project:'COURS, ET SANS TRISTESSE',person:'CHLOÉ',partner:'NFI',priority:3,due:'2026-03-05',done:false,doneDate:null,blocked:false,blockedBy:null,order:6,notes:'',createdAt:'2026-02-07T09:00',completedAt:null},
-    {id:8,name:'UPDATE DCP SPECS SHEET FOR ALL DISTRIBUTORS',project:'CALLE MÁLAGA',person:'SAMIR',partner:'',priority:3,due:'2026-02-28',done:false,doneDate:null,blocked:false,blockedBy:null,order:7,notes:'',createdAt:'2026-02-06T15:00',completedAt:null},
-    {id:9,name:'REQUEST POST-PROD UPDATE ON RASS JBEL',project:'RASS JBEL',person:'ZOUHAIR',partner:'MBC 5',priority:3,due:'2026-02-20',done:false,doneDate:null,blocked:false,blockedBy:null,order:8,notes:'',createdAt:'2026-02-05T11:30',completedAt:null},
-    {id:10,name:'REVIEW BNAT LALLA MENNANA S03 EDIT PROGRESS',project:'BNAT LALLA MENNANA S03',person:'SAID',partner:'2M',priority:4,due:'2026-03-01',done:false,doneDate:null,blocked:false,blockedBy:null,order:9,notes:'',createdAt:'2026-02-04T14:00',completedAt:null},
-    {id:11,name:'FIND CANAL+ CONTRACT FOR JR AND BERTRAND',project:'CALLE MÁLAGA',person:'JR',partner:'CANAL+',priority:2,due:'2026-02-19',done:false,doneDate:null,blocked:true,blockedBy:'CANAL+',order:10,notes:'Legal dept not responding',createdAt:'2026-02-03T10:00',completedAt:null}
+const D = {
+  people: [
+    { code: 'JR', name: 'Jean-Rémi Ducourtioux', role: 'Gérant FNM / Dir. Adjoint' },
+    { code: 'AMINE', name: 'Amine Benjelloun', role: "DG Ali n'" },
+    { code: 'NABIL', name: 'Nabil Ayouch', role: 'Prod. Délégué / Réalisateur' },
+    { code: 'MARYAM', name: 'Maryam Touzani', role: 'Réalisatrice' },
+    { code: 'ZOUHAIR', name: 'Zouhair', role: 'Post-production' },
+    { code: 'SAID', name: 'Said', role: 'Post-production' },
+    { code: 'SAMIR', name: 'Samir', role: 'Post-production' },
+    { code: 'YASSIR', name: 'Yassir', role: 'Post-production' },
+    { code: 'HAKIM', name: 'Hakim', role: 'Post-production' },
+    { code: 'BAHIA', name: 'Bahia', role: 'Dir. Financière & RH' },
+    { code: 'RACHID', name: 'Rachid', role: 'Comptable' },
+    { code: 'ZAHIRA', name: 'Zahira', role: 'Secrétaire de production' },
+    { code: 'BERTRAND', name: 'Bertrand', role: 'Freelance Prod Exec FNM' },
+    { code: 'CHLOÉ', name: 'Chloé', role: 'Freelance Prod Asst FNM' }
   ],
-  completed:[],
-  monthly:[{m:'Sep 25',c:18},{m:'Oct 25',c:24},{m:'Nov 25',c:21},{m:'Dec 25',c:15},{m:'Jan 26',c:29},{m:'Feb 26',c:3}],
-  projDone:{'CALLE MÁLAGA':32,'COURS, ET SANS TRISTESSE':18,"L'ÉLUE":5,'RASS JBEL':12,'BNAT LALLA MENNANA S03':8,"ESH EL TAMAA'":6,'TERRE ET CENDRES':2,'RAJA':1},
-  nid:12,dlid:8
+  projects: [
+    { title: 'CALLE MÁLAGA', year: 2025, status: 'delivery', type: 'Feature Film', director: 'Maryam Touzani' },
+    { title: 'COURS, ET SANS TRISTESSE', year: 2026, status: 'funding', type: 'Feature Film', director: 'Nabil Ayouch' },
+    { title: "L'ÉLUE", year: 2026, status: 'dev', type: 'Short Film', director: 'Leyna Tahiri' },
+    { title: 'TERRE ET CENDRES', year: 2027, status: 'dev', type: 'Feature Film', director: 'Leyna Tahiri' },
+    { title: 'ROIS SANS COURONNE', year: 2027, status: 'dev', type: 'Feature Film', director: 'Arthure Beaupère' },
+    { title: 'RAJA', year: 2027, status: 'idea', type: 'Feature Doc', director: 'Nabil Ayouch' },
+    { title: "ESH EL TAMAA'", year: 2026, status: 'post', type: 'TV Series', director: 'Ayoub Lahnoud' },
+    { title: 'BNAT LALLA MENNANA S03', year: 2026, status: 'post', type: 'TV Series', director: 'Chaouki Ofir' },
+    { title: 'RASS JBEL', year: 2026, status: 'post', type: 'TV Series', director: 'Ayoub Lahnoud' }
+  ],
+  closed: [
+    { title: 'EVERYBODY LOVES TOUDA', year: 2024, director: 'Nabil Ayouch' },
+    { title: 'LE BLEU DU CAFTAN', year: 2022, director: 'Maryam Touzani' },
+    { title: 'HAUT ET FORT', year: 2021, director: 'Nabil Ayouch' },
+    { title: 'ADAM', year: 2019, director: 'Maryam Touzani' },
+    { title: 'RAZZIA', year: 2017, director: 'Nabil Ayouch' },
+    { title: 'MUCH LOVED', year: 2015, director: 'Nabil Ayouch' },
+    { title: 'LES CHEVAUX DE DIEU', year: 2012, director: 'Nabil Ayouch' },
+    { title: 'MY LAND', year: 2010, director: 'Nabil Ayouch' },
+    { title: 'WHATEVER LOLA WANTS', year: 2006, director: 'Nabil Ayouch' },
+    { title: 'ALI ZAOUA', year: 2000, director: 'Nabil Ayouch' }
+  ],
+  deadlines: [
+    { id: 1, date: '2026-02-16T18:00', title: 'PAD AVEC AUDIODESCRIPTION — TITRA', project: 'CALLE MÁLAGA', partner: 'TITRA', type: 'hard', allDay: false, keepCount: false },
+    { id: 2, date: '2026-02-18T18:00', title: 'LIVRAISON SME — TITRA', project: 'CALLE MÁLAGA', partner: 'TITRA', type: 'hard', allDay: false, keepCount: false },
+    { id: 3, date: '2026-02-18T23:59', title: 'CNC AVR1 APPLICATION', project: "L'ÉLUE", partner: 'CNC', type: 'hard', allDay: false, keepCount: false },
+    { id: 4, date: '2026-02-18T23:59', title: 'CST — SFI DÉPÔT COPRO MINORITAIRE', project: 'COURS, ET SANS TRISTESSE', partner: 'SFI', type: 'hard', allDay: false, keepCount: false },
+    { id: 5, date: '2026-02-24T23:59', title: 'SFI DÉPÔT COPRO MINORITAIRE', project: 'COURS, ET SANS TRISTESSE', partner: 'SFI', type: 'hard', allDay: false, keepCount: true },
+    { id: 6, date: '2026-02-26T23:59', title: 'NFI DÉPÔT COPRO MINORITAIRE', project: 'COURS, ET SANS TRISTESSE', partner: 'NFI', type: 'hard', allDay: false, keepCount: false },
+    { id: 7, date: '2026-03-12T23:59', title: 'SØRFOND DÉPÔT (NFI)', project: 'COURS, ET SANS TRISTESSE', partner: 'NFI', type: 'soft', allDay: false, keepCount: false }
+  ],
+  tasks: [
+    { id: 1, name: 'CONFIRM PAD DELIVERY WITH TITRA (AUDIODESCRIPTION)', project: 'CALLE MÁLAGA', person: 'JR', partner: 'TITRA', priority: 1, due: '2026-02-16', done: false, doneDate: null, blocked: false, blockedBy: null, order: 0, notes: '', createdAt: '2026-02-14T10:00', completedAt: null },
+    { id: 2, name: 'PREPARE CNC AVR1 DOSSIER — GATHER ALL DOCUMENTS', project: "L'ÉLUE", person: 'JR', partner: 'CNC', priority: 1, due: '2026-02-17', done: false, doneDate: null, blocked: false, blockedBy: null, order: 1, notes: 'Check with Leyna for director statement', createdAt: '2026-02-13T09:30', completedAt: null },
+    { id: 3, name: 'COORDINATE SME SUBTITLE DELIVERY WITH TITRA', project: 'CALLE MÁLAGA', person: 'ZOUHAIR', partner: 'TITRA', priority: 1, due: '2026-02-18', done: false, doneDate: null, blocked: false, blockedBy: null, order: 2, notes: '', createdAt: '2026-02-12T14:00', completedAt: null },
+    { id: 4, name: 'COMPILE SFI CO-PRODUCTION DOCUMENTS', project: 'COURS, ET SANS TRISTESSE', person: 'JR', partner: 'SFI', priority: 2, due: '2026-02-23', done: false, doneDate: null, blocked: false, blockedBy: null, order: 3, notes: '', createdAt: '2026-02-10T11:00', completedAt: null },
+    { id: 5, name: 'FOLLOW UP WITH VELVET ON BELGIAN CO-PROD STATUS', project: 'COURS, ET SANS TRISTESSE', person: 'BERTRAND', partner: 'VELVET', priority: 2, due: '2026-02-20', done: false, doneDate: null, blocked: true, blockedBy: 'VELVET', order: 4, notes: 'Waiting for response since last week', createdAt: '2026-02-08T16:00', completedAt: null },
+    { id: 6, name: 'NFI DÉPÔT — PREPARE NORWEGIAN CO-PROD MINORITY FILE', project: 'COURS, ET SANS TRISTESSE', person: 'JR', partner: 'NFI', priority: 2, due: '2026-02-25', done: false, doneDate: null, blocked: false, blockedBy: null, order: 5, notes: '', createdAt: '2026-02-09T10:30', completedAt: null },
+    { id: 7, name: 'SØRFOND APPLICATION DOCUMENTS — FIRST DRAFT', project: 'COURS, ET SANS TRISTESSE', person: 'CHLOÉ', partner: 'NFI', priority: 3, due: '2026-03-05', done: false, doneDate: null, blocked: false, blockedBy: null, order: 6, notes: '', createdAt: '2026-02-07T09:00', completedAt: null },
+    { id: 8, name: 'UPDATE DCP SPECS SHEET FOR ALL DISTRIBUTORS', project: 'CALLE MÁLAGA', person: 'SAMIR', partner: '', priority: 3, due: '2026-02-28', done: false, doneDate: null, blocked: false, blockedBy: null, order: 7, notes: '', createdAt: '2026-02-06T15:00', completedAt: null },
+    { id: 9, name: 'REQUEST POST-PROD UPDATE ON RASS JBEL', project: 'RASS JBEL', person: 'ZOUHAIR', partner: 'MBC 5', priority: 3, due: '2026-02-20', done: false, doneDate: null, blocked: false, blockedBy: null, order: 8, notes: '', createdAt: '2026-02-05T11:30', completedAt: null },
+    { id: 10, name: 'REVIEW BNAT LALLA MENNANA S03 EDIT PROGRESS', project: 'BNAT LALLA MENNANA S03', person: 'SAID', partner: '2M', priority: 4, due: '2026-03-01', done: false, doneDate: null, blocked: false, blockedBy: null, order: 9, notes: '', createdAt: '2026-02-04T14:00', completedAt: null },
+    { id: 11, name: 'FIND CANAL+ CONTRACT FOR JR AND BERTRAND', project: 'CALLE MÁLAGA', person: 'JR', partner: 'CANAL+', priority: 2, due: '2026-02-19', done: false, doneDate: null, blocked: true, blockedBy: 'CANAL+', order: 10, notes: 'Legal dept not responding', createdAt: '2026-02-03T10:00', completedAt: null }
+  ],
+  completed: [],
+  monthly: [{ m: 'Sep 25', c: 18 }, { m: 'Oct 25', c: 24 }, { m: 'Nov 25', c: 21 }, { m: 'Dec 25', c: 15 }, { m: 'Jan 26', c: 29 }, { m: 'Feb 26', c: 3 }],
+  projDone: { 'CALLE MÁLAGA': 32, 'COURS, ET SANS TRISTESSE': 18, "L'ÉLUE": 5, 'RASS JBEL': 12, 'BNAT LALLA MENNANA S03': 8, "ESH EL TAMAA'": 6, 'TERRE ET CENDRES': 2, 'RAJA': 1 },
+  nid: 12,
+  dlid: 8
 };
 
 // Poster images - relative paths for GitHub Pages
@@ -684,8 +730,6 @@ const POSTERS = {
 };
 
 // Company Logo - replace with your logo URL
-// Use GitHub raw URL like: 'https://raw.githubusercontent.com/samisaif11/production-dashboard/main/assets/images/logo.png'
-// Recommended: Place your logo in the root folder of your GitHub repository and name it 'assets/images/logo.png'
 let COMPANY_LOGO = 'assets/images/logo.png';
 
 /* ═══════ UNDO HISTORY ═══════ */
