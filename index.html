@@ -117,6 +117,24 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tsk:hover .st-add-btn{opacity:1}
 .st-add-btn:hover{color:var(--gold)}
 
+/* Task/Deadline notes */
+.tsk-note{font-size:.65rem;color:var(--t3);font-style:italic;margin-top:4px;line-height:1.4;opacity:.6;letter-spacing:.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.tsk-note:hover{opacity:.9;white-space:normal}
+.dl-note{font-size:.62rem;color:var(--t3);font-style:italic;margin-top:6px;line-height:1.4;opacity:.5;letter-spacing:.2px}
+.dl-note:hover{opacity:.8}
+
+/* Multi-tag input */
+.mtag-w{display:flex;flex-wrap:wrap;gap:4px;padding:6px 8px;background:var(--bg-1);border:1px solid var(--b1);border-radius:6px;min-height:36px;align-items:center;cursor:text;transition:var(--tr)}
+.mtag-w:focus-within{border-color:var(--gold)}
+.mtag-t{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:4px;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap}
+.mtag-x{cursor:pointer;opacity:.5;font-size:10px;line-height:1;margin-left:2px;transition:var(--tr)}
+.mtag-x:hover{opacity:1;color:var(--red)}
+.mtag-inp{border:none;background:none;color:var(--t0);font-family:'Outfit';font-size:var(--ff);outline:none;flex:1;min-width:60px;text-transform:uppercase;letter-spacing:.3px}
+.mtag-inp::placeholder{color:var(--t3);text-transform:uppercase}
+
+/* Inline edit */
+.inline-edit{background:var(--bg-1);border:1px solid var(--gold);border-radius:4px;color:var(--t0);font-family:'Outfit';font-size:inherit;font-weight:inherit;text-transform:uppercase;letter-spacing:inherit;padding:2px 6px;outline:none;width:100%;line-height:inherit}
+
 .ntbar{margin-bottom:10px}
 .nbtn{display:flex;align-items:center;gap:8px;padding:12px 18px;border:1px dashed var(--b1);border-radius:var(--r);background:transparent;color:var(--t3);font-size:var(--cf);font-weight:700;cursor:pointer;transition:var(--tr);width:100%;font-family:'Outfit';text-transform:uppercase;letter-spacing:1px}
 .nbtn:hover{border-color:var(--gold);color:var(--gold)}
@@ -358,12 +376,12 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Task Name</label><input type="text" class="fi" id="fN" placeholder="E.G., SEND DCP SPECS TO FILMS BOUTIQUE"></div></div>
       <div class="fr fr4">
         <div><label class="fl">Project</label><select class="fs" id="fP"></select></div>
-        <div class="sug-w"><label class="fl">Assignee</label><input type="text" class="fi" id="fPe" placeholder="Type to search..." autocomplete="off"><div class="sug-l" id="sugPe"></div></div>
-        <div class="sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="fPa" placeholder="Type to search..." autocomplete="off"><div class="sug-l" id="sugPa"></div></div>
+        <div class="sug-w"><label class="fl">Assignees</label><div class="mtag-w" id="fPeW"><input type="text" class="mtag-inp" id="fPe" placeholder="Type..." autocomplete="off"></div><div class="sug-l" id="sugPe"></div></div>
+        <div class="sug-w"><label class="fl">Partners</label><div class="mtag-w" id="fPaW"><input type="text" class="mtag-inp" id="fPa" placeholder="Type..." autocomplete="off"></div><div class="sug-l" id="sugPa"></div></div>
         <div><label class="fl">Priority</label><select class="fs" id="fPr"><option value="1">1 — URGENT</option><option value="2">2 — HIGH</option><option value="3" selected>3 — NORMAL</option><option value="4">4 — LOW</option><option value="5">5 — MINIMAL</option></select></div>
       </div>
       <div class="fr fr3">
-        <div><label class="fl">Due Date</label><div style="display:flex;gap:4px;align-items:center"><input type="date" class="fi" id="fDu" style="flex:1"><button type="button" class="setnow-b" id="fDuToday" style="white-space:nowrap;padding:8px 10px">TODAY</button><div class="cal-wrap"><button type="button" class="cal-btn" id="fDuCal">📅</button><div class="cal-pop" id="fDuCalPop"></div></div></div></div>
+        <div><label class="fl">Due Date</label><div style="display:flex;gap:4px;align-items:center"><input type="hidden" id="fDu"><div class="cal-wrap" style="flex:1"><button type="button" class="fi" id="fDuCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="fDuLabel" style="flex:1">—</span></button><div class="cal-pop" id="fDuCalPop"></div></div><button type="button" class="setnow-b" id="fDuToday" style="white-space:nowrap;padding:8px 10px">TODAY</button><button type="button" class="setnow-b" id="fDuClear" style="white-space:nowrap;padding:8px 10px;color:var(--t3)">✕</button></div></div>
         <div class="sug-w"><label class="fl">Blocked By</label><input type="text" class="fi" id="fBl" placeholder="Leave empty" autocomplete="off"><div class="sug-l" id="sugBl"></div></div>
         <div><label class="fl">Notes</label><input type="text" class="fi" id="fNo" placeholder="Optional..."></div>
       </div>
@@ -388,10 +406,11 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div class="sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="fdPa" placeholder="Type..." autocomplete="off"><div class="sug-l" id="sugDPa"></div></div>
         <div><label class="fl">Type</label><select class="fs" id="fdTy"><option value="hard">HARD</option><option value="soft">SOFT</option></select></div>
       </div>
-      <div class="fr fr3">
+      <div class="fr fr4">
         <div class="tgl-row"><label class="tgl-sw"><input type="checkbox" id="fdAD"><span class="tgl-sl"></span></label><span class="tgl-lb">All-Day</span></div>
         <div class="tgl-row"><label class="tgl-sw"><input type="checkbox" id="fdKC"><span class="tgl-sl"></span></label><span class="tgl-lb">Keep Counting After</span></div>
         <div><button class="setnow-b" id="fdNow">⚡ SET TO NOW</button></div>
+        <div><label class="fl">Notes</label><input type="text" class="fi" id="fdNo" placeholder="Optional..."></div>
       </div>
       <div class="fac"><button class="btn btn-gh" id="cDl">CANCEL</button><button class="btn btn-g" id="sDl">ADD DEADLINE</button></div>
     </div>
@@ -422,8 +441,8 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <!-- Edit Task Modal -->
 <div class="mbg" id="eMdl"><div class="mdl"><h3>✎ Edit Task</h3>
   <div class="fg"><label class="fl">Task Name</label><input type="text" class="fi" id="eN"></div>
-  <div class="fr fr4"><div class="fg"><label class="fl">Project</label><select class="fs" id="eP"></select></div><div class="fg sug-w"><label class="fl">Assignee</label><input type="text" class="fi" id="ePe" autocomplete="off"><div class="sug-l" id="sugEPe"></div></div><div class="fg sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="ePa" autocomplete="off"><div class="sug-l" id="sugEPa"></div></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="ePr"><option value="1">1-URGENT</option><option value="2">2-HIGH</option><option value="3">3-NORMAL</option><option value="4">4-LOW</option><option value="5">5-MINIMAL</option></select></div></div>
-  <div class="fr fr2"><div class="fg"><label class="fl">Due Date</label><div style="display:flex;gap:4px;align-items:center"><input type="date" class="fi" id="eDu" style="flex:1"><button type="button" class="setnow-b" id="eDuToday" style="white-space:nowrap;padding:8px 10px">TODAY</button><div class="cal-wrap"><button type="button" class="cal-btn" id="eDuCal">📅</button><div class="cal-pop" id="eDuCalPop"></div></div></div></div><div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eNo"></div></div>
+  <div class="fr fr4"><div class="fg"><label class="fl">Project</label><select class="fs" id="eP"></select></div><div class="fg sug-w"><label class="fl">Assignees</label><div class="mtag-w" id="ePeW"><input type="text" class="mtag-inp" id="ePe" autocomplete="off" placeholder="Type..."></div><div class="sug-l" id="sugEPe"></div></div><div class="fg sug-w"><label class="fl">Partners</label><div class="mtag-w" id="ePaW"><input type="text" class="mtag-inp" id="ePa" autocomplete="off" placeholder="Type..."></div><div class="sug-l" id="sugEPa"></div></div><div class="fg"><label class="fl">Priority</label><select class="fs" id="ePr"><option value="1">1-URGENT</option><option value="2">2-HIGH</option><option value="3">3-NORMAL</option><option value="4">4-LOW</option><option value="5">5-MINIMAL</option></select></div></div>
+  <div class="fr fr2"><div class="fg"><label class="fl">Due Date</label><div style="display:flex;gap:4px;align-items:center"><input type="hidden" id="eDu"><div class="cal-wrap" style="flex:1"><button type="button" class="fi" id="eDuCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="eDuLabel" style="flex:1">—</span></button><div class="cal-pop" id="eDuCalPop"></div></div><button type="button" class="setnow-b" id="eDuToday" style="white-space:nowrap;padding:8px 10px">TODAY</button><button type="button" class="setnow-b" id="eDuClear" style="white-space:nowrap;padding:8px 10px;color:var(--t3)">✕</button></div></div><div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eNo"></div></div>
   <div class="mdla"><button class="btn btn-r" id="eTDel" style="margin-right:auto">DELETE</button><button class="btn btn-gh" id="eTC">CANCEL</button><button class="btn btn-g" id="eTS">SAVE</button></div></div></div>
 
 <!-- Edit Deadline Modal -->
@@ -431,6 +450,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="fg"><label class="fl">Description</label><input type="text" class="fi" id="edT"></div>
   <div class="fr fr3"><div class="fg"><label class="fl">Project</label><select class="fs" id="edP"></select></div><div class="fg"><label class="fl">Date & Time</label><input type="datetime-local" class="fi" id="edD"></div><div class="fg sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="edPa" autocomplete="off"><div class="sug-l" id="sugEdPa"></div></div></div>
   <div class="fr fr3"><div class="fg"><label class="fl">Type</label><select class="fs" id="edTy"><option value="hard">HARD</option><option value="soft">SOFT</option></select></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edAD"><span class="tgl-sl"></span></label><span class="tgl-lb">All-Day</span></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edKC"><span class="tgl-sl"></span></label><span class="tgl-lb">Keep Counting</span></div></div>
+  <div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="edNo" placeholder="Optional..."></div>
   <div class="mdla"><button class="btn btn-r" id="edDDel" style="margin-right:auto">DELETE</button><button class="btn btn-gh" id="edDC">CANCEL</button><button class="btn btn-g" id="edDS">SAVE</button></div></div></div>
 
 <!-- Edit Person Modal -->
@@ -738,8 +758,8 @@ document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='z'){
 /* ═══════ UTILS ═══════ */
 const td=()=>new Date().toISOString().split('T')[0];
 const nowI=()=>new Date().toISOString();
-const dB=s=>{const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+'T00:00:00')-n)/864e5)};
-const fD=s=>new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();
+const dB=s=>{if(!s)return null;const n=new Date();n.setHours(0,0,0,0);const d=new Date(s+'T00:00:00');return isNaN(d)?null:Math.ceil((d-n)/864e5)};
+const fD=s=>{if(!s)return'';const d=new Date(s+'T00:00:00');return isNaN(d)?'':d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase()};
 function toast(m,t='grn'){const e=$('toast');e.textContent=m;e.className='toast '+t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2e3)}
 function playSuccessSound(){}
 function playEndDaySound(){}
@@ -758,14 +778,30 @@ function mkSug(iid,lid,getI,onSel){
     const items=getI().filter(i=>i.n.includes(v));if(!items.length){list.classList.remove('open');return}
     list.innerHTML=items.map(i=>`<div class="sug-i" data-v="${i.n}"><span class="sug-d" style="background:${i.c}"></span>${i.n}</div>`).join('');
     list.classList.add('open');
-    list.querySelectorAll('.sug-i').forEach(si=>si.addEventListener('mousedown',e=>{e.preventDefault();inp.value=si.dataset.v;list.classList.remove('open');if(onSel)onSel(si.dataset.v)}))});
+    list.querySelectorAll('.sug-i').forEach(si=>si.addEventListener('mousedown',e=>{e.preventDefault();if(onSel){onSel(si.dataset.v);inp.value=''}else{inp.value=si.dataset.v}list.classList.remove('open')}))});
   inp.addEventListener('blur',()=>setTimeout(()=>list.classList.remove('open'),150));
   inp.addEventListener('focus',()=>{if(inp.value.trim())inp.dispatchEvent(new Event('input'))})
 }
 const gPS=()=>D.people.map(p=>({n:p.code,c:gc(PP,p.code).c}));
 const gPaS=()=>Object.keys(PA).map(k=>({n:k,c:gc(PA,k).c}));
 const gAll=()=>[...gPS(),...gPaS()];
-function initSug(){mkSug('fPe','sugPe',gPS);mkSug('fPa','sugPa',gPaS);mkSug('fBl','sugBl',gAll);mkSug('fdPa','sugDPa',gPaS);mkSug('blInp','sugBlM',gAll);mkSug('ePe','sugEPe',gPS);mkSug('ePa','sugEPa',gPaS);mkSug('edPa','sugEdPa',gPaS)}
+// Multi-tag helpers
+function mtagGetVals(wrapId){const w=$(wrapId);if(!w)return[];return Array.from(w.querySelectorAll('.mtag-t')).map(t=>t.dataset.v)}
+function mtagSetVals(wrapId,vals,colorMap){const w=$(wrapId);if(!w)return;w.querySelectorAll('.mtag-t').forEach(t=>t.remove());const inp=w.querySelector('.mtag-inp');(vals||[]).forEach(v=>{if(!v)return;const co=gc(colorMap,v);const t=document.createElement('span');t.className='mtag-t';t.dataset.v=v;t.style.background=co.b;t.style.color=co.c;t.innerHTML=`${v}<span class="mtag-x">&times;</span>`;t.querySelector('.mtag-x').onclick=e=>{e.stopPropagation();t.remove()};w.insertBefore(t,inp)})}
+function mtagAdd(wrapId,val,colorMap){val=val.trim().toUpperCase();if(!val)return;const existing=mtagGetVals(wrapId);if(existing.includes(val))return;const w=$(wrapId);const inp=w.querySelector('.mtag-inp');const co=gc(colorMap,val);const t=document.createElement('span');t.className='mtag-t';t.dataset.v=val;t.style.background=co.b;t.style.color=co.c;t.innerHTML=`${val}<span class="mtag-x">&times;</span>`;t.querySelector('.mtag-x').onclick=e=>{e.stopPropagation();t.remove()};w.insertBefore(t,inp);inp.value=''}
+function initSug(){
+  mkSug('fPe','sugPe',gPS,v=>mtagAdd('fPeW',v,PP));
+  mkSug('fPa','sugPa',gPaS,v=>mtagAdd('fPaW',v,PA));
+  mkSug('fBl','sugBl',gAll);mkSug('fdPa','sugDPa',gPaS);mkSug('blInp','sugBlM',gAll);
+  mkSug('ePe','sugEPe',gPS,v=>mtagAdd('ePeW',v,PP));
+  mkSug('ePa','sugEPa',gPaS,v=>mtagAdd('ePaW',v,PA));
+  mkSug('edPa','sugEdPa',gPaS);
+  // Enter key adds typed value as tag
+  ['fPe','ePe'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PeW','PeW'),$(id).value,PP);$(id).value=''}})});
+  ['fPa','ePa'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PaW','PaW'),$(id).value,PA);$(id).value=''}})});
+  // Click on wrapper focuses input
+  ['fPeW','fPaW','ePeW','ePaW'].forEach(id=>{const w=$(id);if(w)w.onclick=()=>w.querySelector('.mtag-inp')?.focus()});
+}
 function renderLogo(){const c=$('logoContainer');if(!c)return;if(COMPANY_LOGO){c.innerHTML=`<img class="logo-img" src="${COMPANY_LOGO}" alt="Company Logo" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\'logo-text\\'><span>ALI N\\'</span><span class=\\'logo-div\\'></span><span>FNM</span></div><span class=\\'logo-sub\\'>Production Dashboard</span>'">`}}
 
 /* ═══════ LIVE PREVIEW ═══════ */
@@ -777,7 +813,10 @@ function renderLogo(){const c=$('logoContainer');if(!c)return;if(COMPANY_LOGO){c
 /* ═══════════════════════════════════════════════════════════════
    TASKS
    ═══════════════════════════════════════════════════════════════ */
-let tF='all',bId=null,dragId=null,sortDue=true,skipSort=false;
+let tF='all',bId=null,dragId=null;
+// Persist sort preference: default is manual order
+let skipSort=true,sortDue=false;
+try{const sp=localStorage.getItem('sortPref');if(sp==='due'){skipSort=false;sortDue=true}else if(sp==='added'){skipSort=false;sortDue=false}}catch(e){}
 
 function renderT(){
   const el=$('tList'),cl=$('cList');el.innerHTML='';cl.innerHTML='';
@@ -817,8 +856,12 @@ function renderT(){
     node.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));node.classList.add('drag-over')});
     node.addEventListener('dragleave',()=>node.classList.remove('drag-over'));
     node.addEventListener('drop',e=>{e.preventDefault();node.classList.remove('drag-over');const did=+node.dataset.id;if(dragId===null||dragId===did)return;pH('reorder');const di=D.tasks.findIndex(t=>t.id===dragId),ri=D.tasks.findIndex(t=>t.id===did);if(di<0||ri<0)return;const[item]=D.tasks.splice(di,1);D.tasks.splice(ri,0,item);D.tasks.forEach((t,i)=>t.order=i);skipSort=true;dragId=null;renderT()})});
-  // Mobile swipe
-  if('ontouchstart'in window)el.querySelectorAll('.tsk').forEach(n=>{let sx=0,dx=0;n.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;dx=0},{passive:true});n.addEventListener('touchmove',e=>{dx=e.touches[0].clientX-sx;if(Math.abs(dx)>10)n.style.transform=`translateX(${dx*.3}px)`},{passive:true});n.addEventListener('touchend',()=>{n.style.transform='';const id=+n.dataset.id;if(dx<-80)tglD(id);else if(dx>80){bId=id;$('blInp').value='';$('bMdl').classList.add('op')}})});
+  // Double-click to inline edit task name (desktop)
+  if(!('ontouchstart'in window)){
+    el.querySelectorAll('.tsk-txt').forEach(txt=>{txt.style.cursor='text';txt.ondblclick=e=>{e.stopPropagation();const id=+txt.closest('.tsk').dataset.id;const t=D.tasks.find(x=>x.id===id);if(!t)return;const inp=document.createElement('input');inp.className='inline-edit';inp.value=t.name;txt.innerHTML='';txt.appendChild(inp);inp.focus();inp.select();const save=()=>{const v=inp.value.trim().toUpperCase();if(v&&v!==t.name){pH('edit task');t.name=v}renderT()};inp.onblur=save;inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();save()}else if(ev.key==='Escape'){renderT()}}}});
+    // Double-click to inline edit subtask name
+    el.querySelectorAll('.sub-nm').forEach(nm=>{nm.style.cursor='text';nm.ondblclick=e=>{e.stopPropagation();const row=nm.closest('.sub-row');const tid=+row.dataset.tid,si=+row.dataset.si;const t=D.tasks.find(x=>x.id===tid);if(!t||!t.subtasks||!t.subtasks[si])return;const inp=document.createElement('input');inp.className='inline-edit';inp.style.fontSize='.85rem';inp.value=t.subtasks[si].name;nm.innerHTML='';nm.appendChild(inp);inp.focus();inp.select();const save=()=>{const v=inp.value.trim().toUpperCase();if(v&&v!==t.subtasks[si].name){pH('edit subtask');t.subtasks[si].name=v}renderT()};inp.onblur=save;inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();save()}else if(ev.key==='Escape'){renderT()}}}});
+  }
   renderFlts();updateSts();fillDD()
 }
 
@@ -843,7 +886,13 @@ function tkEl(t,isDT=false,isArch=false){
   }
   // Add subtask inline input area (hidden by default, toggled by JS)
   const subAddHtml=!isArch?`<div class="sub-add" data-tid="${t.id}" style="display:none"><input class="sub-add-inp" data-tid="${t.id}" placeholder="Add subtask..." maxlength="100"><button class="sub-add-ok" data-tid="${t.id}">✓</button><button class="sub-add-x" data-tid="${t.id}">✕</button></div>`:'';
-  return`<div class="${cls}" data-id="${t.id}">${!isArch?'<div class="drag-h"><span></span><span></span><span></span></div>':''}<div class="${tcCls}" data-id="${t.id}">${t.done?'✓':''}</div><div class="tp p${t.priority}"></div><div class="tb"><div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.5;font-size:0.85em">${pc.code}</span> `:''}${t.name}</div>${pBar}<div class="tm">${t.person?tg(t.person,prc):''}${t.partner&&pac?tg(t.partner,pac):''}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}</div>${subHtml}${subAddHtml}</div><div class="tr">${t.due?`<div class="td ${dc}">${dt}</div>`:''}<div class="tact">${!isArch?`<button class="st-add-btn" data-id="${t.id}" title="Add subtask">+</button><button class="tedb" data-id="${t.id}">✎</button><button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div></div></div>`
+  const noteHtml=t.notes?`<div class="tsk-note">${t.notes}</div>`:'';
+  // Build people/partner tags — support arrays
+  const persons=Array.isArray(t.person)?t.person:t.person?[t.person]:[];
+  const partners=Array.isArray(t.partner)?t.partner:t.partner?[t.partner]:[];
+  const personTags=persons.map(p=>tg(p,gc(PP,p))).join('');
+  const partnerTags=partners.map(p=>tg(p,gc(PA,p))).join('');
+  return`<div class="${cls}" data-id="${t.id}">${!isArch?'<div class="drag-h"><span></span><span></span><span></span></div>':''}<div class="${tcCls}" data-id="${t.id}">${t.done?'✓':''}</div><div class="tp p${t.priority}"></div><div class="tb"><div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.5;font-size:0.85em">${pc.code}</span> `:''}${t.name}</div>${pBar}<div class="tm">${personTags}${partnerTags}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}</div>${noteHtml}${subHtml}${subAddHtml}</div><div class="tr">${t.due&&dt?`<div class="td ${dc}">${dt}</div>`:''}<div class="tact">${!isArch?`<button class="st-add-btn" data-id="${t.id}" title="Add subtask">+</button><button class="tedb" data-id="${t.id}">✎</button><button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div></div></div>`
 }
 
 /* ═══════ SUBTASK HELPERS ═══════ */
@@ -910,21 +959,30 @@ function renderFlts(){const fb=$('tFlts');fb.innerHTML='';const op=D.tasks.filte
   const fs=[{k:'all',l:'ALL',n:D.tasks.length,cl:''},{k:'today',l:'TODAY+OVERDUE',n:op.filter(t=>t.due&&dB(t.due)<=0).length,cl:'tf'},{k:'blocked',l:'BLOCKED',n:op.filter(t=>t.blocked).length,cl:'bf'}];
   [...new Set(D.tasks.map(t=>t.project).filter(Boolean))].forEach(p=>{const pc=gpc(p);fs.push({k:p,l:pc.code,n:op.filter(t=>t.project===p).length,cl:''})});
   fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT()};fb.appendChild(b)});
-  const sb=document.createElement('button');sb.className='sort-tgl';sb.textContent=skipSort?'↕ MANUAL':(sortDue?'↕ DUE DATE':'↕ ADDED');sb.onclick=()=>{skipSort=!skipSort;if(skipSort){sortDue=false};renderT()};fb.appendChild(sb)}
+  const sb=document.createElement('button');sb.className='sort-tgl';sb.textContent=skipSort?'↕ MANUAL':(sortDue?'↕ DUE DATE':'↕ ADDED');sb.onclick=()=>{if(skipSort){skipSort=false;sortDue=true;try{localStorage.setItem('sortPref','due')}catch(e){}}else if(sortDue){sortDue=false;try{localStorage.setItem('sortPref','added')}catch(e){}}else{skipSort=true;sortDue=false;try{localStorage.setItem('sortPref','manual')}catch(e){}}renderT()};fb.appendChild(sb)}
 
 function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.length;$('sB').textContent=o.filter(t=>t.blocked).length;$('sD').textContent=D.tasks.filter(t=>t.done).length;$('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length}
 
 function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`)})}
 
 // Task form
-$('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();$('fN').focus()}};
-$('fDuToday').onclick=()=>{$('fDu').value=td()};
-$('eDuToday').onclick=()=>{$('eDu').value=td()};
+$('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();updateCalLabel('fDu');$('fN').focus()}};
+$('fDuToday').onclick=()=>{$('fDu').value=td();updateCalLabel('fDu')};
+$('fDuClear').onclick=()=>{$('fDu').value='';updateCalLabel('fDu')};
+$('eDuToday').onclick=()=>{$('eDu').value=td();updateCalLabel('eDu')};
+$('eDuClear').onclick=()=>{$('eDu').value='';updateCalLabel('eDu')};
 
 // Mini calendar popup
+function updateCalLabel(inputId){
+  const inp=$(inputId),lbl=$(inputId.replace('Du','DuLabel'));
+  if(!lbl)return;
+  if(inp.value){const d=new Date(inp.value+'T00:00:00');lbl.textContent=isNaN(d)?'—':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();lbl.style.color='var(--t0)'}
+  else{lbl.textContent='—';lbl.style.color='var(--t3)'}
+}
 function initCal(btnId,popId,inputId){
   const btn=$(btnId),pop=$(popId),inp=$(inputId);
   let cY=new Date().getFullYear(),cM=new Date().getMonth();
+  function setVal(v){inp.value=v;updateCalLabel(inputId)}
   function render(){
     const todayS=td(),selV=inp.value;
     const d1=new Date(cY,cM,1),dow=d1.getDay(),dim=new Date(cY,cM+1,0).getDate();
@@ -941,17 +999,20 @@ function initCal(btnId,popId,inputId){
     h+=`</div>`;
     pop.innerHTML=h;
     pop.querySelectorAll('.cal-nav').forEach(n=>n.onclick=e=>{e.stopPropagation();cM+=+n.dataset.d;if(cM>11){cM=0;cY++}else if(cM<0){cM=11;cY--}render()});
-    pop.querySelectorAll('.cal-day:not(.other)').forEach(d=>d.onclick=e=>{e.stopPropagation();inp.value=d.dataset.v;pop.classList.remove('open')});
+    pop.querySelectorAll('.cal-day:not(.other)').forEach(d=>d.onclick=e=>{e.stopPropagation();setVal(d.dataset.v);pop.classList.remove('open')});
   }
   btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));if(!wasOpen){const v=inp.value;if(v){const p=new Date(v);cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open')}};
-  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&e.target!==btn)pop.classList.remove('open')});
+  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!btn.contains(e.target))pop.classList.remove('open')});
 }
 initCal('fDuCal','fDuCalPop','fDu');
 initCal('eDuCal','eDuCalPop','eDu');
 $('cTask').onclick=()=>$('tFrm').classList.remove('open');
 $('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mx=D.tasks.length?Math.max(...D.tasks.map(t=>t.order)):0;
-  D.tasks.push({id:D.nid++,name:n,project:$('fP').value,person:$('fPe').value.trim().toUpperCase(),partner:$('fPa').value.trim().toUpperCase(),priority:+$('fPr').value,due:$('fDu').value||null,done:false,doneDate:null,blocked:!!bl,blockedBy:bl||null,order:mx+1,notes:$('fNo').value.trim(),createdAt:nowI(),completedAt:null,subtasks:[]});
-  ['fN','fBl','fNo','fPe','fPa'].forEach(i=>$(i).value='');$('fPr').value='3';$('fDu').value='';toast('TASK CREATED','gld');$('tFrm').classList.remove('open');renderT()};
+  // Get multi-tag values; also include typed-but-not-entered text
+  let persons=mtagGetVals('fPeW');const typedPe=$('fPe').value.trim().toUpperCase();if(typedPe&&!persons.includes(typedPe))persons.push(typedPe);
+  let partners=mtagGetVals('fPaW');const typedPa=$('fPa').value.trim().toUpperCase();if(typedPa&&!partners.includes(typedPa))partners.push(typedPa);
+  D.tasks.push({id:D.nid++,name:n,project:$('fP').value,person:persons,partner:partners,priority:+$('fPr').value,due:$('fDu').value||null,done:false,doneDate:null,blocked:!!bl,blockedBy:bl||null,order:mx+1,notes:$('fNo').value.trim(),createdAt:nowI(),completedAt:null,subtasks:[]});
+  ['fN','fBl','fNo'].forEach(i=>$(i).value='');$('fPe').value='';$('fPa').value='';$('fPeW').querySelectorAll('.mtag-t').forEach(t=>t.remove());$('fPaW').querySelectorAll('.mtag-t').forEach(t=>t.remove());$('fPr').value='3';$('fDu').value='';toast('TASK CREATED','gld');$('tFrm').classList.remove('open');renderT()};
 
 $('cTgl').onclick=()=>{$('cList').classList.toggle('op');document.querySelector('.ctgl .ch').classList.toggle('op')};
 function doEndDay(){const d=D.tasks.filter(t=>t.done);if(!d.length)return;pH('end day');D.completed.push(...d);D.tasks=D.tasks.filter(t=>!t.done);D.tasks.forEach((t,i)=>t.order=i);playEndDaySound();toast(`☀ ${d.length} ARCHIVED`);renderT()}
@@ -964,9 +1025,16 @@ $('cfBl').onclick=()=>{if(bId===null)return;pH('block');const t=D.tasks.find(x=>
 
 /* ═══════ EDIT TASK ═══════ */
 let eTid=null;
-function openET(id){const t=D.tasks.find(x=>x.id===id)||D.completed.find(x=>x.id===id);if(!t)return;eTid=id;$('eN').value=t.name;$('ePe').value=t.person||'';$('ePa').value=t.partner||'';$('ePr').value=t.priority;$('eDu').value=t.due||'';$('eNo').value=t.notes||'';fillDD();if(t.project)$('eP').value=t.project;$('eMdl').classList.add('op');$('eN').focus()}
+function openET(id){const t=D.tasks.find(x=>x.id===id)||D.completed.find(x=>x.id===id);if(!t)return;eTid=id;$('eN').value=t.name;$('ePe').value='';$('ePa').value='';
+  const pArr=Array.isArray(t.person)?t.person:t.person?[t.person]:[];
+  const paArr=Array.isArray(t.partner)?t.partner:t.partner?[t.partner]:[];
+  mtagSetVals('ePeW',pArr,PP);mtagSetVals('ePaW',paArr,PA);
+  $('ePr').value=t.priority;$('eDu').value=t.due||'';updateCalLabel('eDu');$('eNo').value=t.notes||'';fillDD();if(t.project)$('eP').value=t.project;$('eMdl').classList.add('op');$('eN').focus()}
 $('eTC').onclick=()=>{$('eMdl').classList.remove('op');eTid=null};
-$('eTS').onclick=()=>{if(eTid===null)return;const t=D.tasks.find(x=>x.id===eTid)||D.completed.find(x=>x.id===eTid);if(!t)return;pH('edit task');t.name=$('eN').value.trim().toUpperCase();t.project=$('eP').value;t.person=$('ePe').value.trim().toUpperCase();t.partner=$('ePa').value.trim().toUpperCase();t.priority=+$('ePr').value;t.due=$('eDu').value||null;t.notes=$('eNo').value.trim();toast('UPDATED','gld');$('eMdl').classList.remove('op');eTid=null;renderT()};
+$('eTS').onclick=()=>{if(eTid===null)return;const t=D.tasks.find(x=>x.id===eTid)||D.completed.find(x=>x.id===eTid);if(!t)return;pH('edit task');t.name=$('eN').value.trim().toUpperCase();t.project=$('eP').value;
+  let ep=mtagGetVals('ePeW');const tPe=$('ePe').value.trim().toUpperCase();if(tPe&&!ep.includes(tPe))ep.push(tPe);
+  let epa=mtagGetVals('ePaW');const tPa=$('ePa').value.trim().toUpperCase();if(tPa&&!epa.includes(tPa))epa.push(tPa);
+  t.person=ep;t.partner=epa;t.priority=+$('ePr').value;t.due=$('eDu').value||null;t.notes=$('eNo').value.trim();toast('UPDATED','gld');$('eMdl').classList.remove('op');eTid=null;renderT()};
 $('eTDel').onclick=()=>{if(eTid===null)return;pH('delete task');D.tasks=D.tasks.filter(t=>t.id!==eTid);D.completed=D.completed.filter(t=>t.id!==eTid);toast('DELETED','rd');$('eMdl').classList.remove('op');eTid=null;renderT()};
 
 /* ═══════════════════════════════════════════════════════════════
@@ -974,7 +1042,7 @@ $('eTDel').onclick=()=>{if(eTid===null)return;pH('delete task');D.tasks=D.tasks.
    ═══════════════════════════════════════════════════════════════ */
 function renderDL(){
   const el=$('dlG');el.innerHTML='';
-  [...D.deadlines].sort((a,b)=>a.date.localeCompare(b.date)).forEach(d=>{
+  [...D.deadlines].sort((a,b)=>b.date.localeCompare(a.date)).forEach(d=>{
     const dt=new Date(d.date),now=new Date(),diff=dt-now,past=diff<0;
     let urg=past?'past':Math
 		.floor(diff/864e5)<=3?'urg':Math.floor(diff/864e5)<=7?'soon':'ok';
@@ -985,9 +1053,20 @@ function renderDL(){
     if(past&&d.keepCount){const a=Math.abs(Math.floor(diff/864e5));tmr=`${a}D AGO`}
     else if(past)tmr='PASSED';
     else{const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);tmr=`${dy}D ${hr}H ${mn}M ${sc}S`}
-    el.innerHTML+=`<div class="dlc ${urg}" data-dlid="${d.id}"><div class="dl-info"><div class="dlt">${d.title}</div><div class="dl-meta"><div class="dltm ${urg}" id="dl-${d.id}">${tmr}</div><span class="dltm-sep">·</span><div class="dldb">${fdt}</div><span class="dltm-sep">·</span><div class="dltm-sub">${tStr}</div></div><div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}<span class="tag" style="background:${d.type==='hard'?'var(--red-d)':'var(--orange-d)'};color:${d.type==='hard'?'var(--red)':'var(--orange)'}">${d.type.toUpperCase()}</span></div></div><div class="dl-acts"><button class="dl-eb" data-dlid="${d.id}">✎</button><button class="dl-db" data-dlid="${d.id}">✕</button></div></div>`});
+    // Build label prefix (project, partner, person)
+    const dlLabels=[];
+    if(d.project){const lpc=gpc(d.project);dlLabels.push(`<span style="color:${lpc.c};opacity:.5;font-size:0.7em">${lpc.code}</span>`)}
+    if(d.partner){const lpa=gc(PA,d.partner);dlLabels.push(`<span style="color:${lpa.c};opacity:.5;font-size:0.7em">${d.partner}</span>`)}
+    if(d.person){const lpp=gc(PP,d.person);dlLabels.push(`<span style="color:${lpp.c};opacity:.5;font-size:0.7em">${d.person}</span>`)}
+    const dlLabelStr=dlLabels.length?dlLabels.join(' <span style="opacity:.3;font-size:0.6em">·</span> ')+' ':'';
+    const dlNoteHtml=d.notes?`<div class="dl-note">${d.notes}</div>`:'';
+    el.innerHTML+=`<div class="dlc ${urg}" data-dlid="${d.id}"><div class="dl-info"><div class="dlt">${dlLabelStr}${d.title}</div><div class="dl-meta"><div class="dltm ${urg}" id="dl-${d.id}">${tmr}</div><span class="dltm-sep">·</span><div class="dldb">${fdt}</div><span class="dltm-sep">·</span><div class="dltm-sub">${tStr}</div></div><div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}<span class="tag" style="background:${d.type==='hard'?'var(--red-d)':'var(--orange-d)'};color:${d.type==='hard'?'var(--red)':'var(--orange)'}">${d.type.toUpperCase()}</span></div>${dlNoteHtml}</div><div class="dl-acts"><button class="dl-eb" data-dlid="${d.id}">✎</button><button class="dl-db" data-dlid="${d.id}">✕</button></div></div>`});
   el.querySelectorAll('.dl-eb').forEach(b=>b.onclick=()=>openEDL(+b.dataset.dlid));
-  el.querySelectorAll('.dl-db').forEach(b=>b.onclick=()=>{pH('del deadline');D.deadlines=D.deadlines.filter(d=>d.id!==+b.dataset.dlid);toast('DELETED','rd');renderDL()})
+  el.querySelectorAll('.dl-db').forEach(b=>b.onclick=()=>{pH('del deadline');D.deadlines=D.deadlines.filter(d=>d.id!==+b.dataset.dlid);toast('DELETED','rd');renderDL()});
+  // Double-click to inline edit deadline title (desktop)
+  if(!('ontouchstart'in window)){
+    el.querySelectorAll('.dlt').forEach(tl=>{tl.style.cursor='text';tl.ondblclick=e=>{e.stopPropagation();const dlid=+tl.closest('.dlc').dataset.dlid;const d=D.deadlines.find(x=>x.id===dlid);if(!d)return;const inp=document.createElement('input');inp.className='inline-edit';inp.style.fontSize='inherit';inp.value=d.title;tl.innerHTML='';tl.appendChild(inp);inp.focus();inp.select();const save=()=>{const v=inp.value.trim().toUpperCase();if(v&&v!==d.title){pH('edit deadline');d.title=v}renderDL()};inp.onblur=save;inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();save()}else if(ev.key==='Escape'){renderDL()}}}});
+  }
 }
 
 setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;const diff=new Date(d.date)-new Date();if(diff<0){if(d.keepCount){const a=Math.abs(Math.floor(diff/864e5));el.textContent=`${a}D AGO`;el.className='dltm past'}else{el.textContent='PASSED';el.className='dltm past'}return}const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);el.textContent=`${dy}D ${hr}H ${mn}M ${sc}S`})},1e3);
@@ -995,13 +1074,13 @@ setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;co
 $('ndTgl').onclick=()=>{const f=$('dFrm');f.classList.toggle('open');if(f.classList.contains('open'))$('fdT').focus()};
 $('cDl').onclick=()=>$('dFrm').classList.remove('open');
 $('fdNow').onclick=()=>{const n=new Date();n.setMinutes(n.getMinutes()-n.getTimezoneOffset());$('fdD').value=n.toISOString().slice(0,16)};
-$('sDl').onclick=()=>{const t=$('fdT').value.trim().toUpperCase();if(!t){toast('ENTER DESCRIPTION','rd');return}pH('add deadline');D.deadlines.push({id:D.dlid++,title:t,project:$('fdP').value,partner:$('fdPa').value.trim().toUpperCase(),date:$('fdD').value||new Date().toISOString().slice(0,16),type:$('fdTy').value,allDay:$('fdAD').checked,keepCount:$('fdKC').checked});['fdT','fdD','fdPa'].forEach(i=>$(i).value='');$('fdAD').checked=false;$('fdKC').checked=false;toast('DEADLINE ADDED','gld');$('dFrm').classList.remove('open');renderDL()};
+$('sDl').onclick=()=>{const t=$('fdT').value.trim().toUpperCase();if(!t){toast('ENTER DESCRIPTION','rd');return}pH('add deadline');D.deadlines.push({id:D.dlid++,title:t,project:$('fdP').value,partner:$('fdPa').value.trim().toUpperCase(),date:$('fdD').value||new Date().toISOString().slice(0,16),type:$('fdTy').value,allDay:$('fdAD').checked,keepCount:$('fdKC').checked,notes:$('fdNo').value.trim()});['fdT','fdD','fdPa','fdNo'].forEach(i=>$(i).value='');$('fdAD').checked=false;$('fdKC').checked=false;toast('DEADLINE ADDED','gld');$('dFrm').classList.remove('open');renderDL()};
 
 /* Edit Deadline */
 let eDLid=null;
-function openEDL(id){const d=D.deadlines.find(x=>x.id===id);if(!d)return;eDLid=id;$('edT').value=d.title;$('edD').value=d.date;$('edTy').value=d.type;$('edAD').checked=!!d.allDay;$('edKC').checked=!!d.keepCount;$('edPa').value=d.partner||'';fillDD();if(d.project)$('edP').value=d.project;$('edMdl').classList.add('op')}
+function openEDL(id){const d=D.deadlines.find(x=>x.id===id);if(!d)return;eDLid=id;$('edT').value=d.title;$('edD').value=d.date;$('edTy').value=d.type;$('edAD').checked=!!d.allDay;$('edKC').checked=!!d.keepCount;$('edPa').value=d.partner||'';$('edNo').value=d.notes||'';fillDD();if(d.project)$('edP').value=d.project;$('edMdl').classList.add('op')}
 $('edDC').onclick=()=>{$('edMdl').classList.remove('op');eDLid=null};
-$('edDS').onclick=()=>{if(eDLid===null)return;const d=D.deadlines.find(x=>x.id===eDLid);if(!d)return;pH('edit deadline');d.title=$('edT').value.trim().toUpperCase();d.project=$('edP').value;d.partner=$('edPa').value.trim().toUpperCase();d.date=$('edD').value;d.type=$('edTy').value;d.allDay=$('edAD').checked;d.keepCount=$('edKC').checked;toast('UPDATED','gld');$('edMdl').classList.remove('op');eDLid=null;renderDL()};
+$('edDS').onclick=()=>{if(eDLid===null)return;const d=D.deadlines.find(x=>x.id===eDLid);if(!d)return;pH('edit deadline');d.title=$('edT').value.trim().toUpperCase();d.project=$('edP').value;d.partner=$('edPa').value.trim().toUpperCase();d.date=$('edD').value;d.type=$('edTy').value;d.allDay=$('edAD').checked;d.keepCount=$('edKC').checked;d.notes=$('edNo').value.trim();toast('UPDATED','gld');$('edMdl').classList.remove('op');eDLid=null;renderDL()};
 $('edDDel').onclick=()=>{if(eDLid===null)return;pH('delete deadline');D.deadlines=D.deadlines.filter(d=>d.id!==eDLid);toast('DELETED','rd');$('edMdl').classList.remove('op');eDLid=null;renderDL()};
 
 /* ═══════════════════════════════════════════════════════════════
