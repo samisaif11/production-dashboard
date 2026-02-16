@@ -116,7 +116,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .st-add-btn{font-size:12px;cursor:pointer;background:none;border:none;color:var(--t3);transition:var(--tr);padding:2px;opacity:0}
 .tsk:hover .st-add-btn{opacity:1}
 .st-add-btn:hover{color:var(--gold)}
-.tc.locked{opacity:.3;cursor:not-allowed;pointer-events:none}
+.tc.locked{opacity:.35;cursor:pointer}
 .tc.ready{border-color:var(--green);animation:readyPulse 2s ease-in-out infinite}
 @keyframes readyPulse{0%,100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}50%{box-shadow:0 0 0 4px rgba(34,197,94,.15)}}
 
@@ -744,8 +744,8 @@ const nowI=()=>new Date().toISOString();
 const dB=s=>{const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+'T00:00:00')-n)/864e5)};
 const fD=s=>new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();
 function toast(m,t='grn'){const e=$('toast');e.textContent=m;e.className='toast '+t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2e3)}
-function playSuccessSound(){try{new Audio('assets/sounds/success.mp3').play()}catch(e){}}
-function playEndDaySound(){try{new Audio('assets/sounds/success-day.mp3').play()}catch(e){}}
+function playSuccessSound(){try{new Audio('assets/sounds/success.mp3').play().catch(()=>{})}catch(e){}}
+function playEndDaySound(){try{new Audio('assets/sounds/success-day.mp3').play().catch(()=>{})}catch(e){}}
 
 /* ═══════ CLOCK ═══════ */
 function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('dtb').textContent=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase()}
