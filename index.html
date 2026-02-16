@@ -744,8 +744,14 @@ const nowI=()=>new Date().toISOString();
 const dB=s=>{const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+'T00:00:00')-n)/864e5)};
 const fD=s=>new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();
 function toast(m,t='grn'){const e=$('toast');e.textContent=m;e.className='toast '+t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2e3)}
-function playSuccessSound(){try{new Audio('assets/sounds/success.mp3').play().catch(()=>{})}catch(e){}}
-function playEndDaySound(){try{new Audio('assets/sounds/success-day.mp3').play().catch(()=>{})}catch(e){}}
+// Preload audio on first user interaction to unlock browser autoplay
+const _sndSuccess=new Audio('assets/sounds/success.mp3');
+const _sndEndDay=new Audio('assets/sounds/success-day.mp3');
+_sndSuccess.preload='auto';_sndEndDay.preload='auto';
+let _audioUnlocked=false;
+document.addEventListener('click',function _unlockAudio(){if(_audioUnlocked)return;_sndSuccess.volume=0;_sndSuccess.play().then(()=>{_sndSuccess.pause();_sndSuccess.currentTime=0;_sndSuccess.volume=1;_audioUnlocked=true}).catch(()=>{});_sndEndDay.volume=0;_sndEndDay.play().then(()=>{_sndEndDay.pause();_sndEndDay.currentTime=0;_sndEndDay.volume=1}).catch(()=>{})},{once:true});
+function playSuccessSound(){_sndSuccess.currentTime=0;_sndSuccess.play().catch(()=>{})}
+function playEndDaySound(){_sndEndDay.currentTime=0;_sndEndDay.play().catch(()=>{})}
 
 /* ═══════ CLOCK ═══════ */
 function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('dtb').textContent=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase()}
@@ -834,8 +840,7 @@ function tkEl(t,isDT=false,isArch=false){
   const hasSubs=sTotal>0;
   const allSubsDone=hasSubs&&sDone===sTotal;
   // Main checkbox: locked if has incomplete subtasks (unless already done/archived)
-  const tcLocked=hasSubs&&!allSubsDone&&!isDT&&!isArch;
-  const tcCls=['tc',tcLocked?'locked':'',hasSubs&&allSubsDone&&!isDT?'ready':''].filter(Boolean).join(' ');
+  const tcCls='tc';
   const cls=['tsk',isDT?'struck':'',t.blocked?'blk':''].filter(Boolean).join(' ');
   // Progress bar
   const pBar=hasSubs?`<div class="st-bar-w"><div class="st-bar-f" style="width:${Math.round(sDone/sTotal*100)}%"></div></div>`:'';
@@ -874,9 +879,7 @@ function delSub(tid,si){
 }
 
 function tglD(id){let t=D.tasks.find(x=>x.id===id);const fromCompleted=!t;if(!t){t=D.completed.find(x=>x.id===id);if(!t)return;pH('restore');t.done=false;t.doneDate=null;t.completedAt=null;D.completed=D.completed.filter(x=>x.id!==id);const mx=D.tasks.length?Math.max(...D.tasks.map(x=>x.order)):0;t.order=mx+1;D.tasks.push(t);D.monthly[D.monthly.length-1].c=Math.max(0,D.monthly[D.monthly.length-1].c-1);toast('RESTORED','gld');renderT();return}
-  // Block completion if subtasks exist and not all done
   const subs=t.subtasks||[];
-  if(!t.done&&subs.length>0&&subs.some(s=>!s.completed)){toast('COMPLETE ALL SUBTASKS FIRST','rd');return}
   pH(t.done?'reopen':'complete');t.done=!t.done;t.doneDate=t.done?td():null;t.completedAt=t.done?nowI():null;
   if(t.done){t.blocked=false;t.blockedBy=null;if(subs.length)subs.forEach(s=>s.completed=true);D.monthly[D.monthly.length-1].c++;playSuccessSound();toast('✓ COMPLETED');setTimeout(()=>{const el=document.querySelector(`.tsk[data-id="${id}"]`);if(el)el.classList.add('shimmer')},50)}
   else{D.monthly[D.monthly.length-1].c=Math.max(0,D.monthly[D.monthly.length-1].c-1);toast('REOPENED','gld')}renderT()}
