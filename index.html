@@ -405,11 +405,12 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <button class="nbtn" id="ndTgl">+ NEW DEADLINE</button>
     <div class="tfrm" id="dFrm">
       <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Description</label><input type="text" class="fi" id="fdT" placeholder="E.G., CNC AVR1 APPLICATION"></div></div>
-      <div class="fr" style="grid-template-columns:1fr 1.5fr auto 1fr auto">
+      <div class="fr" style="grid-template-columns:1fr 1.5fr auto 1fr 1fr auto">
         <div><label class="fl">Project</label><select class="fs" id="fdP"></select></div>
         <div><label class="fl">Date</label><div style="display:flex;gap:4px;align-items:center"><input type="hidden" id="fdDate"><div class="cal-wrap" style="flex:1"><button type="button" class="fi" id="fdDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="fdDateLabel" style="flex:1">—</span></button><div class="cal-pop" id="fdDateCalPop"></div></div><button type="button" class="setnow-b" id="fdDateToday" style="white-space:nowrap;padding:8px 10px">TODAY</button></div></div>
         <div><label class="fl">Time</label><input type="time" class="fi" id="fdTime"></div>
         <div class="sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="fdPa" placeholder="Type..." autocomplete="off"><div class="sug-l" id="sugDPa"></div></div>
+        <div class="sug-w"><label class="fl">Person</label><input type="text" class="fi" id="fdPe" placeholder="Type..." autocomplete="off"><div class="sug-l" id="sugDPe"></div></div>
         <div><label class="fl">Type</label><select class="fs" id="fdTy"><option value="hard">HARD</option><option value="soft">SOFT</option></select></div>
       </div>
       <div class="fr fr4">
@@ -454,8 +455,8 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <!-- Edit Deadline Modal -->
 <div class="mbg" id="edMdl"><div class="mdl"><h3>✎ Edit Deadline</h3>
   <div class="fg"><label class="fl">Description</label><input type="text" class="fi" id="edT"></div>
-  <div class="fr fr4"><div class="fg"><label class="fl">Project</label><select class="fs" id="edP"></select></div><div class="fg"><label class="fl">Date</label><div style="display:flex;gap:4px;align-items:center"><input type="hidden" id="edDate"><div class="cal-wrap" style="flex:1"><button type="button" class="fi" id="edDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="edDateLabel" style="flex:1">—</span></button><div class="cal-pop" id="edDateCalPop"></div></div></div></div><div class="fg"><label class="fl">Time</label><input type="time" class="fi" id="edTime"></div><div class="fg sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="edPa" autocomplete="off"><div class="sug-l" id="sugEdPa"></div></div></div>
-  <div class="fr fr3"><div class="fg"><label class="fl">Type</label><select class="fs" id="edTy"><option value="hard">HARD</option><option value="soft">SOFT</option></select></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edAD"><span class="tgl-sl"></span></label><span class="tgl-lb">All-Day</span></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edKC"><span class="tgl-sl"></span></label><span class="tgl-lb">Keep Counting</span></div></div>
+  <div class="fr fr4"><div class="fg"><label class="fl">Project</label><select class="fs" id="edP"></select></div><div class="fg"><label class="fl">Date</label><div style="display:flex;gap:4px;align-items:center"><input type="hidden" id="edDate"><div class="cal-wrap" style="flex:1"><button type="button" class="fi" id="edDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="edDateLabel" style="flex:1">—</span></button><div class="cal-pop" id="edDateCalPop"></div></div><button type="button" class="setnow-b" id="edDateToday" style="white-space:nowrap;padding:8px 10px">TODAY</button></div></div><div class="fg"><label class="fl">Time</label><input type="time" class="fi" id="edTime"></div><div class="fg sug-w"><label class="fl">Partner</label><input type="text" class="fi" id="edPa" autocomplete="off"><div class="sug-l" id="sugEdPa"></div></div></div>
+  <div class="fr fr4"><div class="fg"><label class="fl">Type</label><select class="fs" id="edTy"><option value="hard">HARD</option><option value="soft">SOFT</option></select></div><div class="fg sug-w"><label class="fl">Person</label><input type="text" class="fi" id="edPe" autocomplete="off" placeholder="Type..."><div class="sug-l" id="sugEdPe"></div></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edAD"><span class="tgl-sl"></span></label><span class="tgl-lb">All-Day</span></div><div class="fg tgl-row"><label class="tgl-sw"><input type="checkbox" id="edKC"><span class="tgl-sl"></span></label><span class="tgl-lb">Keep Counting</span></div></div>
   <div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="edNo" placeholder="Optional..."></div>
   <div class="mdla"><button class="btn btn-r" id="edDDel" style="margin-right:auto">DELETE</button><button class="btn btn-gh" id="edDC">CANCEL</button><button class="btn btn-g" id="edDS">SAVE</button></div></div></div>
 
@@ -806,10 +807,10 @@ function mtagAdd(wrapId,val,colorMap){val=val.trim().toUpperCase();if(!val)retur
 function initSug(){
   mkSug('fPe','sugPe',gPS,v=>mtagAdd('fPeW',v,PP));
   mkSug('fPa','sugPa',gPaS,v=>mtagAdd('fPaW',v,PA));
-  mkSug('fBl','sugBl',gAll);mkSug('fdPa','sugDPa',gPaS);mkSug('blInp','sugBlM',gAll);
+  mkSug('fBl','sugBl',gAll);mkSug('fdPa','sugDPa',gPaS);mkSug('fdPe','sugDPe',gPS);mkSug('blInp','sugBlM',gAll);
   mkSug('ePe','sugEPe',gPS,v=>mtagAdd('ePeW',v,PP));
   mkSug('ePa','sugEPa',gPaS,v=>mtagAdd('ePaW',v,PA));
-  mkSug('edPa','sugEdPa',gPaS);
+  mkSug('edPa','sugEdPa',gPaS);mkSug('edPe','sugEdPe',gPS);
   // Enter key adds typed value as tag
   ['fPe','ePe'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PeW','PeW'),$(id).value,PP);$(id).value=''}})});
   ['fPa','ePa'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PaW','PaW'),$(id).value,PA);$(id).value=''}})});
@@ -1014,7 +1015,8 @@ function initCal(btnId,popId,inputId){
     h+=`<div class="cal-grid">`;
     ['MO','TU','WE','TH','FR','SA','SU'].forEach(d=>h+=`<div class="cal-dow">${d}</div>`);
     const startDow=(dow+6)%7;
-    for(let i=startDow-1;i>=0;i--){const d=prevDim-i;h+=`<div class="cal-day other" data-v="${cY}-${String(cM).padStart(2,'0')}-${String(d).padStart(2,'0')}">${d}</div>`}
+    const prevMonth=cM===0?12:cM,prevYear=cM===0?cY-1:cY;
+    for(let i=startDow-1;i>=0;i--){const d=prevDim-i;h+=`<div class="cal-day other" data-v="${prevYear}-${String(prevMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}">${d}</div>`}
     for(let d=1;d<=dim;d++){const v=`${cY}-${String(cM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;const cls=['cal-day',v===todayS?'today':'',v===selV?'selected':''].filter(Boolean).join(' ');h+=`<div class="${cls}" data-v="${v}">${d}</div>`}
     const total=startDow+dim,rem=(7-total%7)%7;
     for(let d=1;d<=rem;d++){h+=`<div class="cal-day other">${d}</div>`}
@@ -1023,7 +1025,7 @@ function initCal(btnId,popId,inputId){
     pop.querySelectorAll('.cal-nav').forEach(n=>n.onclick=e=>{e.stopPropagation();cM+=+n.dataset.d;if(cM>11){cM=0;cY++}else if(cM<0){cM=11;cY--}render()});
     pop.querySelectorAll('.cal-day:not(.other)').forEach(d=>d.onclick=e=>{e.stopPropagation();setVal(d.dataset.v);pop.classList.remove('open')});
   }
-  btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));if(!wasOpen){const v=inp.value;if(v){const p=new Date(v);cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open')}};
+  btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));if(!wasOpen){const v=inp.value;if(v){const p=new Date(v+'T00:00:00');cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open')}};
   document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!btn.contains(e.target))pop.classList.remove('open')});
 }
 initCal('fDuCal','fDuCalPop','fDu');
@@ -1107,7 +1109,7 @@ $('sDl').onclick=()=>{const t=$('fdT').value.trim().toUpperCase();if(!t){toast('
   const dateVal=$('fdDate').value||td();
   const timeVal=$('fdTime').value||'12:00';
   const fullDate=dateVal+'T'+timeVal;
-  pH('add deadline');D.deadlines.push({id:D.dlid++,title:t,project:$('fdP').value,partner:$('fdPa').value.trim().toUpperCase(),date:fullDate,type:$('fdTy').value,allDay:$('fdAD').checked,keepCount:$('fdKC').checked,notes:$('fdNo').value.trim()});['fdT','fdPa','fdNo'].forEach(i=>$(i).value='');$('fdDate').value='';updateCalLabel('fdDate');$('fdTime').value='';$('fdAD').checked=false;$('fdKC').checked=false;toast('DEADLINE ADDED','gld');$('dFrm').classList.remove('open');renderDL()};
+  pH('add deadline');D.deadlines.push({id:D.dlid++,title:t,project:$('fdP').value,partner:$('fdPa').value.trim().toUpperCase(),person:$('fdPe').value.trim().toUpperCase(),date:fullDate,type:$('fdTy').value,allDay:$('fdAD').checked,keepCount:$('fdKC').checked,notes:$('fdNo').value.trim()});['fdT','fdPa','fdPe','fdNo'].forEach(i=>$(i).value='');$('fdDate').value='';updateCalLabel('fdDate');$('fdTime').value='';$('fdAD').checked=false;$('fdKC').checked=false;toast('DEADLINE ADDED','gld');$('dFrm').classList.remove('open');renderDL()};
 
 /* Edit Deadline */
 let eDLid=null;
@@ -1116,11 +1118,14 @@ function openEDL(id){const d=D.deadlines.find(x=>x.id===id);if(!d)return;eDLid=i
   const dtParts=(d.date||'').split('T');
   $('edDate').value=dtParts[0]||'';updateCalLabel('edDate');
   $('edTime').value=dtParts[1]?dtParts[1].substring(0,5):'12:00';
-  $('edTy').value=d.type;$('edAD').checked=!!d.allDay;$('edKC').checked=!!d.keepCount;$('edPa').value=d.partner||'';$('edNo').value=d.notes||'';fillDD();if(d.project)$('edP').value=d.project;$('edMdl').classList.add('op')}
+  $('edTy').value=d.type;$('edAD').checked=!!d.allDay;$('edKC').checked=!!d.keepCount;$('edPa').value=d.partner||'';$('edPe').value=d.person||'';$('edNo').value=d.notes||'';fillDD();if(d.project)$('edP').value=d.project;$('edMdl').classList.add('op')}
 $('edDC').onclick=()=>{$('edMdl').classList.remove('op');eDLid=null};
-$('edDS').onclick=()=>{if(eDLid===null)return;const d=D.deadlines.find(x=>x.id===eDLid);if(!d)return;pH('edit deadline');d.title=$('edT').value.trim().toUpperCase();d.project=$('edP').value;d.partner=$('edPa').value.trim().toUpperCase();
-  const edDateVal=$('edDate').value||td();
-  const edTimeVal=$('edTime').value||'12:00';
+$('edDateToday').onclick=()=>{$('edDate').value=td();updateCalLabel('edDate')};
+$('edDS').onclick=()=>{if(eDLid===null)return;const d=D.deadlines.find(x=>x.id===eDLid);if(!d)return;pH('edit deadline');d.title=$('edT').value.trim().toUpperCase();d.project=$('edP').value;d.partner=$('edPa').value.trim().toUpperCase();d.person=$('edPe').value.trim().toUpperCase();
+  // Preserve original date if hidden input is somehow empty
+  const origParts=(d.date||'').split('T');
+  const edDateVal=$('edDate').value||origParts[0]||td();
+  const edTimeVal=$('edTime').value||origParts[1]||'12:00';
   d.date=edDateVal+'T'+edTimeVal;
   d.type=$('edTy').value;d.allDay=$('edAD').checked;d.keepCount=$('edKC').checked;d.notes=$('edNo').value.trim();toast('UPDATED','gld');$('edMdl').classList.remove('op');eDLid=null;renderDL()};
 $('edDDel').onclick=()=>{if(eDLid===null)return;pH('delete deadline');D.deadlines=D.deadlines.filter(d=>d.id!==eDLid);toast('DELETED','rd');$('edMdl').classList.remove('op');eDLid=null;renderDL()};
