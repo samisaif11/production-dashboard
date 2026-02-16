@@ -751,6 +751,14 @@ const POSTERS = {
 // Company Logo - replace with your logo URL
 let COMPANY_LOGO = 'assets/images/logo.png';
 
+// Smart poster lookup: checks POSTERS map first, then tries to auto-generate path from title
+function getPoster(title){
+  if(POSTERS[title])return POSTERS[title];
+  // Auto-generate: lowercase, replace spaces/special chars with hyphens
+  const slug=title.toLowerCase().replace(/['']/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  return 'assets/images/'+slug+'.jpg';
+}
+
 /* ═══════ UNDO HISTORY ═══════ */
 const HS=[];const MH=30;let hLock=false;
 function pH(label){if(hLock)return;HS.push({s:JSON.parse(JSON.stringify({tasks:D.tasks,completed:D.completed,deadlines:D.deadlines,projects:D.projects,closed:D.closed,people:D.people,monthly:D.monthly,projDone:D.projDone,nid:D.nid,dlid:D.dlid})),l:label});if(HS.length>MH)HS.shift();toast('✓ '+label.toUpperCase(),'gld');scheduleSave()}
@@ -963,7 +971,13 @@ function renderFlts(){const fb=$('tFlts');fb.innerHTML='';const op=D.tasks.filte
   fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT()};fb.appendChild(b)});
   const sb=document.createElement('button');sb.className='sort-tgl';sb.textContent=skipSort?'↕ MANUAL':(sortDue?'↕ DUE DATE':'↕ ADDED');sb.onclick=()=>{if(skipSort){skipSort=false;sortDue=true;try{localStorage.setItem('sortPref','due')}catch(e){}}else if(sortDue){sortDue=false;try{localStorage.setItem('sortPref','added')}catch(e){}}else{skipSort=true;sortDue=false;try{localStorage.setItem('sortPref','manual')}catch(e){}}renderT()};fb.appendChild(sb)}
 
-function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.length;$('sB').textContent=o.filter(t=>t.blocked).length;$('sD').textContent=D.tasks.filter(t=>t.done).length;$('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length}
+function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.length;$('sB').textContent=o.filter(t=>t.blocked).length;
+  // Done Today: count tasks done in active list + tasks completed today in archive
+  const today=td();
+  const doneActive=D.tasks.filter(t=>t.done).length;
+  const doneArchived=D.completed.filter(t=>t.doneDate===today).length;
+  $('sD').textContent=doneActive+doneArchived;
+  $('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length}
 
 function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`)})}
 
@@ -1055,14 +1069,12 @@ function renderDL(){
     if(past&&d.keepCount){const a=Math.abs(Math.floor(diff/864e5));tmr=`${a}D AGO`}
     else if(past)tmr='PASSED';
     else{const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);tmr=`${dy}D ${hr}H ${mn}M ${sc}S`}
-    // Build label prefix (project, partner, person)
-    const dlLabels=[];
-    if(d.project){const lpc=gpc(d.project);dlLabels.push(`<span style="color:${lpc.c};opacity:.5;font-size:0.7em">${lpc.code}</span>`)}
-    if(d.partner){const lpa=gc(PA,d.partner);dlLabels.push(`<span style="color:${lpa.c};opacity:.5;font-size:0.7em">${d.partner}</span>`)}
-    if(d.person){const lpp=gc(PP,d.person);dlLabels.push(`<span style="color:${lpp.c};opacity:.5;font-size:0.7em">${d.person}</span>`)}
-    const dlLabelStr=dlLabels.length?dlLabels.join(' <span style="opacity:.3;font-size:0.6em">·</span> ')+' ':'';
+    // Project label inline before title
+    const dlProjLabel=d.project?`<span style="color:${gpc(d.project).c};opacity:.5;font-size:0.7em">${gpc(d.project).code}</span> `:'';
     const dlNoteHtml=d.notes?`<div class="dl-note">${d.notes}</div>`:'';
-    el.innerHTML+=`<div class="dlc ${urg}" data-dlid="${d.id}"><div class="dl-info"><div class="dlt">${dlLabelStr}${d.title}</div><div class="dl-meta"><div class="dltm ${urg}" id="dl-${d.id}">${tmr}</div><span class="dltm-sep">·</span><div class="dldb">${fdt}</div><span class="dltm-sep">·</span><div class="dltm-sub">${tStr}</div></div><div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}<span class="tag" style="background:${d.type==='hard'?'var(--red-d)':'var(--orange-d)'};color:${d.type==='hard'?'var(--red)':'var(--orange)'}">${d.type.toUpperCase()}</span></div>${dlNoteHtml}</div><div class="dl-acts"><button class="dl-eb" data-dlid="${d.id}">✎</button><button class="dl-db" data-dlid="${d.id}">✕</button></div></div>`});
+    // Partner/person tags below with other tags
+    const dlPersonTag=d.person?tg(d.person,gc(PP,d.person)):'';
+    el.innerHTML+=`<div class="dlc ${urg}" data-dlid="${d.id}"><div class="dl-info"><div class="dlt">${dlProjLabel}${d.title}</div><div class="dl-meta"><div class="dltm ${urg}" id="dl-${d.id}">${tmr}</div><span class="dltm-sep">·</span><div class="dldb">${fdt}</div><span class="dltm-sep">·</span><div class="dltm-sub">${tStr}</div></div><div class="dltags">${tg(d.project,pc)}${d.partner&&pac?tg(d.partner,pac):''}${dlPersonTag}<span class="tag" style="background:${d.type==='hard'?'var(--red-d)':'var(--orange-d)'};color:${d.type==='hard'?'var(--red)':'var(--orange)'}">${d.type.toUpperCase()}</span></div>${dlNoteHtml}</div><div class="dl-acts"><button class="dl-eb" data-dlid="${d.id}">✎</button><button class="dl-db" data-dlid="${d.id}">✕</button></div></div>`});
   el.querySelectorAll('.dl-eb').forEach(b=>b.onclick=()=>openEDL(+b.dataset.dlid));
   el.querySelectorAll('.dl-db').forEach(b=>b.onclick=()=>{pH('del deadline');D.deadlines=D.deadlines.filter(d=>d.id!==+b.dataset.dlid);toast('DELETED','rd');renderDL()});
   // Double-click to inline edit deadline title (desktop)
@@ -1093,10 +1105,10 @@ function renderProj(){
   STATUSES.filter(s=>s!=='closed').forEach(s=>{if(!groups[s])return;
     el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch op">▶</span><h3>${SL[s]} (${groups[s].length})</h3></div><div class="psb op" id="ps-${s}"><div class="pgrid">${groups[s].map(p=>{
       const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length,pc=gpc(p.title);
-      const posterUrl=POSTERS[p.title]||'';
+      const posterUrl=getPoster(p.title);
       const posterHtml=posterUrl?`<img src="${posterUrl}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`:`<div class="poster-ph" style="color:${pc.c}">🎬<br>${pc.code}</div>`;
       return`<div class="pc"><div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director} · ${p.type}${tc?' · '+tc+' task'+(tc>1?'s':''):''}</div><div class="pbs"><select class="pstdd" data-proj="${p.title}">${STATUSES.map(st=>`<option value="${st}"${st===p.status?' selected':''}>${SL[st]}</option>`).join('')}</select><button class="pmove" data-proj="${p.title}">Move →</button></div></div></div>`}).join('')}</div></div></div>`});
-  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>{const pu=POSTERS[p.title]||'';const ph=pu?`<img src="${pu}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\'>🎬<br>${p.title.substring(0,6)}</div>'">`:`<div class="poster-ph">🎬<br>${p.title.substring(0,6)}</div>`;return`<div class="pc arch"><div class="poster-w">${ph}</div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button></div></div></div>`}).join('')}</div></div></div>`;
+  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>{const pu=getPoster(p.title);const ph=`<img src="${pu}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\'>🎬<br>${(p.title||'').substring(0,6)}</div>'">`; return`<div class="pc arch"><div class="poster-w">${ph}</div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button></div></div></div>`}).join('')}</div></div></div>`;
   document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
   document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
   document.querySelectorAll('.preopen').forEach(b=>b.onclick=e=>{e.stopPropagation();const ci=+b.dataset.ci;if(ci<0||ci>=D.closed.length)return;pH('reopen project');const proj=D.closed[ci];D.projects.push({title:proj.title,year:proj.year,status:'post',type:proj.type||'Feature Film',director:proj.director});D.closed.splice(ci,1);toast(proj.title+' → REOPENED','gld');renderProj()});
