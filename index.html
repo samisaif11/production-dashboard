@@ -210,12 +210,9 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .dlc::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px}
 .dlc.urg::before{background:var(--red)}.dlc.soon::before{background:var(--orange)}.dlc.ok::before{background:var(--green)}.dlc.past::before{background:var(--t3);opacity:.4}
 .dlc:hover{border-color:var(--b1)}
-.dlc.past{padding:14px 28px;opacity:.45;border-color:transparent}
-.dlc.past:hover{opacity:.7}
-.dlc.past .dlt{font-size:.75rem}
-.dlc.past .dltm{font-size:.75rem;font-weight:500}
+.dlc.past{padding:18px 28px;opacity:.35;border-color:transparent}
+.dlc.past:hover{opacity:.6}
 .dlc.past .dltags .tag{font-size:.5rem}
-.dltm-passed{font-family:'JetBrains Mono';font-size:.55rem;font-weight:600;letter-spacing:2px;color:var(--t3);text-transform:uppercase;margin-bottom:2px}
 .dl-tc{text-align:left;flex-shrink:0}
 .dltm{font-family:'JetBrains Mono';font-size:1.1rem;font-weight:700;letter-spacing:1.5px;line-height:1}
 @media(min-width:1200px){.dltm{font-size:1.3rem}}
@@ -1085,7 +1082,7 @@ function renderDL(){
     const tStr=!validDate?'':d.allDay?'ALL DAY':dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     let tmr='';
     if(!validDate)tmr='NO DATE';
-    else if(past){const a=Math.abs(diff),dy=Math.floor(a/864e5),hr=Math.floor((a%864e5)/36e5);const ago=dy>0?`${dy}D ${hr}H AGO`:`${hr}H AGO`;tmr=`<div class="dltm-passed">PASSED</div>${ago}`}
+    else if(past){const a=Math.abs(diff),dy=Math.floor(a/864e5),hr=Math.floor((a%864e5)/36e5);tmr=dy>0?`${dy}D ${hr}H AGO`:`${hr}H AGO`}
     else{const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);tmr=`${dy}D ${hr}H ${mn}M ${sc}S`}
     // Project label inline before title
     const dlProjLabel=d.project?`<span style="color:${gpc(d.project).c};opacity:.5;font-size:0.7em">${gpc(d.project).code}</span> `:'';
@@ -1101,7 +1098,7 @@ function renderDL(){
   }
 }
 
-setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;const dt=new Date(d.date);if(isNaN(dt.getTime())){el.innerHTML='NO DATE';el.className='dltm ok';return}const diff=dt-new Date();if(diff<0){const a=Math.abs(diff),dy=Math.floor(a/864e5),hr=Math.floor((a%864e5)/36e5);const ago=dy>0?`${dy}D ${hr}H AGO`:`${hr}H AGO`;el.innerHTML=`<div class="dltm-passed">PASSED</div>${ago}`;el.className='dltm past';return}const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);el.textContent=`${dy}D ${hr}H ${mn}M ${sc}S`;el.className='dltm '+(dy<=3?'urg':dy<=7?'soon':'ok')})},1e3);
+setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;const dt=new Date(d.date);if(isNaN(dt.getTime())){el.innerHTML='NO DATE';el.className='dltm ok';return}const diff=dt-new Date();if(diff<0){const a=Math.abs(diff),dy=Math.floor(a/864e5),hr=Math.floor((a%864e5)/36e5);el.textContent=dy>0?`${dy}D ${hr}H AGO`:`${hr}H AGO`;el.className='dltm past';return}const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);el.textContent=`${dy}D ${hr}H ${mn}M ${sc}S`;el.className='dltm '+(dy<=3?'urg':dy<=7?'soon':'ok')})},1e3);
 
 $('ndTgl').onclick=()=>{const f=$('dFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fdDate').value=td();updateCalLabel('fdDate');$('fdT').focus()}};
 $('cDl').onclick=()=>$('dFrm').classList.remove('open');
