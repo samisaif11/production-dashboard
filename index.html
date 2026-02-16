@@ -744,7 +744,8 @@ const nowI=()=>new Date().toISOString();
 const dB=s=>{const n=new Date();n.setHours(0,0,0,0);return Math.ceil((new Date(s+'T00:00:00')-n)/864e5)};
 const fD=s=>new Date(s+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase();
 function toast(m,t='grn'){const e=$('toast');e.textContent=m;e.className='toast '+t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2e3)}
-function playSuccessSound(){/* Upload audio: new Audio('success.mp3').play() */}
+function playSuccessSound(){try{new Audio('assets/sounds/success.mp3').play()}catch(e){}}
+function playEndDaySound(){try{new Audio('assets/sounds/success-day.mp3').play()}catch(e){}}
 
 /* ═══════ CLOCK ═══════ */
 function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('dtb').textContent=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase()}
@@ -928,7 +929,7 @@ $('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast(
   ['fN','fBl','fNo','fPe','fPa'].forEach(i=>$(i).value='');$('fPr').value='3';$('fDu').value='';toast('TASK CREATED','gld');$('tFrm').classList.remove('open');renderT()};
 
 $('cTgl').onclick=()=>{$('cList').classList.toggle('op');document.querySelector('.ctgl .ch').classList.toggle('op')};
-function doEndDay(){const d=D.tasks.filter(t=>t.done);if(!d.length)return;pH('end day');D.completed.push(...d);D.tasks=D.tasks.filter(t=>!t.done);D.tasks.forEach((t,i)=>t.order=i);toast(`☀ ${d.length} ARCHIVED`);renderT()}
+function doEndDay(){const d=D.tasks.filter(t=>t.done);if(!d.length)return;pH('end day');D.completed.push(...d);D.tasks=D.tasks.filter(t=>!t.done);D.tasks.forEach((t,i)=>t.order=i);playEndDaySound();toast(`☀ ${d.length} ARCHIVED`);renderT()}
 $('edBtn').onclick=()=>{const d=D.tasks.filter(t=>t.done);if(!d.length){toast('NO TASKS','rd');return}doEndDay()};
 // Auto-collapse completed tasks at 19:00
 let _endDayFired=false;
