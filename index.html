@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ALI N' / FNM — Production Dashboard</title>
+<link rel="icon" type="image/png" href="assets/images/logo.png">
+<link rel="apple-touch-icon" href="assets/images/logo.png">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Playfair+Display:wght@500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--bg-0:#060608;--bg-1:#0c0c10;--bg-2:#121216;--bg-3:#18181e;--bg-4:#1f1f28;--bg-h:#24242e;--b0:#1e1e28;--b1:#2a2a36;--b2:#36364a;--t0:#f0eeea;--t1:#c0beb8;--t2:#8a8898;--t3:#5c5a6e;--gold:#d4af37;--gold-d:rgba(212,175,55,.12);--red:#ef4444;--red-d:rgba(239,68,68,.10);--green:#22c55e;--green-d:rgba(34,197,94,.10);--blue:#3b82f6;--blue-d:rgba(59,130,246,.10);--orange:#f59e0b;--orange-d:rgba(245,158,11,.10);--purple:#a855f7;--purple-d:rgba(168,85,247,.10);--cyan:#06b6d4;--cyan-d:rgba(6,182,212,.10);--r:8px;--rl:12px;--tr:.2s cubic-bezier(.4,0,.2,1)}
@@ -1136,7 +1138,7 @@ function renderPrjSet(){const el=$('prjList');el.innerHTML='';D.projects.forEach
 $('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value;if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:new Date().getFullYear(),status:'idea',type:'Feature Film',director:'TBD'});['nprN','nprCd'].forEach(i=>$(i).value='');renderPrjSet();fillDD();toast('PROJECT ADDED','gld')};
 
 /* ═══════ FULL RENDER ═══════ */
-function fullR(){renderT();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='deadlines')renderDL();if(v==='projects')renderProj()}
+function fullR(){renderT();renderDL();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='projects')renderProj()}
 
 /* ═══════ RESIZE ═══════ */
 
