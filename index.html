@@ -999,7 +999,7 @@ function updateCalLabel(inputId){
   // Support both task (Du->DuLabel) and deadline (Date->DateLabel) patterns
   let lbl=$(inputId+'Label')||$(inputId.replace('Du','DuLabel'));
   if(!lbl)return;
-  if(inp.value){const d=new Date(inp.value+'T00:00:00');lbl.textContent=isNaN(d)?'—':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();lbl.style.color='var(--t0)'}
+  if(inp.value){const dv=inp.value.split('T')[0];const d=new Date(dv+'T00:00:00');lbl.textContent=isNaN(d.getTime())?'—':d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase();lbl.style.color='var(--t0)'}
   else{lbl.textContent='—';lbl.style.color='var(--t3)'}
 }
 function initCal(btnId,popId,inputId){
@@ -1025,7 +1025,7 @@ function initCal(btnId,popId,inputId){
     pop.querySelectorAll('.cal-nav').forEach(n=>n.onclick=e=>{e.stopPropagation();cM+=+n.dataset.d;if(cM>11){cM=0;cY++}else if(cM<0){cM=11;cY--}render()});
     pop.querySelectorAll('.cal-day:not(.other)').forEach(d=>d.onclick=e=>{e.stopPropagation();setVal(d.dataset.v);pop.classList.remove('open')});
   }
-  btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));if(!wasOpen){const v=inp.value;if(v){const p=new Date(v+'T00:00:00');cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open')}};
+  btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));if(!wasOpen){const v=inp.value;if(v){const p=new Date(v.split('T')[0]+'T00:00:00');if(!isNaN(p.getTime())){cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open')}};
   document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!btn.contains(e.target))pop.classList.remove('open')});
 }
 initCal('fDuCal','fDuCalPop','fDu');
@@ -1116,7 +1116,11 @@ let eDLid=null;
 function openEDL(id){const d=D.deadlines.find(x=>x.id===id);if(!d)return;eDLid=id;$('edT').value=d.title;
   // Split stored datetime into date and time parts
   const dtParts=(d.date||'').split('T');
-  $('edDate').value=dtParts[0]||'';updateCalLabel('edDate');
+  const datePart=dtParts[0]||'';
+  // Validate date before setting - only set if it's a valid YYYY-MM-DD
+  const dateCheck=new Date(datePart+'T00:00:00');
+  $('edDate').value=(!datePart||isNaN(dateCheck.getTime()))?td():datePart;
+  updateCalLabel('edDate');
   $('edTime').value=dtParts[1]?dtParts[1].substring(0,5):'12:00';
   $('edTy').value=d.type;$('edAD').checked=!!d.allDay;$('edKC').checked=!!d.keepCount;$('edPa').value=d.partner||'';$('edPe').value=d.person||'';$('edNo').value=d.notes||'';fillDD();if(d.project)$('edP').value=d.project;$('edMdl').classList.add('op')}
 $('edDC').onclick=()=>{$('edMdl').classList.remove('op');eDLid=null};
