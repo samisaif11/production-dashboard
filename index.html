@@ -776,8 +776,14 @@ const nowI=()=>new Date().toISOString();
 const dB=s=>{if(!s)return null;const n=new Date();n.setHours(0,0,0,0);const d=new Date(s+'T00:00:00');return isNaN(d)?null:Math.ceil((d-n)/864e5)};
 const fD=s=>{if(!s)return'';const d=new Date(s+'T00:00:00');return isNaN(d)?'':d.toLocaleDateString('en-GB',{day:'numeric',month:'short'}).toUpperCase()};
 function toast(m,t='grn'){const e=$('toast');e.textContent=m;e.className='toast '+t;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2e3)}
-function playSuccessSound(){}
-function playEndDaySound(){}
+// Preload audio on first user interaction to unlock browser autoplay
+const _sndSuccess=new Audio('assets/sounds/success.mp3');
+const _sndEndDay=new Audio('assets/sounds/success-day.mp3');
+_sndSuccess.preload='auto';_sndEndDay.preload='auto';
+let _audioUnlocked=false;
+document.addEventListener('click',function _unlockAudio(){if(_audioUnlocked)return;_sndSuccess.volume=0;_sndSuccess.play().then(()=>{_sndSuccess.pause();_sndSuccess.currentTime=0;_sndSuccess.volume=1;_audioUnlocked=true}).catch(()=>{});_sndEndDay.volume=0;_sndEndDay.play().then(()=>{_sndEndDay.pause();_sndEndDay.currentTime=0;_sndEndDay.volume=1}).catch(()=>{})},{once:true});
+function playSuccessSound(){_sndSuccess.currentTime=0;_sndSuccess.play().catch(()=>{})}
+function playEndDaySound(){_sndEndDay.currentTime=0;_sndEndDay.play().catch(()=>{})}
 
 /* ═══════ CLOCK ═══════ */
 function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('dtb').textContent=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase()}
@@ -960,7 +966,7 @@ function tglD(id){
         for(let i=0;i<t.subtasks.length;i++)t.subtasks[i].completed=true;
       }
       if(D.monthly.length)D.monthly[D.monthly.length-1].c++;
-      toast('✓ COMPLETED');
+      playSuccessSound();toast('✓ COMPLETED');
       setTimeout(()=>{const el=document.querySelector(`.tsk[data-id="${id}"]`);if(el)el.classList.add('shimmer')},50);
     }else{
       if(D.monthly.length)D.monthly[D.monthly.length-1].c=Math.max(0,D.monthly[D.monthly.length-1].c-1);
