@@ -150,6 +150,15 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 /* Inline edit */
 .inline-edit{background:var(--bg-1);border:1px solid var(--gold);border-radius:4px;color:var(--t0);font-family:'Outfit';font-size:inherit;font-weight:inherit;text-transform:uppercase;letter-spacing:inherit;padding:2px 6px;outline:none;width:100%;line-height:inherit}
 
+/* Email paste */
+#emTxt{white-space:pre-wrap;color:var(--t1);resize:vertical;font-family:'JetBrains Mono';font-size:.72rem;line-height:1.6;text-transform:none}
+#emTxt::placeholder{text-transform:uppercase;color:var(--t3)}
+#emPreview{font-size:.7rem;color:var(--t2);padding:10px 14px;background:var(--bg-1);border:1px solid var(--b0);border-radius:6px}
+.em-field{margin-bottom:4px;display:flex;gap:6px}
+.em-label{color:var(--t3);font-weight:700;letter-spacing:.8px;text-transform:uppercase;white-space:nowrap;min-width:60px}
+.em-val{color:var(--gold);word-break:break-word}
+.em-val.em-none{color:var(--t3);opacity:.5}
+
 .ntbar{margin-bottom:10px}
 .nbtn{display:flex;align-items:center;gap:8px;padding:12px 18px;border:1px dashed var(--b1);border-radius:var(--r);background:transparent;color:var(--t3);font-size:var(--cf);font-weight:700;cursor:pointer;transition:var(--tr);width:100%;font-family:'Outfit';text-transform:uppercase;letter-spacing:1px}
 .nbtn:hover{border-color:var(--gold);color:var(--gold)}
@@ -388,8 +397,14 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="st"><div class="st-n" id="sOv" style="color:var(--orange)">—</div><div class="st-l">Overdue</div></div>
   </div>
   <div class="flts" id="tFlts"></div>
-  <div class="ntbar">
-    <button class="nbtn" id="ntTgl">+ NEW TASK</button>
+  <div class="ntbar" style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start">
+    <button class="nbtn" id="ntTgl" style="flex:1">+ NEW TASK</button>
+    <button class="nbtn" id="emTgl" style="flex:0 0 auto;width:auto;border-style:dashed;opacity:.7">✉ PASTE EMAIL</button>
+    <div class="tfrm" id="emFrm" style="width:100%">
+      <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Paste Email / Message</label><textarea class="fi" id="emTxt" rows="6" placeholder="PASTE AN EMAIL OR MESSAGE HERE..."></textarea></div></div>
+      <div id="emPreview" style="display:none;margin-top:8px"></div>
+      <div class="fac"><button class="btn btn-gh" id="emCancel">CANCEL</button><button class="btn btn-g" id="emParse">PARSE & CREATE &rarr;</button></div>
+    </div>
     <div class="tfrm" id="tFrm">
       <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Task Name</label><input type="text" class="fi" id="fN" placeholder="E.G., SEND DCP SPECS TO FILMS BOUTIQUE"></div></div>
       <div class="fr fr4">
@@ -800,6 +815,77 @@ function playSuccessSound(){_sndSuccess.currentTime=0;_sndSuccess.play().catch((
 function playEndDaySound(){_sndEndDay.currentTime=0;_sndEndDay.play().catch(()=>{})}
 function playSubtaskSound(){_sndSubtask.currentTime=0;_sndSubtask.play().catch(()=>{})}
 
+/* ═══════ EMAIL-TO-TASK PARSER ═══════ */
+const _stripAcc=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+function matchPerson(line){
+  const n=_stripAcc(line.toUpperCase());
+  for(const p of D.people){
+    const full=_stripAcc(p.name.toUpperCase()),parts=full.split(/\s+/),code=p.code.toUpperCase();
+    if(n.includes(full))return[p.code];
+    if(parts.length>1&&n.includes(parts[parts.length-1])&&parts[parts.length-1].length>2)return[p.code];
+    if(parts[0].length>3&&n.includes(parts[0]))return[p.code];
+    if(code.length>1&&new RegExp('\\b'+code+'\\b').test(n))return[p.code];
+  }
+  return[];
+}
+function matchProject(text){
+  const t=_stripAcc(text.toUpperCase());
+  const skip=new Set(['ET','DE','LE','LA','LES','DU','DES','AU','AUX','EN','UN','UNE','A','L','D','S']);
+  const lookup=[];
+  for(const[title,info]of Object.entries(PC)){
+    const nt=_stripAcc(title.toUpperCase());
+    lookup.push({p:nt,t:title,w:0});
+    lookup.push({p:_stripAcc(info.code.toUpperCase()),t:title,w:1});
+    const words=nt.replace(/[^A-Z\s]/g,'').split(/\s+/).filter(w=>w.length>1);
+    if(words.length>1){
+      const fl=words.map(w=>w[0]).join('');if(fl.length>=3)lookup.push({p:fl,t:title,w:2});
+      const sig=words.filter(w=>!skip.has(w));
+      if(sig.length>0&&sig.length!==words.length){const sl=sig.map(w=>w[0]).join('');if(sl.length>=2)lookup.push({p:sl,t:title,w:3})}
+    }
+  }
+  lookup.sort((a,b)=>a.w-b.w||b.p.length-a.p.length);
+  for(const e of lookup){
+    const esc=e.p.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    if(e.p.length<=4){if(new RegExp('\\b'+esc+'\\b').test(t))return e.t}
+    else{if(t.includes(e.p))return e.t}
+  }
+  return'';
+}
+function matchPartners(text){
+  const t=text.toUpperCase(),found=[];
+  for(const k of Object.keys(PA)){const esc=k.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');if(new RegExp('\\b'+esc+'\\b').test(t)||t.includes(k))found.push(k)}
+  return found;
+}
+function generateTaskName(bodyLines){
+  const skipRe=/^(merci|bonjour|bonsoir|cordialement|cdlt|bises|hello|hi|thanks|regards|slt|salut|ciao|b[àa]t|bien|best)/i;
+  const meaningful=bodyLines.filter(l=>!skipRe.test(l)&&l.length>2);
+  if(!meaningful.length)return bodyLines.length?bodyLines[0].toUpperCase().substring(0,80):'NEW TASK';
+  let name=meaningful[0].toUpperCase();
+  const bullets=meaningful.filter(l=>/^[-–•·]\s/.test(l)).map(l=>l.replace(/^[-–•·]\s*/,'').trim());
+  if(bullets.length>0){
+    const summary=bullets.map(b=>b.split(/[:\s—–]+/)[0].trim().toUpperCase()).filter(Boolean).join(', ');
+    if(summary&&name.length+summary.length<120)name+=' ('+summary+')';
+  }
+  name=name.replace(/^EST[- ]CE QUE TU PEUX\s*(STP\s*)?/i,'').replace(/^(STP|SVP)\s*/i,'').replace(/^(TU PEUX|PEUX[- ]TU|POURRAIS[- ]TU|POURRIEZ[- ]VOUS)\s*/i,'').trim();
+  return name.substring(0,120)||'NEW TASK';
+}
+function parseEmail(raw){
+  const lines=raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  const result={name:'',person:[],project:'',partner:[],priority:3,notes:raw};
+  if(!lines.length)return result;
+  result.person=matchPerson(lines[0]);
+  let bodyStart=0;
+  for(let i=0;i<Math.min(lines.length,5);i++){
+    if(/^(to\s|à\s)/i.test(lines[i])||/\d{1,2}:\d{2}/.test(lines[i])||/ago\)$/i.test(lines[i])||/^(lun|mar|mer|jeu|ven|sam|dim|mon|tue|wed|thu|fri|sat|sun)/i.test(lines[i]))bodyStart=i+1;
+  }
+  const bodyLines=lines.slice(bodyStart);
+  const bodyText=bodyLines.join(' ')+' '+lines[0];
+  result.project=matchProject(bodyText);
+  result.partner=matchPartners(bodyLines.join(' '));
+  result.name=generateTaskName(bodyLines);
+  return result;
+}
+
 /* ═══════ CLOCK ═══════ */
 function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'});$('dtb').textContent=n.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',year:'numeric'}).toUpperCase()}
 tick();setInterval(tick,1e3);
@@ -1026,7 +1112,7 @@ function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.le
 function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`)})}
 
 // Task form
-$('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();updateCalLabel('fDu');$('fN').focus()}};
+$('ntTgl').onclick=()=>{const f=$('tFrm');$('emFrm').classList.remove('open');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();updateCalLabel('fDu');$('fN').focus()}};
 $('fDuToday').onclick=()=>{$('fDu').value=td();updateCalLabel('fDu')};
 $('fDuClear').onclick=()=>{$('fDu').value='';updateCalLabel('fDu')};
 $('eDuToday').onclick=()=>{$('eDu').value=td();updateCalLabel('eDu')};
@@ -1072,6 +1158,26 @@ initCal('eDuCal','eDuCalPop','eDu');
 initCal('fdDateCal','fdDateCalPop','fdDate');
 initCal('edDateCal','edDateCalPop','edDate');
 $('cTask').onclick=()=>$('tFrm').classList.remove('open');
+// Email paste form
+$('emTgl').onclick=()=>{const ef=$('emFrm');$('tFrm').classList.remove('open');ef.classList.toggle('open');if(ef.classList.contains('open')){$('emTxt').value='';$('emPreview').style.display='none';$('emTxt').focus()}};
+$('emCancel').onclick=()=>$('emFrm').classList.remove('open');
+$('emTxt').addEventListener('input',()=>{
+  const raw=$('emTxt').value.trim();const prev=$('emPreview');
+  if(!raw){prev.style.display='none';return}
+  const r=parseEmail(raw);prev.style.display='block';
+  prev.innerHTML=`<div class="em-field"><span class="em-label">NAME:</span><span class="em-val${r.name?'':' em-none'}">${r.name||'—'}</span></div><div class="em-field"><span class="em-label">PERSON:</span><span class="em-val${r.person.length?'':' em-none'}">${r.person.join(', ')||'—'}</span></div><div class="em-field"><span class="em-label">PROJECT:</span><span class="em-val${r.project?'':' em-none'}">${r.project||'—'}</span></div><div class="em-field"><span class="em-label">PARTNER:</span><span class="em-val${r.partner.length?'':' em-none'}">${r.partner.join(', ')||'—'}</span></div>`;
+});
+$('emParse').onclick=()=>{
+  const raw=$('emTxt').value.trim();if(!raw){toast('PASTE SOMETHING FIRST','rd');return}
+  const r=parseEmail(raw);
+  $('emFrm').classList.remove('open');$('tFrm').classList.add('open');
+  $('fN').value=r.name;$('fP').value=r.project;
+  $('fPeW').querySelectorAll('.mtag-t').forEach(t=>t.remove());r.person.forEach(p=>mtagAdd('fPeW',p,PP));$('fPe').value='';
+  $('fPaW').querySelectorAll('.mtag-t').forEach(t=>t.remove());r.partner.forEach(p=>mtagAdd('fPaW',p,PA));$('fPa').value='';
+  $('fPr').value=r.priority;$('fNo').value=raw;
+  $('fDu').value=td();updateCalLabel('fDu');$('fN').focus();$('fN').select();
+  toast('PARSED — REVIEW & CREATE','gld');
+};
 $('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mx=D.tasks.length?Math.max(...D.tasks.map(t=>t.order)):0;
   // Get multi-tag values; also include typed-but-not-entered text
   let persons=mtagGetVals('fPeW');const typedPe=$('fPe').value.trim().toUpperCase();if(typedPe&&!persons.includes(typedPe))persons.push(typedPe);
