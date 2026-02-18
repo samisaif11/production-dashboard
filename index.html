@@ -358,6 +358,15 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .loading-fill{width:30%;height:100%;background:var(--gold);border-radius:2px;animation:loadSlide 1.2s ease-in-out infinite}
 @keyframes loadSlide{0%{transform:translateX(-100%)}100%{transform:translateX(400%)}}
 .loading-msg{font-size:.65rem;color:var(--t3);margin-top:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px}
+/* Project edit modal poster preview */
+.poster-prev{width:60px;height:90px;border-radius:4px;border:1px solid var(--b1);background:var(--bg-4);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.poster-prev img{width:100%;height:100%;object-fit:cover}
+.poster-prev-ph{font-size:.5rem;color:var(--t3);text-align:center;padding:4px;line-height:1.4}
+/* Project card edit button */
+.pedb{font-size:11px;cursor:pointer;background:none;border:none;color:var(--t3);opacity:0;transition:var(--tr);padding:3px}
+.pc:hover .pedb{opacity:.6}.pedb:hover{opacity:1!important;color:var(--gold)}
+/* Settings project row meta */
+.prow-meta{font-size:.58rem;color:var(--t3);display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px}
 </style>
 </head>
 <body>
@@ -453,7 +462,18 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="ssec"><div class="sst">Partners <span class="lprev" id="paPrv" style="background:rgba(96,165,250,.15);color:#60a5fa">PREVIEW</span></div><div id="paList"></div>
       <div class="arow arow5"><input type="text" class="fi" id="npaC" placeholder="CODE"><input type="text" class="fi" id="npaN" placeholder="Name"><input type="color" class="clr-i" id="npaBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="npaFg" value="#60a5fa" title="Text"><button class="abtn" id="aPa">+</button></div></div>
     <div class="ssec"><div class="sst">Projects <span class="lprev" id="prjPrv" style="background:rgba(96,165,250,.12);color:#60a5fa">PREVIEW</span></div><div id="prjList"></div>
-      <div class="arow aproj"><input type="text" class="fi" id="nprN" placeholder="Project Name"><input type="text" class="fi" id="nprCd" placeholder="CODE"><input type="color" class="clr-i" id="nprBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="nprFg" value="#60a5fa" title="Text"><button class="abtn" id="aPrj">+</button></div></div>
+      <div class="arow" style="grid-template-columns:1fr 70px 32px 28px;gap:5px">
+        <input type="text" class="fi" id="nprN" placeholder="Title">
+        <input type="text" class="fi" id="nprCd" placeholder="CODE">
+        <input type="color" class="clr-i" id="nprFg" value="#60a5fa" title="Accent Color">
+        <button class="abtn" id="aPrj">+</button>
+      </div>
+      <div class="fr" style="grid-template-columns:1fr 80px;gap:5px;margin-top:5px">
+        <div><label class="fl">Director</label><input type="text" class="fi" id="nprDir" placeholder="Director name" style="padding:6px 8px;font-size:.7rem"></div>
+        <div><label class="fl">Year</label><input type="number" class="fi" id="nprYr" placeholder="Year" min="1990" max="2040" style="padding:6px 8px;font-size:.7rem"></div>
+      </div>
+      <div style="margin-top:5px"><label class="fl">Type</label><select class="fs" id="nprTyp" style="padding:6px 8px;font-size:.7rem"><option value="Feature Film">Feature Film</option><option value="Short Film">Short Film</option><option value="Feature Doc">Feature Doc</option><option value="TV Series">TV Series</option></select></div>
+    </div>
   </div>
 </div>
 
@@ -487,6 +507,23 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="fg"><label class="fl">Name/Code</label><input type="text" class="fi" id="eprNm"></div>
   <div class="fr fr2"><div class="fg"><label class="fl">Text Color</label><input type="color" class="clr-i" id="eprFg" style="width:100%;height:34px"></div><div class="fg"><label class="fl">BG</label><input type="color" class="clr-i" id="eprBg" style="width:100%;height:34px"></div></div>
   <div class="mdla"><button class="btn btn-gh" id="eprCn">CANCEL</button><button class="btn btn-g" id="eprSv">SAVE</button></div></div></div>
+
+<!-- Edit Project Modal -->
+<div class="mbg" id="ePrjMdl"><div class="mdl"><h3>✎ Edit Project</h3>
+  <div class="fr fr2"><div class="fg"><label class="fl">Title</label><input type="text" class="fi" id="epN"></div><div class="fg"><label class="fl">Code</label><input type="text" class="fi" id="epCd2" placeholder="e.g. CMÁ" maxlength="8"></div></div>
+  <div class="fr fr3"><div class="fg"><label class="fl">Accent Color</label><input type="color" class="clr-i" id="epClr" style="width:100%;height:34px" value="#d4af37"></div><div class="fg"><label class="fl">Year</label><input type="number" class="fi" id="epYr" min="1990" max="2040"></div><div class="fg"><label class="fl">Status</label><select class="fs" id="epStat"></select></div></div>
+  <div class="fr fr2"><div class="fg"><label class="fl">Director</label><input type="text" class="fi" id="epDir" placeholder="Full name"></div><div class="fg"><label class="fl">Type</label><select class="fs" id="epTyp"><option value="Feature Film">Feature Film</option><option value="Short Film">Short Film</option><option value="Feature Doc">Feature Doc</option><option value="TV Series">TV Series</option></select></div></div>
+  <div class="fg"><label class="fl">Poster</label>
+    <div style="display:flex;gap:10px;align-items:flex-start">
+      <div class="poster-prev" id="epPosterPrev"><div class="poster-prev-ph">No Poster</div></div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+        <input type="url" class="fi" id="epPosterUrl" placeholder="Paste image URL (optional)">
+        <input type="file" class="fi" id="epPosterFile" accept="image/*" style="padding:6px 8px;font-size:.68rem">
+      </div>
+    </div>
+  </div>
+  <div class="mdla"><button class="btn btn-gh" id="ePrjCn">CANCEL</button><button class="btn btn-g" id="ePrjSv">SAVE</button></div>
+</div></div>
 
 <div class="toast" id="toast"></div>
 <!-- Cloud Sync UI -->
@@ -526,6 +563,7 @@ async function saveToSheet() {
       tasks: D.tasks, completed: D.completed, deadlines: D.deadlines,
       projects: D.projects, closed: D.closed, people: D.people,
       monthly: D.monthly, projDone: D.projDone, nid: D.nid, dlid: D.dlid,
+      posters: D.posters,
       partners: PA, projectColors: PC, peopleColors: PP,
       _expectedSavedAt: _lastSavedAt
     };
@@ -564,6 +602,7 @@ async function loadFromSheet(manual = false) {
     if (data.deadlines) D.deadlines = data.deadlines;
     if (data.projects && data.projects.length > 0) D.projects = data.projects;
     if (data.closed) D.closed = data.closed;
+    if (data.posters) D.posters = data.posters;
     if (data.people && data.people.length > 0) D.people = data.people;
     if (data.monthly && data.monthly.length > 0) D.monthly = data.monthly;
     if (data.projDone) D.projDone = data.projDone;
@@ -609,7 +648,17 @@ const PC = {
   'RAJA': { c: '#84cc16', b: 'rgba(132,204,22,.12)', code: 'RAJA' },
   "ESH EL TAMAA'": { c: '#f97316', b: 'rgba(249,115,22,.12)', code: "ESHTMA'" },
   'BNAT LALLA MENNANA S03': { c: '#eab308', b: 'rgba(234,179,8,.12)', code: 'BNATLM' },
-  'RASS JBEL': { c: '#22c55e', b: 'rgba(34,197,94,.12)', code: 'RASJBL' }
+  'RASS JBEL': { c: '#22c55e', b: 'rgba(34,197,94,.12)', code: 'RASJBL' },
+  'EVERYBODY LOVES TOUDA': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'ELT' },
+  'LE BLEU DU CAFTAN': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'LBC' },
+  'HAUT ET FORT': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'HEF' },
+  'ADAM': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'ADAM' },
+  'RAZZIA': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'RAZZ' },
+  'MUCH LOVED': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'MUCH' },
+  'LES CHEVAUX DE DIEU': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'LCD' },
+  'MY LAND': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'MYLD' },
+  'WHATEVER LOLA WANTS': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'WLW' },
+  'ALI ZAOUA': { c: '#8a8898', b: 'rgba(138,136,152,.10)', code: 'ALIZ' }
 };
 
 const PP = {
@@ -705,16 +754,16 @@ const D = {
     { title: 'RASS JBEL', year: 2026, status: 'post', type: 'TV Series', director: 'Ayoub Lahnoud' }
   ],
   closed: [
-    { title: 'EVERYBODY LOVES TOUDA', year: 2024, director: 'Nabil Ayouch' },
-    { title: 'LE BLEU DU CAFTAN', year: 2022, director: 'Maryam Touzani' },
-    { title: 'HAUT ET FORT', year: 2021, director: 'Nabil Ayouch' },
-    { title: 'ADAM', year: 2019, director: 'Maryam Touzani' },
-    { title: 'RAZZIA', year: 2017, director: 'Nabil Ayouch' },
-    { title: 'MUCH LOVED', year: 2015, director: 'Nabil Ayouch' },
-    { title: 'LES CHEVAUX DE DIEU', year: 2012, director: 'Nabil Ayouch' },
-    { title: 'MY LAND', year: 2010, director: 'Nabil Ayouch' },
-    { title: 'WHATEVER LOLA WANTS', year: 2006, director: 'Nabil Ayouch' },
-    { title: 'ALI ZAOUA', year: 2000, director: 'Nabil Ayouch' }
+    { title: 'EVERYBODY LOVES TOUDA', year: 2024, director: 'Nabil Ayouch', type: 'Feature Film' },
+    { title: 'LE BLEU DU CAFTAN', year: 2022, director: 'Maryam Touzani', type: 'Feature Film' },
+    { title: 'HAUT ET FORT', year: 2021, director: 'Nabil Ayouch', type: 'Feature Film' },
+    { title: 'ADAM', year: 2019, director: 'Maryam Touzani', type: 'Feature Film' },
+    { title: 'RAZZIA', year: 2017, director: 'Nabil Ayouch', type: 'Feature Film' },
+    { title: 'MUCH LOVED', year: 2015, director: 'Nabil Ayouch', type: 'Feature Film' },
+    { title: 'LES CHEVAUX DE DIEU', year: 2012, director: 'Nabil Ayouch', type: 'Feature Film' },
+    { title: 'MY LAND', year: 2010, director: 'Nabil Ayouch', type: 'Feature Doc' },
+    { title: 'WHATEVER LOLA WANTS', year: 2006, director: 'Nabil Ayouch', type: 'Feature Film' },
+    { title: 'ALI ZAOUA', year: 2000, director: 'Nabil Ayouch', type: 'Feature Film' }
   ],
   deadlines: [
     { id: 1, date: '2026-02-16T18:00', title: 'PAD AVEC AUDIODESCRIPTION — TITRA', project: 'CALLE MÁLAGA', partner: 'TITRA', type: 'hard', allDay: false, keepCount: false },
@@ -742,7 +791,8 @@ const D = {
   monthly: [{ m: 'Sep 25', c: 18 }, { m: 'Oct 25', c: 24 }, { m: 'Nov 25', c: 21 }, { m: 'Dec 25', c: 15 }, { m: 'Jan 26', c: 29 }, { m: 'Feb 26', c: 3 }],
   projDone: { 'CALLE MÁLAGA': 32, 'COURS, ET SANS TRISTESSE': 18, "L'ÉLUE": 5, 'RASS JBEL': 12, 'BNAT LALLA MENNANA S03': 8, "ESH EL TAMAA'": 6, 'TERRE ET CENDRES': 2, 'RAJA': 1 },
   nid: 12,
-  dlid: 8
+  dlid: 8,
+  posters: {}
 };
 
 // Poster images - relative paths for GitHub Pages
@@ -773,8 +823,8 @@ let COMPANY_LOGO = 'assets/images/logo.png';
 
 // Smart poster lookup: checks POSTERS map first, then tries to auto-generate path from title
 function getPoster(title){
+  if(D.posters&&D.posters[title])return D.posters[title];
   if(POSTERS[title])return POSTERS[title];
-  // Auto-generate: lowercase, replace spaces/special chars with hyphens
   const slug=title.toLowerCase().replace(/['']/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   return 'assets/images/'+slug+'.jpg';
 }
@@ -845,7 +895,7 @@ function renderLogo(){const c=$('logoContainer');if(!c)return;if(COMPANY_LOGO){c
 /* ═══════ LIVE PREVIEW ═══════ */
 ['npaFg','npaBg'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('npaFg').value;$('paPrv').style.background=hexToRgba(fg,.15);$('paPrv').style.color=fg;$('paPrv').textContent=($('npaC').value||$('npaN').value||'PREVIEW').toUpperCase()}));
 ['npaC','npaN'].forEach(id=>$(id).addEventListener('input',()=>{$('paPrv').textContent=($('npaC').value||$('npaN').value||'PREVIEW').toUpperCase()}));
-['nprFg','nprBg'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('nprFg').value;$('prjPrv').style.background=hexToRgba(fg,.12);$('prjPrv').style.color=fg;$('prjPrv').textContent=($('nprCd').value||$('nprN').value||'PREVIEW').toUpperCase()}));
+['nprFg','nprCd','nprN'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('nprFg').value;$('prjPrv').style.background=hexToRgba(fg,.12);$('prjPrv').style.color=fg;$('prjPrv').textContent=($('nprCd').value||$('nprN').value||'PREVIEW').toUpperCase()}));
 ['nprN','nprCd'].forEach(id=>$(id).addEventListener('input',()=>{$('prjPrv').textContent=($('nprCd').value||$('nprN').value||'PREVIEW').toUpperCase()}));
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1192,16 +1242,79 @@ function renderProj(){
   STATUSES.filter(s=>s!=='closed').forEach(s=>{if(!groups[s])return;
     el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch op">▶</span><h3>${SL[s]} (${groups[s].length})</h3></div><div class="psb op" id="ps-${s}"><div class="pgrid">${groups[s].map(p=>{
       const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length,pc=gpc(p.title);
-      const posterUrl=getPoster(p.title);
-      const posterHtml=posterUrl?`<img src="${posterUrl}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`:`<div class="poster-ph" style="color:${pc.c}">🎬<br>${pc.code}</div>`;
-      return`<div class="pc"><div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director} · ${p.type}${tc?' · '+tc+' task'+(tc>1?'s':''):''}</div><div class="pbs"><select class="pstdd" data-proj="${p.title}">${STATUSES.map(st=>`<option value="${st}"${st===p.status?' selected':''}>${SL[st]}</option>`).join('')}</select><button class="pmove" data-proj="${p.title}">Move →</button></div></div></div>`}).join('')}</div></div></div>`});
-  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>{const pu=getPoster(p.title);const ph=`<img src="${pu}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\'>🎬<br>${(p.title||'').substring(0,6)}</div>'">`; return`<div class="pc arch"><div class="poster-w">${ph}</div><div class="pi"><div class="pn">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">dir. ${p.director}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button></div></div></div>`}).join('')}</div></div></div>`;
+      const posterHtml=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`;
+      return`<div class="pc"><div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director} · <span style="color:var(--t2)">${p.type}</span>${tc?` · <span style="color:var(--t3)">${tc} task${tc>1?'s':''}</span>`:''}</div><div class="pbs"><span class="sb ${p.status}">${SL[p.status]}</span><select class="pstdd" data-proj="${p.title}">${STATUSES.map(st=>`<option value="${st}"${st===p.status?' selected':''}>${SL[st]}</option>`).join('')}</select><button class="pmove" data-proj="${p.title}">→ Close</button><button class="pedb" data-proj="${p.title}" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`});
+  // Closed section — expanded by default (.psb.op, .ch.op)
+  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch op">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb op" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>{const pc=gpc(p.title);const ph=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`; return`<div class="pc arch"><div class="poster-w">${ph}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director}${p.type?` · <span style="color:var(--t2)">${p.type}</span>`:''}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button><button class="pedb" data-proj="${p.title}" data-ci="${i}" data-isclosed="1" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`;
   document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
-  document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
+  document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director,type:proj.type});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
   document.querySelectorAll('.preopen').forEach(b=>b.onclick=e=>{e.stopPropagation();const ci=+b.dataset.ci;if(ci<0||ci>=D.closed.length)return;pH('reopen project');const proj=D.closed[ci];D.projects.push({title:proj.title,year:proj.year,status:'post',type:proj.type||'Feature Film',director:proj.director});D.closed.splice(ci,1);toast(proj.title+' → REOPENED','gld');renderProj()});
-  document.querySelectorAll('.pstdd').forEach(dd=>dd.onchange=()=>{const proj=D.projects.find(p=>p.title===dd.dataset.proj);if(!proj)return;pH('status');proj.status=dd.value;toast(proj.title+' → '+SL[dd.value],'gld');renderProj()})
+  document.querySelectorAll('.pstdd').forEach(dd=>dd.onchange=()=>{const proj=D.projects.find(p=>p.title===dd.dataset.proj);if(!proj)return;pH('status');proj.status=dd.value;toast(proj.title+' → '+SL[dd.value],'gld');renderProj()});
+  document.querySelectorAll('.pedb').forEach(b=>b.onclick=e=>{e.stopPropagation();openEPrj(b.dataset.proj,b.dataset.ci,b.dataset.isclosed==='1')})
 }
 
+
+/* ═══════ EDIT PROJECT ═══════ */
+let _ePrjTitle=null,_ePrjCi=null,_ePrjClosed=false;
+function openEPrj(title,ci,isClosed){
+  _ePrjTitle=title;_ePrjCi=ci!=null&&ci!==''?+ci:null;_ePrjClosed=!!isClosed;
+  const proj=isClosed?D.closed[_ePrjCi]:D.projects.find(p=>p.title===title);
+  if(!proj)return;
+  const pc=gpc(title);
+  $('epStat').innerHTML=STATUSES.map(s=>`<option value="${s}">${SL[s]}</option>`).join('');
+  $('epN').value=proj.title;$('epCd2').value=pc.code;$('epClr').value=pc.c;
+  $('epDir').value=proj.director||'';$('epYr').value=proj.year||new Date().getFullYear();
+  $('epTyp').value=proj.type||'Feature Film';
+  $('epStat').value=isClosed?'closed':(proj.status||'idea');$('epStat').disabled=!!isClosed;
+  const prev=$('epPosterPrev');prev.innerHTML='';
+  const img=document.createElement('img');img.src=getPoster(title);
+  img.onerror=()=>{prev.innerHTML='<div class="poster-prev-ph">No poster</div>'};
+  prev.appendChild(img);
+  $('epPosterUrl').value='';$('epPosterFile').value='';
+  $('ePrjMdl').classList.add('op');$('epN').focus()
+}
+$('ePrjCn').onclick=()=>{$('ePrjMdl').classList.remove('op');_ePrjTitle=null;_ePrjCi=null};
+$('ePrjSv').onclick=()=>{
+  if(!_ePrjTitle)return;
+  const newTitle=$('epN').value.trim().toUpperCase(),newCode=$('epCd2').value.trim().toUpperCase(),newClr=$('epClr').value;
+  const newDir=$('epDir').value.trim(),newYr=+$('epYr').value,newTyp=$('epTyp').value,newStat=$('epStat').value;
+  const newUrl=$('epPosterUrl').value.trim();
+  if(!newTitle||!newCode){toast('TITLE + CODE REQUIRED','rd');return}
+  pH('edit project');
+  if(newUrl){D.posters=D.posters||{};D.posters[newTitle]=newUrl;if(newTitle!==_ePrjTitle)delete D.posters[_ePrjTitle]}
+  if(newTitle!==_ePrjTitle&&PC[_ePrjTitle]){PC[newTitle]=PC[_ePrjTitle];delete PC[_ePrjTitle]}
+  PC[newTitle]={c:newClr,b:hexToRgba(newClr,.12),code:newCode};
+  if(_ePrjClosed){
+    D.closed[_ePrjCi]=Object.assign({},D.closed[_ePrjCi],{title:newTitle,year:newYr,director:newDir,type:newTyp});
+  } else {
+    const proj=D.projects.find(p=>p.title===_ePrjTitle);
+    if(proj){proj.title=newTitle;proj.year=newYr;proj.director=newDir;proj.type=newTyp;proj.status=newStat}
+    if(newTitle!==_ePrjTitle){
+      D.tasks.forEach(t=>{if(t.project===_ePrjTitle)t.project=newTitle});
+      D.completed.forEach(t=>{if(t.project===_ePrjTitle)t.project=newTitle});
+      D.deadlines.forEach(d=>{if(d.project===_ePrjTitle)d.project=newTitle});
+    }
+  }
+  toast('PROJECT UPDATED','gld');$('ePrjMdl').classList.remove('op');_ePrjTitle=null;_ePrjCi=null;renderProj();fillDD();renderT()
+};
+$('epPosterFile').onchange=function(){
+  const file=this.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const b64=e.target.result;
+    const prev=$('epPosterPrev');prev.innerHTML='';
+    const img=document.createElement('img');img.src=b64;prev.appendChild(img);
+    const title=$('epN').value.trim().toUpperCase()||_ePrjTitle;
+    D.posters=D.posters||{};D.posters[title]=b64;$('epPosterUrl').value='';
+  };reader.readAsDataURL(file)
+};
+$('epPosterUrl').addEventListener('input',()=>{
+  const url=$('epPosterUrl').value.trim();if(!url)return;
+  const prev=$('epPosterPrev');prev.innerHTML='';
+  const img=document.createElement('img');img.src=url;img.style.cssText='width:100%;height:100%;object-fit:cover';
+  img.onerror=()=>{prev.innerHTML='<div class="poster-prev-ph">Invalid URL</div>'};
+  prev.appendChild(img)
+});
 
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS
@@ -1231,10 +1344,11 @@ $('eprCn').onclick=()=>{$('eprMdl').classList.remove('op');eprKey=null};
 $('eprSv').onclick=()=>{if(!eprKey)return;pH('edit partner');const nn=$('eprNm').value.trim().toUpperCase(),fg=$('eprFg').value;if(nn!==eprKey){PA[nn]=PA[eprKey];delete PA[eprKey]}PA[nn]={c:fg,b:hexToRgba(fg,.15)};toast('UPDATED','gld');$('eprMdl').classList.remove('op');eprKey=null;renderPa();fillDD()};
 
 /* Projects (settings) */
-function renderPrjSet(){const el=$('prjList');el.innerHTML='';D.projects.forEach((p,i)=>{const pc=gpc(p.title);el.innerHTML+=`<div class="prow"><span class="tag" style="background:${pc.b};color:${pc.c}">[${pc.code}] ${p.title}</span><span class="prl">${SL[p.status]||p.status}</span><button class="pdel" data-i="${i}">✕</button></div>`});
-  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del project');const title=D.projects[+b.dataset.i].title;D.projects.splice(+b.dataset.i,1);delete PC[title];renderPrjSet();fillDD();toast('REMOVED','rd')})}
+function renderPrjSet(){const el=$('prjList');el.innerHTML='';D.projects.forEach((p,i)=>{const pc=gpc(p.title);el.innerHTML+=`<div class="prow" style="flex-wrap:wrap;align-items:flex-start"><span class="tag" style="background:${pc.b};color:${pc.c}">${pc.code}</span><span class="pnm" style="flex:1;font-size:.75rem">${p.title}</span><button class="pedit" data-i="${i}" title="Edit" style="font-size:11px;background:none;border:none;color:var(--t3);cursor:pointer;padding:2px 4px">✎</button><button class="pdel" data-i="${i}">✕</button><div class="prow-meta" style="width:100%;padding-left:0">${p.director||'—'} · ${p.type||'—'} · ${p.year||'—'} · <span style="color:var(--t2)">${SL[p.status]||p.status}</span></div></div>`});
+  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del project');const title=D.projects[+b.dataset.i].title;D.projects.splice(+b.dataset.i,1);delete PC[title];renderPrjSet();fillDD();toast('REMOVED','rd')});
+  el.querySelectorAll('.pedit').forEach(b=>b.onclick=()=>openEPrj(D.projects[+b.dataset.i].title,null,false))}
 
-$('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value;if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:new Date().getFullYear(),status:'idea',type:'Feature Film',director:'TBD'});['nprN','nprCd'].forEach(i=>$(i).value='');renderPrjSet();fillDD();toast('PROJECT ADDED','gld')};
+$('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});['nprN','nprCd','nprDir'].forEach(i=>$(i).value='');$('nprYr').value='';renderPrjSet();fillDD();toast('PROJECT ADDED','gld')};
 
 /* ═══════ FULL RENDER ═══════ */
 function fullR(){renderT();renderDL();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='projects')renderProj()}
