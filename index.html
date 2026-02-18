@@ -274,6 +274,25 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .pc:hover .pstdd{opacity:0.7;background:var(--bg-1);border-color:var(--b0)}
 .pmove{font-size:10px;cursor:pointer;background:none;border:none;color:var(--t3);opacity:0;transition:var(--tr);padding:3px}
 .pc:hover .pmove{opacity:0.4}.pmove:hover{opacity:1;color:var(--t2)}
+/* Task count circle on project cards */
+.tc-circle{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;font-family:'JetBrains Mono';flex-shrink:0;position:absolute;top:8px;right:8px;animation:tc-pulse 3s ease-in-out infinite}
+@keyframes tc-pulse{0%,100%{box-shadow:0 0 0 0 currentColor}50%{box-shadow:0 0 8px 2px currentColor}}
+/* Status change icon button */
+.pst-btn{font-size:9px;cursor:pointer;background:none;border:none;color:var(--t3);opacity:0;transition:var(--tr);padding:2px;position:relative}
+.pc:hover .pst-btn{opacity:.6}.pst-btn:hover{opacity:1!important;color:var(--t1)}
+.pst-dd{position:absolute;bottom:100%;left:0;background:var(--bg-3);border:1px solid var(--b1);border-radius:6px;padding:4px;box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;z-index:100;min-width:140px}
+.pst-dd.open{display:block}
+.pst-dd-item{padding:4px 10px;font-size:.6rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;border-radius:4px;color:var(--t2);white-space:nowrap}
+.pst-dd-item:hover{background:var(--bg-1);color:var(--t0)}
+/* Add project bar on projects page */
+.add-prj-bar{display:flex;gap:6px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.add-prj-bar .fi,.add-prj-bar .fs{padding:7px 10px;font-size:.72rem}
+.add-prj-btn{font-size:.7rem;padding:6px 14px;background:var(--bg-2);border:1px dashed var(--b1);border-radius:var(--r);color:var(--t3);cursor:pointer;font-family:'Outfit';font-weight:600;text-transform:uppercase;letter-spacing:.8px;transition:var(--tr);margin-bottom:14px}
+.add-prj-btn:hover{border-color:var(--gold);color:var(--gold)}
+/* People preview label */
+.ppl-prev{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-left:6px}
+/* Calendar overflow fix */
+.mdl.cal-open{overflow:visible!important}
 .preopen{font-size:.55rem;padding:3px 9px;border-radius:4px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;cursor:pointer;background:var(--gold-d);color:var(--gold);border:1px solid rgba(212,175,55,.2);font-family:'Outfit';transition:var(--tr);opacity:0}
 .pc:hover .preopen{opacity:.7}.preopen:hover{opacity:1!important;background:rgba(212,175,55,.2)}
 
@@ -449,7 +468,20 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="dl-stack" id="dlG"></div>
 </div>
 
-<div class="vw" id="v-projects"><div id="pSecs"></div></div>
+<div class="vw" id="v-projects">
+  <button class="add-prj-btn" id="npTgl">+ NEW PROJECT</button>
+  <div class="add-prj-bar" id="npFrm" style="display:none">
+    <input type="text" class="fi" id="nprN" placeholder="Title" style="flex:2;min-width:140px">
+    <input type="text" class="fi" id="nprCd" placeholder="CODE" style="width:70px">
+    <input type="color" class="clr-i" id="nprFg" value="#60a5fa" title="Accent Color" style="width:32px;height:32px">
+    <input type="text" class="fi" id="nprDir" placeholder="Director" style="flex:1;min-width:100px">
+    <input type="number" class="fi" id="nprYr" placeholder="Year" min="1990" max="2040" style="width:70px">
+    <select class="fs" id="nprTyp"><option value="Feature Film">Feature Film</option><option value="Short Film">Short Film</option><option value="Feature Doc">Feature Doc</option><option value="TV Series">TV Series</option></select>
+    <button class="btn btn-g" id="aPrj" style="padding:7px 14px;font-size:.7rem">CREATE</button>
+    <button class="btn btn-gh" id="npCn" style="padding:7px 10px;font-size:.7rem">✕</button>
+  </div>
+  <div id="pSecs"></div>
+</div>
 
 </div>
 
@@ -457,22 +489,10 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 <div class="sdr" id="sDr">
   <div class="shdr"><div class="stitle">Settings</div><button class="scl" id="clS">✕</button></div>
   <div class="sbdy">
-    <div class="ssec"><div class="sst">People</div><div id="pList"></div>
-      <div class="arow arow4"><input type="text" class="fi" id="npC" placeholder="CODE"><input type="text" class="fi" id="npN" placeholder="Full Name"><input type="text" class="fi" id="npR" placeholder="Role"><button class="abtn" id="aPpl">+</button></div></div>
+    <div class="ssec"><div class="sst">People <span class="ppl-prev" id="pplPrv" style="background:rgba(96,165,250,.13);color:#60a5fa">PREVIEW</span></div><div id="pList"></div>
+      <div class="arow arow5"><input type="text" class="fi" id="npC" placeholder="CODE"><input type="text" class="fi" id="npN" placeholder="Full Name"><input type="text" class="fi" id="npR" placeholder="Role"><input type="color" class="clr-i" id="npClr" value="#60a5fa" title="Color"><button class="abtn" id="aPpl">+</button></div></div>
     <div class="ssec"><div class="sst">Partners <span class="lprev" id="paPrv" style="background:rgba(96,165,250,.15);color:#60a5fa">PREVIEW</span></div><div id="paList"></div>
       <div class="arow arow5"><input type="text" class="fi" id="npaC" placeholder="CODE"><input type="text" class="fi" id="npaN" placeholder="Name"><input type="color" class="clr-i" id="npaBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="npaFg" value="#60a5fa" title="Text"><button class="abtn" id="aPa">+</button></div></div>
-    <div class="ssec"><div class="sst">Projects <span class="lprev" id="prjPrv" style="background:rgba(96,165,250,.12);color:#60a5fa">PREVIEW</span></div><div id="prjList"></div>
-      <div class="arow" style="grid-template-columns:1fr 70px 32px 28px;gap:5px">
-        <input type="text" class="fi" id="nprN" placeholder="Title">
-        <input type="text" class="fi" id="nprCd" placeholder="CODE">
-        <input type="color" class="clr-i" id="nprFg" value="#60a5fa" title="Accent Color">
-        <button class="abtn" id="aPrj">+</button>
-      </div>
-      <div class="fr" style="grid-template-columns:1fr 80px;gap:5px;margin-top:5px">
-        <div><label class="fl">Director</label><input type="text" class="fi" id="nprDir" placeholder="Director name" style="padding:6px 8px;font-size:.7rem"></div>
-        <div><label class="fl">Year</label><input type="number" class="fi" id="nprYr" placeholder="Year" min="1990" max="2040" style="padding:6px 8px;font-size:.7rem"></div>
-      </div>
-      <div style="margin-top:5px"><label class="fl">Type</label><select class="fs" id="nprTyp" style="padding:6px 8px;font-size:.7rem"><option value="Feature Film">Feature Film</option><option value="Short Film">Short Film</option><option value="Feature Doc">Feature Doc</option><option value="TV Series">TV Series</option></select></div>
     </div>
   </div>
 </div>
@@ -497,7 +517,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 <!-- Edit Person Modal -->
 <div class="mbg" id="epMdl"><div class="mdl"><h3>✎ Edit Person</h3>
-  <div class="fg"><label class="fl">Code</label><input type="text" class="fi" id="epCd"></div>
+  <div class="fr fr2"><div class="fg"><label class="fl">Code</label><input type="text" class="fi" id="epCd"></div><div class="fg"><label class="fl">Color</label><input type="color" class="clr-i" id="epPClr" style="width:100%;height:34px" value="#60a5fa"></div></div>
   <div class="fg"><label class="fl">Full Name</label><input type="text" class="fi" id="epNm"></div>
   <div class="fg"><label class="fl">Role</label><input type="text" class="fi" id="epRl"></div>
   <div class="mdla"><button class="btn btn-gh" id="epCn">CANCEL</button><button class="btn btn-g" id="epSv">SAVE</button></div></div></div>
@@ -895,8 +915,7 @@ function renderLogo(){const c=$('logoContainer');if(!c)return;if(COMPANY_LOGO){c
 /* ═══════ LIVE PREVIEW ═══════ */
 ['npaFg','npaBg'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('npaFg').value;$('paPrv').style.background=hexToRgba(fg,.15);$('paPrv').style.color=fg;$('paPrv').textContent=($('npaC').value||$('npaN').value||'PREVIEW').toUpperCase()}));
 ['npaC','npaN'].forEach(id=>$(id).addEventListener('input',()=>{$('paPrv').textContent=($('npaC').value||$('npaN').value||'PREVIEW').toUpperCase()}));
-['nprFg','nprCd','nprN'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('nprFg').value;$('prjPrv').style.background=hexToRgba(fg,.12);$('prjPrv').style.color=fg;$('prjPrv').textContent=($('nprCd').value||$('nprN').value||'PREVIEW').toUpperCase()}));
-['nprN','nprCd'].forEach(id=>$(id).addEventListener('input',()=>{$('prjPrv').textContent=($('nprCd').value||$('nprN').value||'PREVIEW').toUpperCase()}));
+['npClr','npC','npN'].forEach(id=>$(id).addEventListener('input',()=>{const fg=$('npClr').value;$('pplPrv').style.background=hexToRgba(fg,.13);$('pplPrv').style.color=fg;$('pplPrv').textContent=($('npC').value||$('npN').value||'PREVIEW').toUpperCase()}));
 
 /* ═══════════════════════════════════════════════════════════════
    TASKS
@@ -1123,10 +1142,10 @@ function initCal(btnId,popId,inputId){
     h+=`</div>`;
     pop.innerHTML=h;
     pop.querySelectorAll('.cal-nav').forEach(n=>n.onclick=e=>{e.stopPropagation();cM+=+n.dataset.d;if(cM>11){cM=0;cY++}else if(cM<0){cM=11;cY--}render()});
-    pop.querySelectorAll('.cal-day:not(.other)').forEach(d=>d.onclick=e=>{e.stopPropagation();setVal(d.dataset.v);pop.classList.remove('open')});
+    pop.querySelectorAll('.cal-day:not(.other)').forEach(d=>d.onclick=e=>{e.stopPropagation();setVal(d.dataset.v);pop.classList.remove('open');const mdl=pop.closest('.mdl');if(mdl)mdl.classList.remove('cal-open')});
   }
-  btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>p.classList.remove('open'));if(!wasOpen){const v=inp.value;if(v){const p=new Date(v.split('T')[0]+'T00:00:00');if(!isNaN(p.getTime())){cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open')}};
-  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!btn.contains(e.target))pop.classList.remove('open')});
+  btn.onclick=e=>{e.stopPropagation();const wasOpen=pop.classList.contains('open');document.querySelectorAll('.cal-pop.open').forEach(p=>{p.classList.remove('open');const m=p.closest('.mdl');if(m)m.classList.remove('cal-open')});if(!wasOpen){const v=inp.value;if(v){const p=new Date(v.split('T')[0]+'T00:00:00');if(!isNaN(p.getTime())){cY=p.getFullYear();cM=p.getMonth()}else{cY=new Date().getFullYear();cM=new Date().getMonth()}}else{cY=new Date().getFullYear();cM=new Date().getMonth()}render();pop.classList.add('open');const mdl=pop.closest('.mdl');if(mdl)mdl.classList.add('cal-open')}};
+  document.addEventListener('click',e=>{if(!pop.contains(e.target)&&!btn.contains(e.target)){pop.classList.remove('open');const mdl=pop.closest('.mdl');if(mdl)mdl.classList.remove('cal-open')}});
 }
 initCal('fDuCal','fDuCalPop','fDu');
 initCal('eDuCal','eDuCalPop','eDu');
@@ -1243,13 +1262,19 @@ function renderProj(){
     el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch op">▶</span><h3>${SL[s]} (${groups[s].length})</h3></div><div class="psb op" id="ps-${s}"><div class="pgrid">${groups[s].map(p=>{
       const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length,pc=gpc(p.title);
       const posterHtml=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`;
-      return`<div class="pc"><div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director} · <span style="color:var(--t2)">${p.type}</span>${tc?` · <span style="color:var(--t3)">${tc} task${tc>1?'s':''}</span>`:''}</div><div class="pbs"><span class="sb ${p.status}">${SL[p.status]}</span><select class="pstdd" data-proj="${p.title}">${STATUSES.map(st=>`<option value="${st}"${st===p.status?' selected':''}>${SL[st]}</option>`).join('')}</select><button class="pmove" data-proj="${p.title}">→ Close</button><button class="pedb" data-proj="${p.title}" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`});
-  // Closed section — expanded by default (.psb.op, .ch.op)
+      const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';
+      return`<div class="pc" data-proj="${p.title}" style="position:relative">${tcCircle}<div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director} · <span style="color:var(--t2)">${p.type}</span></div><div class="pbs"><span class="sb ${p.status}">${SL[p.status]}</span><button class="pst-btn" data-proj="${p.title}" title="Change status">↺</button><button class="pmove" data-proj="${p.title}">→ Close</button><button class="pedb" data-proj="${p.title}" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`});
+  // Closed section — expanded by default
   el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch op">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb op" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>{const pc=gpc(p.title);const ph=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`; return`<div class="pc arch"><div class="poster-w">${ph}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director}${p.type?` · <span style="color:var(--t2)">${p.type}</span>`:''}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button><button class="pedb" data-proj="${p.title}" data-ci="${i}" data-isclosed="1" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`;
   document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
   document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director,type:proj.type});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
   document.querySelectorAll('.preopen').forEach(b=>b.onclick=e=>{e.stopPropagation();const ci=+b.dataset.ci;if(ci<0||ci>=D.closed.length)return;pH('reopen project');const proj=D.closed[ci];D.projects.push({title:proj.title,year:proj.year,status:'post',type:proj.type||'Feature Film',director:proj.director});D.closed.splice(ci,1);toast(proj.title+' → REOPENED','gld');renderProj()});
-  document.querySelectorAll('.pstdd').forEach(dd=>dd.onchange=()=>{const proj=D.projects.find(p=>p.title===dd.dataset.proj);if(!proj)return;pH('status');proj.status=dd.value;toast(proj.title+' → '+SL[dd.value],'gld');renderProj()});
+  // Status change icon dropdown
+  document.querySelectorAll('.pst-btn').forEach(b=>{b.onclick=e=>{e.stopPropagation();document.querySelectorAll('.pst-dd.open').forEach(d=>d.remove());const proj=D.projects.find(p=>p.title===b.dataset.proj);if(!proj)return;
+    const dd=document.createElement('div');dd.className='pst-dd open';
+    STATUSES.filter(s=>s!==proj.status).forEach(s=>{const it=document.createElement('div');it.className='pst-dd-item';it.textContent=SL[s];it.onclick=ev=>{ev.stopPropagation();pH('status');proj.status=s;toast(proj.title+' → '+SL[s],'gld');renderProj()};dd.appendChild(it)});
+    b.style.position='relative';b.appendChild(dd);
+    const close=ev=>{if(!dd.contains(ev.target)){dd.remove();document.removeEventListener('click',close)}};setTimeout(()=>document.addEventListener('click',close),0)}});
   document.querySelectorAll('.pedb').forEach(b=>b.onclick=e=>{e.stopPropagation();openEPrj(b.dataset.proj,b.dataset.ci,b.dataset.isclosed==='1')})
 }
 
@@ -1319,7 +1344,7 @@ $('epPosterUrl').addEventListener('input',()=>{
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS
    ═══════════════════════════════════════════════════════════════ */
-$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa();renderPrjSet()};
+$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa()};
 const closeSt=()=>{$('sOv2').classList.remove('op');$('sDr').classList.remove('op')};
 $('clS').onclick=closeSt;$('sOv2').onclick=closeSt;
 
@@ -1327,11 +1352,11 @@ $('clS').onclick=closeSt;$('sOv2').onclick=closeSt;
 let epIdx=null;
 function renderPpl(){const el=$('pList');el.innerHTML='';D.people.forEach((p,i)=>{const c=gc(PP,p.code);el.innerHTML+=`<div class="prow"><span class="pcode" style="background:${c.b};color:${c.c}">${p.code}</span><span class="pnm">${p.name}</span><span class="prl">${p.role}</span><button class="pedit" data-i="${i}">✎</button><button class="pdel" data-i="${i}">✕</button></div>`});
   el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del person');D.people.splice(+b.dataset.i,1);renderPpl();fillDD();toast('REMOVED','rd')});
-  el.querySelectorAll('.pedit').forEach(b=>b.onclick=()=>{epIdx=+b.dataset.i;const p=D.people[epIdx];$('epCd').value=p.code;$('epNm').value=p.name;$('epRl').value=p.role;$('epMdl').classList.add('op')})}
+  el.querySelectorAll('.pedit').forEach(b=>b.onclick=()=>{epIdx=+b.dataset.i;const p=D.people[epIdx];const c=gc(PP,p.code);$('epCd').value=p.code;$('epNm').value=p.name;$('epRl').value=p.role;$('epPClr').value=c.c;$('epMdl').classList.add('op')})}
 
-$('aPpl').onclick=()=>{const c=$('npC').value.trim().toUpperCase(),n=$('npN').value.trim(),r=$('npR').value.trim();if(!c||!n){toast('CODE+NAME REQUIRED','rd');return}pH('add person');D.people.push({code:c,name:n,role:r});PP[c]={c:'#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'),b:'rgba(128,128,128,.13)'};['npC','npN','npR'].forEach(i=>$(i).value='');renderPpl();fillDD();toast('ADDED','gld')};
+$('aPpl').onclick=()=>{const c=$('npC').value.trim().toUpperCase(),n=$('npN').value.trim(),r=$('npR').value.trim(),fg=$('npClr').value;if(!c||!n){toast('CODE+NAME REQUIRED','rd');return}pH('add person');D.people.push({code:c,name:n,role:r});PP[c]={c:fg,b:hexToRgba(fg,.13)};['npC','npN','npR'].forEach(i=>$(i).value='');renderPpl();fillDD();toast('ADDED','gld')};
 $('epCn').onclick=()=>{$('epMdl').classList.remove('op');epIdx=null};
-$('epSv').onclick=()=>{if(epIdx===null)return;pH('edit person');const old=D.people[epIdx].code;D.people[epIdx]={code:$('epCd').value.trim().toUpperCase(),name:$('epNm').value.trim(),role:$('epRl').value.trim()};const nc=D.people[epIdx].code;if(old!==nc&&PP[old]){PP[nc]=PP[old];delete PP[old]}toast('UPDATED','gld');$('epMdl').classList.remove('op');epIdx=null;renderPpl();fillDD()};
+$('epSv').onclick=()=>{if(epIdx===null)return;pH('edit person');const old=D.people[epIdx].code,fg=$('epPClr').value;D.people[epIdx]={code:$('epCd').value.trim().toUpperCase(),name:$('epNm').value.trim(),role:$('epRl').value.trim()};const nc=D.people[epIdx].code;if(old!==nc&&PP[old]){PP[nc]=PP[old];delete PP[old]}PP[nc]={c:fg,b:hexToRgba(fg,.13)};toast('UPDATED','gld');$('epMdl').classList.remove('op');epIdx=null;renderPpl();fillDD()};
 
 /* Partners */
 let eprKey=null;
@@ -1343,12 +1368,10 @@ $('aPa').onclick=()=>{const c=$('npaC').value.trim().toUpperCase(),n=$('npaN').v
 $('eprCn').onclick=()=>{$('eprMdl').classList.remove('op');eprKey=null};
 $('eprSv').onclick=()=>{if(!eprKey)return;pH('edit partner');const nn=$('eprNm').value.trim().toUpperCase(),fg=$('eprFg').value;if(nn!==eprKey){PA[nn]=PA[eprKey];delete PA[eprKey]}PA[nn]={c:fg,b:hexToRgba(fg,.15)};toast('UPDATED','gld');$('eprMdl').classList.remove('op');eprKey=null;renderPa();fillDD()};
 
-/* Projects (settings) */
-function renderPrjSet(){const el=$('prjList');el.innerHTML='';D.projects.forEach((p,i)=>{const pc=gpc(p.title);el.innerHTML+=`<div class="prow" style="flex-wrap:wrap;align-items:flex-start"><span class="tag" style="background:${pc.b};color:${pc.c}">${pc.code}</span><span class="pnm" style="flex:1;font-size:.75rem">${p.title}</span><button class="pedit" data-i="${i}" title="Edit" style="font-size:11px;background:none;border:none;color:var(--t3);cursor:pointer;padding:2px 4px">✎</button><button class="pdel" data-i="${i}">✕</button><div class="prow-meta" style="width:100%;padding-left:0">${p.director||'—'} · ${p.type||'—'} · ${p.year||'—'} · <span style="color:var(--t2)">${SL[p.status]||p.status}</span></div></div>`});
-  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del project');const title=D.projects[+b.dataset.i].title;D.projects.splice(+b.dataset.i,1);delete PC[title];renderPrjSet();fillDD();toast('REMOVED','rd')});
-  el.querySelectorAll('.pedit').forEach(b=>b.onclick=()=>openEPrj(D.projects[+b.dataset.i].title,null,false))}
-
-$('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});['nprN','nprCd','nprDir'].forEach(i=>$(i).value='');$('nprYr').value='';renderPrjSet();fillDD();toast('PROJECT ADDED','gld')};
+/* Add Project (Projects view) */
+$('npTgl').onclick=()=>{const f=$('npFrm');f.style.display=f.style.display==='none'?'flex':'none'};
+$('npCn').onclick=()=>{$('npFrm').style.display='none'};
+$('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});['nprN','nprCd','nprDir'].forEach(i=>$(i).value='');$('nprYr').value='';$('npFrm').style.display='none';fillDD();renderProj();toast('PROJECT ADDED','gld')};
 
 /* ═══════ FULL RENDER ═══════ */
 function fullR(){renderT();renderDL();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='projects')renderProj()}
