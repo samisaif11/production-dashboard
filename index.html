@@ -194,7 +194,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .cal-btn{padding:6px 10px;border-radius:4px;background:var(--bg-4);color:var(--t2);border:1px solid var(--b1);font-size:14px;cursor:pointer;font-family:'Outfit';transition:var(--tr);display:flex;align-items:center;justify-content:center}
 .cal-btn:hover{border-color:var(--gold);color:var(--gold)}
 .cal-wrap{position:relative;display:inline-block}
-.cal-pop{position:absolute;top:100%;right:0;z-index:200;background:var(--bg-3);border:1px solid var(--b1);border-radius:var(--rl);padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.6);display:none;min-width:260px;margin-top:4px}
+.cal-pop{position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:200;background:var(--bg-3);border:1px solid var(--b1);border-radius:var(--rl);padding:14px;box-shadow:0 12px 32px rgba(0,0,0,.6);display:none;min-width:260px;margin-top:4px}
 .cal-pop.open{display:block}
 .cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .cal-hdr span{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--t1)}
@@ -221,7 +221,6 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 /* Deadlines: full-width stacked cards */
 .dl-stack{display:flex;flex-direction:column;gap:10px}
 .dlc{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--rl);padding:24px 28px;display:flex;align-items:center;gap:24px;position:relative;overflow:hidden;transition:var(--tr)}
-@media(max-width:768px){.dlc{flex-direction:column;padding:16px;gap:12px;align-items:flex-start}}
 .dlc::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px}
 .dlc.urg::before{background:var(--red)}.dlc.soon::before{background:var(--orange)}.dlc.ok::before{background:var(--green)}.dlc.past::before{background:var(--t3);opacity:.4}
 .dlc:hover{border-color:var(--b1)}
@@ -254,7 +253,6 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .psh .ch{font-size:.6rem;color:var(--t3);transition:var(--tr)}.psh .ch.op{transform:rotate(90deg)}
 .psb{display:none}.psb.op{display:block}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px}
-@media(max-width:768px){.pgrid{grid-template-columns:1fr}}
 .pc{display:flex;align-items:stretch;gap:0;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);position:relative;overflow:hidden;transition:var(--tr)}
 .pc:hover{border-color:var(--b1)}
 .pc.arch{border:1.5px solid rgba(34,197,94,.25)}
@@ -353,7 +351,44 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .toast{position:fixed;bottom:20px;right:20px;padding:10px 20px;border-radius:8px;font-size:.72rem;font-weight:700;z-index:300;opacity:0;transform:translateY(8px);transition:all .3s ease;pointer-events:none;text-transform:uppercase;letter-spacing:.8px}
 .toast.show{opacity:1;transform:translateY(0)}.toast.grn{background:var(--green);color:#fff}.toast.rd{background:var(--red);color:#fff}.toast.gld{background:var(--gold);color:var(--bg-0)}.toast.und{background:var(--bg-4);color:var(--t0);border:1px solid var(--b1)}
 
-@media(max-width:768px){.hdr{padding:0 12px;height:52px}.main{padding:12px}.stats{grid-template-columns:repeat(2,1fr);gap:8px}.sdr{width:100%;right:-100%}.fr4,.fr3{grid-template-columns:1fr 1fr}.tcards,.pgrid{grid-template-columns:1fr}.logo-sub{display:none}.nav-tab{padding:5px 10px;font-size:.62rem;letter-spacing:.8px}.poster-w{width:70px;min-width:70px;height:105px}}
+@media(max-width:768px){
+.hdr{padding:0 10px;height:auto;min-height:52px;flex-wrap:wrap;gap:4px;padding-top:8px;padding-bottom:8px}
+.logo-wrap{gap:8px}.logo-text span{font-size:.85rem}
+.nav{order:3;width:100%;display:flex;justify-content:center;gap:2px;padding-top:4px}
+.nav-tab{padding:5px 10px;font-size:.6rem;letter-spacing:.6px}
+.hdr-r{gap:8px}.clk{font-size:.82rem}.dtb{font-size:.6rem;padding:4px 8px}.gear{width:30px;height:30px;font-size:14px}
+.main{padding:10px 8px}
+.stats{grid-template-columns:repeat(2,1fr);gap:6px}
+.st{padding:12px 10px}
+.sdr{width:100%;right:-100%}
+.fr4,.fr3{grid-template-columns:1fr}
+.fr2{grid-template-columns:1fr}
+.fr6{grid-template-columns:1fr 1fr!important}
+.tfrm{padding:14px}
+.tsk{padding:14px 12px;gap:10px}
+.tb{min-width:0}
+.tsk-txt{font-size:1rem;margin-bottom:6px}
+.tr{min-width:auto;align-items:flex-end;gap:3px}
+.tact{gap:4px}
+.tbb,.tedb{opacity:.6;font-size:14px;padding:4px}
+.sub-row .sub-grip{opacity:.4}
+.sub-list{padding-left:28px}
+.pin-btn{opacity:.7}
+.nbtn{padding:10px 14px}
+.cal-pop{left:0;transform:none;right:auto;max-width:calc(100vw - 40px)}
+.cal-grid{gap:1px}
+.cal-day{padding:8px 2px;font-size:.72rem}
+.cal-nav{width:30px;height:30px}
+.mdl{padding:18px 14px;max-width:96vw}
+.add-prj-bar{flex-direction:column;align-items:stretch}
+.add-prj-bar .fi,.add-prj-bar .fs{width:100%}
+.tcards,.pgrid{grid-template-columns:1fr}
+.poster-w{width:70px;min-width:70px;height:105px}
+.logo-sub{display:none}
+.dlc{flex-direction:column;padding:14px;gap:10px;align-items:flex-start}
+.toast{right:10px;left:10px;bottom:12px;text-align:center}
+.sync-indicator{left:10px;bottom:56px;font-size:.58rem;padding:6px 10px}
+}
 /* ═══════ CLOUD SYNC STYLES ═══════ */
 .sync-indicator{position:fixed;bottom:20px;left:20px;z-index:400;display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-family:'Outfit',sans-serif;font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:var(--bg-3);border:1px solid var(--b1);color:var(--t3);opacity:0;transform:translateY(8px);transition:all .3s ease;pointer-events:none}
 .sync-indicator.visible{opacity:1;transform:translateY(0);pointer-events:auto}
@@ -449,7 +484,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <button class="nbtn" id="ndTgl">+ NEW DEADLINE</button>
     <div class="tfrm" id="dFrm">
       <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Description</label><input type="text" class="fi" id="fdT" placeholder="E.G., CNC AVR1 APPLICATION"></div></div>
-      <div class="fr" style="grid-template-columns:1fr 1.5fr auto 1fr 1fr auto">
+      <div class="fr fr6" style="grid-template-columns:1fr 1.5fr auto 1fr 1fr auto">
         <div><label class="fl">Project</label><select class="fs" id="fdP"></select></div>
         <div><label class="fl">Date</label><div style="display:flex;gap:4px;align-items:center"><input type="hidden" id="fdDate"><div class="cal-wrap" style="flex:1"><button type="button" class="fi" id="fdDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="fdDateLabel" style="flex:1">—</span></button><div class="cal-pop" id="fdDateCalPop"></div></div><button type="button" class="setnow-b" id="fdDateToday" style="white-space:nowrap;padding:8px 10px">TODAY</button></div></div>
         <div><label class="fl">Time</label><input type="time" class="fi" id="fdTime"></div>
