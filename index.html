@@ -536,9 +536,12 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="fr fr2"><div class="fg"><label class="fl">Director</label><input type="text" class="fi" id="epDir" placeholder="Full name"></div><div class="fg"><label class="fl">Type</label><select class="fs" id="epTyp"><option value="Feature Film">Feature Film</option><option value="Short Film">Short Film</option><option value="Feature Doc">Feature Doc</option><option value="TV Series">TV Series</option></select></div></div>
   <div class="fg"><label class="fl">Poster</label>
     <div style="display:flex;gap:10px;align-items:flex-start">
-      <div class="poster-prev" id="epPosterPrev"><div class="poster-prev-ph">No Poster</div></div>
+      <div style="position:relative;flex-shrink:0">
+        <div class="poster-prev" id="epPosterPrev"><div class="poster-prev-ph">No Poster</div></div>
+        <button type="button" class="btn" id="epPosterDel" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;padding:0;font-size:.65rem;border-radius:50%;background:var(--rd);color:#fff;display:none;line-height:20px;text-align:center;cursor:pointer" title="Remove poster">✕</button>
+      </div>
       <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-        <input type="url" class="fi" id="epPosterUrl" placeholder="Paste image URL (optional)">
+        <input type="url" class="fi" id="epPosterUrl" placeholder="Paste image URL">
         <input type="file" class="fi" id="epPosterFile" accept="image/*" style="padding:6px 8px;font-size:.68rem">
       </div>
     </div>
@@ -1304,13 +1307,26 @@ function openEPrj(title,ci,isClosed){
   $('epTyp').value=proj.type||'Feature Film';
   $('epStat').value=isClosed?'closed':(proj.status||'idea');$('epStat').disabled=!!isClosed;
   const prev=$('epPosterPrev');prev.innerHTML='';
-  const img=document.createElement('img');img.src=getPoster(title);
-  img.onerror=()=>{prev.innerHTML='<div class="poster-prev-ph">No poster</div>'};
+  const currentUrl=getPoster(title);
+  const img=document.createElement('img');img.src=currentUrl;
+  const hasPoster=!!(D.posters&&D.posters[title])||!!POSTERS[title];
+  img.onerror=()=>{prev.innerHTML='<div class="poster-prev-ph">No poster</div>';$('epPosterDel').style.display='none'};
+  img.onload=()=>{$('epPosterDel').style.display='block'};
   prev.appendChild(img);
-  $('epPosterUrl').value='';$('epPosterFile').value='';
+  $('epPosterDel').style.display=hasPoster?'block':'none';
+  $('epPosterUrl').value=(D.posters&&D.posters[title])?D.posters[title]:'';
+  $('epPosterFile').value='';
   $('ePrjMdl').classList.add('op');$('epN').focus()
 }
 $('ePrjCn').onclick=()=>{$('ePrjMdl').classList.remove('op');_ePrjTitle=null;_ePrjCi=null};
+$('epPosterDel').onclick=()=>{
+  if(!_ePrjTitle)return;
+  if(D.posters&&D.posters[_ePrjTitle])delete D.posters[_ePrjTitle];
+  $('epPosterUrl').value='';$('epPosterFile').value='';
+  $('epPosterPrev').innerHTML='<div class="poster-prev-ph">No poster</div>';
+  $('epPosterDel').style.display='none';
+  toast('POSTER REMOVED','gld');
+};
 $('ePrjSv').onclick=()=>{
   if(!_ePrjTitle)return;
   const newTitle=$('epN').value.trim().toUpperCase(),newCode=$('epCd2').value.trim().toUpperCase(),newClr=$('epClr').value;
@@ -1318,7 +1334,9 @@ $('ePrjSv').onclick=()=>{
   const newUrl=fixPosterUrl($('epPosterUrl').value.trim());
   if(!newTitle||!newCode){toast('TITLE + CODE REQUIRED','rd');return}
   pH('edit project');
-  if(newUrl){D.posters=D.posters||{};D.posters[newTitle]=newUrl;if(newTitle!==_ePrjTitle)delete D.posters[_ePrjTitle]}
+  D.posters=D.posters||{};
+  if(newUrl){D.posters[newTitle]=newUrl;if(newTitle!==_ePrjTitle)delete D.posters[_ePrjTitle]}
+  else{delete D.posters[_ePrjTitle];if(newTitle!==_ePrjTitle)delete D.posters[newTitle]}
   if(newTitle!==_ePrjTitle&&PC[_ePrjTitle]){PC[newTitle]=PC[_ePrjTitle];delete PC[_ePrjTitle]}
   PC[newTitle]={c:newClr,b:hexToRgba(newClr,.12),code:newCode};
   if(_ePrjClosed){
@@ -1348,6 +1366,7 @@ $('epPosterFile').onchange=function(){
     const localPath='assets/images/'+slug+'.'+ext;
     D.posters=D.posters||{};D.posters[title]=localPath;
     $('epPosterUrl').value=localPath;
+    $('epPosterDel').style.display='block';
     toast('FILE PREVIEWED — SAVE IMAGE AS: '+localPath,'gld');
   };reader.readAsDataURL(file)
 };
@@ -1355,7 +1374,8 @@ $('epPosterUrl').addEventListener('input',()=>{
   const url=fixPosterUrl($('epPosterUrl').value.trim());if(!url)return;
   const prev=$('epPosterPrev');prev.innerHTML='';
   const img=document.createElement('img');img.src=url;img.style.cssText='width:100%;height:100%;object-fit:cover';
-  img.onerror=()=>{prev.innerHTML='<div class="poster-prev-ph">Invalid URL</div>'};
+  img.onerror=()=>{prev.innerHTML='<div class="poster-prev-ph">Invalid URL</div>';$('epPosterDel').style.display='none'};
+  img.onload=()=>{$('epPosterDel').style.display='block'};
   prev.appendChild(img)
 });
 
