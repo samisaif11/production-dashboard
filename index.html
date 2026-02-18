@@ -75,6 +75,16 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tsk.drag-over{border-top:2px solid var(--gold);margin-top:-2px}
 @keyframes shimmer{0%{left:-100%}100%{left:200%}}
 .tsk.shimmer::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(34,197,94,.15),transparent);animation:shimmer .6s ease-out;pointer-events:none}
+/* Swipe gestures */
+.tsk-swipe-wrap{position:relative;overflow:hidden;border-radius:var(--r);margin-bottom:6px}
+.tsk-swipe-wrap .tsk{margin-bottom:0;transition:transform .2s ease;will-change:transform;touch-action:pan-y}
+.swipe-bg{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 20px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:1px;opacity:0;transition:opacity .15s ease}
+.swipe-bg-right{left:0;right:50%;background:var(--green);color:#fff;justify-content:flex-start}
+.swipe-bg-left{right:0;left:50%;background:var(--red);color:#fff;justify-content:flex-end}
+@keyframes swipeOutRight{from{transform:translateX(0);opacity:1}to{transform:translateX(100%);opacity:0}}
+@keyframes swipeOutLeft{from{transform:translateX(0);opacity:1}to{transform:translateX(-100%);opacity:0}}
+.tsk-swipe-wrap.swiping-out-right{animation:swipeOutRight .3s ease forwards}
+.tsk-swipe-wrap.swiping-out-left{animation:swipeOutLeft .3s ease forwards}
 .tc{width:28px;height:28px;min-width:28px;border-radius:50%;border:2px solid var(--b2);cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;font-size:15px;color:transparent;font-weight:800;margin-top:4px}
 .tc:hover{border-color:var(--green);background:rgba(34,197,94,.06)}
 .tp{width:4px;min-width:4px;height:40px;border-radius:2px;margin-top:4px}
@@ -1039,6 +1049,42 @@ function renderT(){
     node.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));node.classList.add('drag-over')});
     node.addEventListener('dragleave',()=>node.classList.remove('drag-over'));
     node.addEventListener('drop',e=>{e.preventDefault();node.classList.remove('drag-over');const did=+node.dataset.id;if(dragId===null||dragId===did)return;pH('reorder');const di=D.tasks.findIndex(t=>t.id===dragId),ri=D.tasks.findIndex(t=>t.id===did);if(di<0||ri<0)return;const[item]=D.tasks.splice(di,1);D.tasks.splice(ri,0,item);D.tasks.forEach((t,i)=>t.order=i);skipSort=true;dragId=null;renderT()})});
+  // Swipe gestures (touch)
+  el.querySelectorAll('.tsk-swipe-wrap').forEach(wrap=>{
+    const tsk=wrap.querySelector('.tsk');if(!tsk)return;
+    const id=+tsk.dataset.id;
+    const bgR=wrap.querySelector('.swipe-bg-right'),bgL=wrap.querySelector('.swipe-bg-left');
+    let sx=0,sy=0,dx=0,locked=false,swiping=false;
+    const THRESH=80,MAXX=150;
+    tsk.addEventListener('touchstart',e=>{
+      const tc=e.touches[0];sx=tc.clientX;sy=tc.clientY;dx=0;locked=false;swiping=false;
+    },{passive:true});
+    tsk.addEventListener('touchmove',e=>{
+      const tc=e.touches[0];
+      const mx=tc.clientX-sx,my=tc.clientY-sy;
+      if(!locked){if(Math.abs(my)>Math.abs(mx)){locked=true;return}if(Math.abs(mx)>8)swiping=true}
+      if(!swiping||locked)return;
+      e.preventDefault();
+      dx=Math.max(-MAXX,Math.min(MAXX,mx));
+      tsk.style.transform=`translateX(${dx}px)`;
+      if(dx>0){bgR.style.opacity=Math.min(1,dx/THRESH);bgL.style.opacity=0}
+      else{bgL.style.opacity=Math.min(1,Math.abs(dx)/THRESH);bgR.style.opacity=0}
+    },{passive:false});
+    tsk.addEventListener('touchend',()=>{
+      if(!swiping){tsk.style.transform='';bgR.style.opacity=0;bgL.style.opacity=0;return}
+      if(dx>=THRESH){
+        wrap.classList.add('swiping-out-right');
+        setTimeout(()=>{tglD(id)},300);
+      }else if(dx<=-THRESH){
+        wrap.classList.add('swiping-out-left');
+        setTimeout(()=>{
+          const t=D.tasks.find(x=>x.id===id);
+          if(t){pH('delete task');D.tasks=D.tasks.filter(x=>x.id!==id);D.tasks.forEach((x,i)=>x.order=i);toast('TASK DELETED','rd');renderT()}
+        },300);
+      }else{tsk.style.transform='';bgR.style.opacity=0;bgL.style.opacity=0}
+      dx=0;swiping=false;locked=false;
+    },{passive:true});
+  });
   // Double-click to inline edit task name (desktop)
   if(!('ontouchstart'in window)){
     el.querySelectorAll('.tsk-txt').forEach(txt=>{txt.style.cursor='text';txt.ondblclick=e=>{e.stopPropagation();const id=+txt.closest('.tsk').dataset.id;const t=D.tasks.find(x=>x.id===id);if(!t)return;const inp=document.createElement('input');inp.className='inline-edit';inp.value=t.name;txt.innerHTML='';txt.appendChild(inp);inp.focus();inp.select();const save=()=>{const v=inp.value.trim().toUpperCase();if(v&&v!==t.name){pH('edit task');t.name=v}renderT()};inp.onblur=save;inp.onkeydown=ev=>{if(ev.key==='Enter'){ev.preventDefault();save()}else if(ev.key==='Escape'){renderT()}}}});
@@ -1077,7 +1123,9 @@ function tkEl(t,isDT=false,isArch=false){
   const partners=Array.isArray(t.partner)?t.partner:t.partner?[t.partner]:[];
   const personTags=persons.map(p=>tg(p,gc(PP,p))).join('');
   const partnerTags=partners.map(p=>tg(p,gc(PA,p))).join('');
-  return`<div class="${cls}" data-id="${t.id}">${!isArch?'<div class="drag-h"><span></span><span></span><span></span></div>':''}<div class="${tcCls}" data-id="${t.id}">${t.done?'✓':''}</div><div class="tp p${t.priority}"></div><div class="tb"><div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.5;font-size:0.85em">${pc.code}</span> `:''}${t.name}</div>${pBar}<div class="tm">${personTags}${partnerTags}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}</div>${noteHtml}${subHtml}${subAddHtml}</div><div class="tr">${t.due&&dt?`<div class="td ${dc}">${dt}</div>`:''}<div class="tact">${!isArch?`<button class="pin-btn${t.pinned?' pinned':''}" data-id="${t.id}" title="${t.pinned?'Unpin':'Pin'} task">📌</button><button class="st-add-btn" data-id="${t.id}" title="Add subtask">+</button><button class="tedb" data-id="${t.id}">✎</button><button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div></div></div>`
+  const inner=`<div class="${cls}" data-id="${t.id}">${!isArch?'<div class="drag-h"><span></span><span></span><span></span></div>':''}<div class="${tcCls}" data-id="${t.id}">${t.done?'✓':''}</div><div class="tp p${t.priority}"></div><div class="tb"><div class="tsk-txt">${t.project?`<span style="color:${pc.c};opacity:.5;font-size:0.85em">${pc.code}</span> `:''}${t.name}</div>${pBar}<div class="tm">${personTags}${partnerTags}${t.blocked?`<span class="bbadge">🔒 ${t.blockedBy||'?'}</span>`:''}</div>${noteHtml}${subHtml}${subAddHtml}</div><div class="tr">${t.due&&dt?`<div class="td ${dc}">${dt}</div>`:''}<div class="tact">${!isArch?`<button class="pin-btn${t.pinned?' pinned':''}" data-id="${t.id}" title="${t.pinned?'Unpin':'Pin'} task">📌</button><button class="st-add-btn" data-id="${t.id}" title="Add subtask">+</button><button class="tedb" data-id="${t.id}">✎</button><button class="tbb" data-id="${t.id}">${t.blocked?'🔓':'🔒'}</button>`:''}</div></div></div>`;
+  if(isArch)return inner;
+  return`<div class="tsk-swipe-wrap" data-swipe-id="${t.id}"><div class="swipe-bg swipe-bg-right">✓ DONE</div><div class="swipe-bg swipe-bg-left">✕ DELETE</div>${inner}</div>`
 }
 
 /* ═══════ SUBTASK HELPERS ═══════ */
@@ -1205,11 +1253,11 @@ initCal('eDuCal','eDuCalPop','eDu');
 initCal('fdDateCal','fdDateCalPop','fdDate');
 initCal('edDateCal','edDateCalPop','edDate');
 $('cTask').onclick=()=>$('tFrm').classList.remove('open');
-$('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mx=D.tasks.length?Math.max(...D.tasks.map(t=>t.order)):0;
+$('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mn=D.tasks.length?Math.min(...D.tasks.map(t=>t.order)):0;
   // Get multi-tag values; also include typed-but-not-entered text
   let persons=mtagGetVals('fPeW');const typedPe=$('fPe').value.trim().toUpperCase();if(typedPe&&!persons.includes(typedPe))persons.push(typedPe);
   let partners=mtagGetVals('fPaW');const typedPa=$('fPa').value.trim().toUpperCase();if(typedPa&&!partners.includes(typedPa))partners.push(typedPa);
-  D.tasks.push({id:D.nid++,name:n,project:$('fP').value,person:persons,partner:partners,priority:+$('fPr').value,due:$('fDu').value||null,done:false,doneDate:null,blocked:!!bl,blockedBy:bl||null,order:mx+1,notes:$('fNo').value.trim(),createdAt:nowI(),completedAt:null,subtasks:[]});
+  D.tasks.push({id:D.nid++,name:n,project:$('fP').value,person:persons,partner:partners,priority:+$('fPr').value,due:$('fDu').value||null,done:false,doneDate:null,blocked:!!bl,blockedBy:bl||null,order:mn-1,notes:$('fNo').value.trim(),createdAt:nowI(),completedAt:null,subtasks:[]});
   ['fN','fBl','fNo'].forEach(i=>$(i).value='');$('fPe').value='';$('fPa').value='';$('fPeW').querySelectorAll('.mtag-t').forEach(t=>t.remove());$('fPaW').querySelectorAll('.mtag-t').forEach(t=>t.remove());$('fPr').value='3';$('fDu').value='';toast('TASK CREATED','gld');$('tFrm').classList.remove('open');renderT()};
 
 $('cTgl').onclick=()=>{$('cList').classList.toggle('op');document.querySelector('.ctgl .ch').classList.toggle('op')};
