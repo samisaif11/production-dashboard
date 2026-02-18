@@ -477,6 +477,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <input type="text" class="fi" id="nprDir" placeholder="Director" style="flex:1;min-width:100px">
     <input type="number" class="fi" id="nprYr" placeholder="Year" min="1990" max="2040" style="width:70px">
     <select class="fs" id="nprTyp"><option value="Feature Film">Feature Film</option><option value="Short Film">Short Film</option><option value="Feature Doc">Feature Doc</option><option value="TV Series">TV Series</option></select>
+    <input type="text" class="fi" id="nprPoster" placeholder="Poster URL (optional)" style="flex:1;min-width:120px">
     <button class="btn btn-g" id="aPrj" style="padding:7px 14px;font-size:.7rem">CREATE</button>
     <button class="btn btn-gh" id="npCn" style="padding:7px 10px;font-size:.7rem">✕</button>
   </div>
@@ -835,15 +836,25 @@ const POSTERS = {
   'LES CHEVAUX DE DIEU': 'assets/images/les-cheveaux-de-dieux.jpg',
   'MY LAND': 'assets/images/my-land.jpg',
   'WHATEVER LOLA WANTS': 'assets/images/whatever-lola-wants.jpg',
-  'ALI ZAOUA': 'assets/images/ali-zaoua.jpg'
+  'ALI ZAOUA': 'assets/images/ali-zaoua.jpg',
+  'BAB RZEQ': 'assets/images/bab-rzek.png'
 };
 
 // Company Logo - replace with your logo URL
 let COMPANY_LOGO = 'assets/images/logo.png';
 
+// Convert GitHub blob URLs to raw URLs so they work as image sources
+function fixPosterUrl(url){
+  if(!url)return url;
+  // https://github.com/user/repo/blob/branch/path → https://raw.githubusercontent.com/user/repo/branch/path
+  const gh=/^https?:\/\/github\.com\/([^/]+)\/([^/]+)\/blob\/(.+)$/;
+  const m=url.match(gh);
+  if(m)return`https://raw.githubusercontent.com/${m[1]}/${m[2]}/${m[3]}`;
+  return url;
+}
 // Smart poster lookup: checks POSTERS map first, then tries to auto-generate path from title
 function getPoster(title){
-  if(D.posters&&D.posters[title])return D.posters[title];
+  if(D.posters&&D.posters[title])return fixPosterUrl(D.posters[title]);
   if(POSTERS[title])return POSTERS[title];
   const slug=title.toLowerCase().replace(/['']/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
   return 'assets/images/'+slug+'.jpg';
@@ -1304,7 +1315,7 @@ $('ePrjSv').onclick=()=>{
   if(!_ePrjTitle)return;
   const newTitle=$('epN').value.trim().toUpperCase(),newCode=$('epCd2').value.trim().toUpperCase(),newClr=$('epClr').value;
   const newDir=$('epDir').value.trim(),newYr=+$('epYr').value,newTyp=$('epTyp').value,newStat=$('epStat').value;
-  const newUrl=$('epPosterUrl').value.trim();
+  const newUrl=fixPosterUrl($('epPosterUrl').value.trim());
   if(!newTitle||!newCode){toast('TITLE + CODE REQUIRED','rd');return}
   pH('edit project');
   if(newUrl){D.posters=D.posters||{};D.posters[newTitle]=newUrl;if(newTitle!==_ePrjTitle)delete D.posters[_ePrjTitle]}
@@ -1330,12 +1341,18 @@ $('epPosterFile').onchange=function(){
     const b64=e.target.result;
     const prev=$('epPosterPrev');prev.innerHTML='';
     const img=document.createElement('img');img.src=b64;prev.appendChild(img);
+    // Store local path instead of base64 (base64 is too large for cloud sync)
+    const ext=file.name.split('.').pop().toLowerCase()||'jpg';
     const title=$('epN').value.trim().toUpperCase()||_ePrjTitle;
-    D.posters=D.posters||{};D.posters[title]=b64;$('epPosterUrl').value='';
+    const slug=title.toLowerCase().replace(/['']/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+    const localPath='assets/images/'+slug+'.'+ext;
+    D.posters=D.posters||{};D.posters[title]=localPath;
+    $('epPosterUrl').value=localPath;
+    toast('FILE PREVIEWED — SAVE IMAGE AS: '+localPath,'gld');
   };reader.readAsDataURL(file)
 };
 $('epPosterUrl').addEventListener('input',()=>{
-  const url=$('epPosterUrl').value.trim();if(!url)return;
+  const url=fixPosterUrl($('epPosterUrl').value.trim());if(!url)return;
   const prev=$('epPosterPrev');prev.innerHTML='';
   const img=document.createElement('img');img.src=url;img.style.cssText='width:100%;height:100%;object-fit:cover';
   img.onerror=()=>{prev.innerHTML='<div class="poster-prev-ph">Invalid URL</div>'};
@@ -1372,7 +1389,7 @@ $('eprSv').onclick=()=>{if(!eprKey)return;pH('edit partner');const nn=$('eprNm')
 /* Add Project (Projects view) */
 $('npTgl').onclick=()=>{const f=$('npFrm');f.style.display=f.style.display==='none'?'flex':'none'};
 $('npCn').onclick=()=>{$('npFrm').style.display='none'};
-$('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});['nprN','nprCd','nprDir'].forEach(i=>$(i).value='');$('nprYr').value='';$('npFrm').style.display='none';fillDD();renderProj();toast('PROJECT ADDED','gld')};
+$('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';const posterUrl=fixPosterUrl($('nprPoster').value.trim());if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});if(posterUrl){D.posters=D.posters||{};D.posters[n]=posterUrl}['nprN','nprCd','nprDir','nprPoster'].forEach(i=>$(i).value='');$('nprYr').value='';$('npFrm').style.display='none';fillDD();renderProj();toast('PROJECT ADDED','gld')};
 
 /* ═══════ FULL RENDER ═══════ */
 function fullR(){renderT();renderDL();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='projects')renderProj()}
