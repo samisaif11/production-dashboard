@@ -257,7 +257,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 @media(max-width:768px){.pgrid{grid-template-columns:1fr}}
 .pc{display:flex;align-items:stretch;gap:0;background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);position:relative;overflow:hidden;transition:var(--tr)}
 .pc:hover{border-color:var(--b1)}
-.pc.arch{opacity:.45}
+.pc.arch{border:1.5px solid rgba(34,197,94,.25)}
 .poster-w{width:90px;min-width:90px;height:135px;background:var(--bg-4);border-right:1px solid var(--b0);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
 @media(min-width:1200px){.poster-w{width:100px;min-width:100px;height:150px}}
 .poster-w img{width:100%;height:100%;object-fit:cover}
@@ -289,6 +289,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .add-prj-bar .fi,.add-prj-bar .fs{padding:7px 10px;font-size:.72rem}
 .add-prj-btn{font-size:.7rem;padding:6px 14px;background:var(--bg-2);border:1px dashed var(--b1);border-radius:var(--r);color:var(--t3);cursor:pointer;font-family:'Outfit';font-weight:600;text-transform:uppercase;letter-spacing:.8px;transition:var(--tr);margin-bottom:14px}
 .add-prj-btn:hover{border-color:var(--gold);color:var(--gold)}
+.add-prj-btn.active{border-color:var(--green);color:var(--green);border-style:solid;background:var(--green-d)}
 /* People preview label */
 .ppl-prev{display:inline-block;padding:2px 10px;border-radius:12px;font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:.6px;margin-left:6px}
 /* Calendar overflow fix */
@@ -469,7 +470,10 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 </div>
 
 <div class="vw" id="v-projects">
-  <button class="add-prj-btn" id="npTgl">+ NEW PROJECT</button>
+  <div style="display:flex;gap:8px;align-items:center;margin-bottom:14px">
+    <button class="add-prj-btn" id="npTgl" style="margin-bottom:0">+ NEW PROJECT</button>
+    <button class="add-prj-btn active" id="projFilterTgl" style="margin-bottom:0">ACTIVE ONLY</button>
+  </div>
   <div class="add-prj-bar" id="npFrm" style="display:none">
     <input type="text" class="fi" id="nprN" placeholder="Title" style="flex:2;min-width:140px">
     <input type="text" class="fi" id="nprCd" placeholder="CODE" style="width:70px">
@@ -743,7 +747,7 @@ const SL = {
   post: 'POST-PRODUCTION',
   distribution: 'DISTRIBUTION',
   delivery: 'FINAL DELIVERY',
-  closed: 'CLOSED'
+  closed: 'COMPLETED'
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1117,7 +1121,7 @@ function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.le
   $('sD').textContent=doneActive+doneArchived+doneSubs;
   $('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length}
 
-function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);if(D.closed.length){s.innerHTML+=`<option disabled style="font-size:.6rem;color:var(--t3)">── CLOSED ──</option>`;D.closed.forEach(p=>s.innerHTML+=`<option value="${p.title}" style="opacity:.55">${gpc(p.title).code} — ${p.title}</option>`)}})}
+function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);if(D.closed.length){s.innerHTML+=`<option disabled style="font-size:.6rem;color:var(--t3)">── COMPLETED ──</option>`;D.closed.forEach(p=>s.innerHTML+=`<option value="${p.title}" style="color:#22c55e">${gpc(p.title).code} — ${p.title}</option>`)}})}
 
 // Task form
 $('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();updateCalLabel('fDu');$('fN').focus()}};
@@ -1270,20 +1274,26 @@ $('edDDel').onclick=()=>{if(eDLid===null)return;pH('delete deadline');D.deadline
 /* ═══════════════════════════════════════════════════════════════
    PROJECTS
    ═══════════════════════════════════════════════════════════════ */
+let _projShowAll=false;
 function renderProj(){
-  const el=$('pSecs');el.innerHTML='';const groups={};D.projects.forEach(p=>{(groups[p.status]=groups[p.status]||[]).push(p)});
+  const el=$('pSecs');el.innerHTML='';
+  const filterActive=!_projShowAll;
+  const fBtn=$('projFilterTgl');if(fBtn){fBtn.textContent=filterActive?'ACTIVE ONLY':'SHOW ALL';if(filterActive)fBtn.classList.add('active');else fBtn.classList.remove('active')}
+  const groups={};D.projects.forEach(p=>{(groups[p.status]=groups[p.status]||[]).push(p)});
   STATUSES.filter(s=>s!=='closed').forEach(s=>{if(!groups[s])return;
-    const hasActive=groups[s].some(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
-    el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch${hasActive?' op':''}">▶</span><h3>${SL[s]} (${groups[s].length})</h3></div><div class="psb${hasActive?' op':''}" id="ps-${s}"><div class="pgrid">${groups[s].map(p=>{
+    let projs=groups[s];if(filterActive)projs=projs.filter(p=>D.tasks.some(t=>t.project===p.title&&!t.done));if(!projs.length)return;
+    const hasActive=projs.some(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
+    el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch${hasActive?' op':''}">▶</span><h3>${SL[s]} (${projs.length})</h3></div><div class="psb${hasActive?' op':''}" id="ps-${s}"><div class="pgrid">${projs.map(p=>{
       const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length,pc=gpc(p.title);
       const posterHtml=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`;
       const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';
-      return`<div class="pc" data-proj="${p.title}" style="position:relative">${tcCircle}<div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director} · <span style="color:var(--t2)">${p.type}</span></div><div class="pbs"><span class="sb ${p.status}">${SL[p.status]}</span><button class="pst-btn" data-proj="${p.title}" title="Change status">↺</button><button class="pmove" data-proj="${p.title}">→ Close</button><button class="pedb" data-proj="${p.title}" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`});
-  // Closed section — auto-expand if any closed project has active tasks
-  const closedHasActive=D.closed.some(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
-  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch${closedHasActive?' op':''}">▶</span><h3>CLOSED (${D.closed.length})</h3></div><div class="psb${closedHasActive?' op':''}" id="ps-closed"><div class="pgrid">${D.closed.map((p,i)=>{const pc=gpc(p.title);const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length;const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';const ph=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`; return`<div class="pc arch" style="position:relative">${tcCircle}<div class="poster-w">${ph}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director}${p.type?` · <span style="color:var(--t2)">${p.type}</span>`:''}</div><div class="pbs"><button class="preopen" data-ci="${i}">← Reopen</button><button class="pedb" data-proj="${p.title}" data-ci="${i}" data-isclosed="1" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`;
+      return`<div class="pc" data-proj="${p.title}" style="position:relative">${tcCircle}<div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director} · <span style="color:var(--t2)">${p.type}</span></div><div class="pbs"><span class="sb ${p.status}">${SL[p.status]}</span><button class="pst-btn" data-proj="${p.title}" title="Change status">↺</button><button class="pmove" data-proj="${p.title}">→ Complete</button><button class="pedb" data-proj="${p.title}" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`});
+  // Completed section
+  let closedProjs=D.closed;if(filterActive)closedProjs=closedProjs.filter(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
+  if(closedProjs.length){const closedHasActive=closedProjs.some(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
+  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch${closedHasActive?' op':''}">▶</span><h3>COMPLETED (${closedProjs.length})</h3></div><div class="psb${closedHasActive?' op':''}" id="ps-closed"><div class="pgrid">${closedProjs.map(p=>{const origIdx=D.closed.indexOf(p);const pc=gpc(p.title);const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length;const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';const ph=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`; return`<div class="pc arch" style="position:relative">${tcCircle}<div class="poster-w">${ph}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director}${p.type?` · <span style="color:var(--t2)">${p.type}</span>`:''}</div><div class="pbs"><button class="preopen" data-ci="${origIdx}">← Reopen</button><button class="pedb" data-proj="${p.title}" data-ci="${origIdx}" data-isclosed="1" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`;}
   document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
-  document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director,type:proj.type});D.projects.splice(idx,1);toast(title+' → CLOSED','gld');renderProj()});
+  document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director,type:proj.type});D.projects.splice(idx,1);toast(title+' → COMPLETED','gld');renderProj()});
   document.querySelectorAll('.preopen').forEach(b=>b.onclick=e=>{e.stopPropagation();const ci=+b.dataset.ci;if(ci<0||ci>=D.closed.length)return;pH('reopen project');const proj=D.closed[ci];D.projects.push({title:proj.title,year:proj.year,status:'post',type:proj.type||'Feature Film',director:proj.director});D.closed.splice(ci,1);toast(proj.title+' → REOPENED','gld');renderProj()});
   // Status change icon dropdown
   document.querySelectorAll('.pst-btn').forEach(b=>{b.onclick=e=>{e.stopPropagation();document.querySelectorAll('.pst-dd.open').forEach(d=>d.remove());const proj=D.projects.find(p=>p.title===b.dataset.proj);if(!proj)return;
@@ -1379,6 +1389,8 @@ $('epPosterUrl').addEventListener('input',()=>{
   img.onload=()=>{$('epPosterDel').style.display='block'};
   prev.appendChild(img)
 });
+
+$('projFilterTgl').onclick=()=>{_projShowAll=!_projShowAll;renderProj()};
 
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS
