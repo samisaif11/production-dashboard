@@ -432,6 +432,29 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .pc:hover .pedb{opacity:.6}.pedb:hover{opacity:1!important;color:var(--gold)}
 /* Settings project row meta */
 .prow-meta{font-size:.58rem;color:var(--t3);display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px}
+/* Invoices */
+.inv-card{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);padding:18px 20px;margin-bottom:6px;display:flex;align-items:center;gap:16px;transition:var(--tr);position:relative}
+.inv-card:hover{border-color:var(--b1);background:var(--bg-3)}
+.inv-card.draft{border-left:3px solid var(--orange)}
+.inv-card.sent{border-left:3px solid var(--green)}
+.inv-num{font-family:'JetBrains Mono';font-size:.9rem;font-weight:700;color:var(--gold);min-width:80px}
+.inv-info{flex:1;min-width:0}
+.inv-title{font-size:1rem;font-weight:400;text-transform:uppercase;letter-spacing:.3px;line-height:1.3;margin-bottom:4px}
+.inv-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;opacity:.5}
+.inv-amt{font-family:'JetBrains Mono';font-size:.85rem;font-weight:700;color:var(--t1);text-align:right;min-width:100px}
+.inv-amt-sub{font-size:.6rem;color:var(--t3);font-weight:400}
+.inv-acts{display:flex;gap:4px;flex-shrink:0;align-items:center}
+.inv-acts button,.inv-acts a{font-size:.55rem;cursor:pointer;background:none;border:1px solid var(--b0);border-radius:4px;color:var(--t3);transition:var(--tr);padding:4px 8px;opacity:0;white-space:nowrap;font-family:'Outfit';font-weight:600;text-transform:uppercase;letter-spacing:.6px;text-decoration:none;display:inline-flex;align-items:center}
+.inv-card:hover .inv-acts button,.inv-card:hover .inv-acts a{opacity:1}
+.inv-acts button:hover,.inv-acts a:hover{border-color:var(--gold);color:var(--gold)}
+.inv-acts .inv-pdf-btn:hover{border-color:var(--blue);color:var(--blue)}
+.inv-acts .inv-email-btn:hover{border-color:var(--green);color:var(--green)}
+.inv-acts .inv-del-btn:hover{border-color:var(--red);color:var(--red)}
+.inv-status{font-size:.55rem;padding:3px 9px;border-radius:20px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.inv-status.draft{background:var(--orange-d);color:var(--orange)}
+.inv-status.sent{background:var(--green-d);color:var(--green)}
+.inv-date{font-family:'JetBrains Mono';font-size:.68rem;color:var(--t3)}
+@media(max-width:768px){.inv-card{flex-wrap:wrap;padding:14px 12px;gap:10px}.inv-num{min-width:auto}.inv-acts button,.inv-acts a{opacity:.7;font-size:.52rem}.inv-amt{min-width:auto;text-align:left}}
 </style>
 </head>
 <body>
@@ -446,6 +469,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <button class="nav-tab active" data-v="tasks">Tasks</button>
     <button class="nav-tab" data-v="deadlines">Deadlines</button>
     <button class="nav-tab" data-v="projects">Projects</button>
+    <button class="nav-tab" data-v="invoices">Invoices</button>
   </nav>
   <div class="hdr-r">
     <div class="clk" id="clk"></div>
@@ -533,6 +557,68 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div id="pSecs"></div>
 </div>
 
+<div class="vw" id="v-invoices">
+  <div class="stats">
+    <div class="st"><div class="st-n" id="invTotal" style="color:var(--gold)">—</div><div class="st-l">Total Invoices</div></div>
+    <div class="st"><div class="st-n" id="invDraft" style="color:var(--orange)">—</div><div class="st-l">Drafts</div></div>
+    <div class="st"><div class="st-n" id="invSent" style="color:var(--green)">—</div><div class="st-l">Sent</div></div>
+    <div class="st"><div class="st-n" id="invYear" style="color:var(--blue)">—</div><div class="st-l">This Year</div></div>
+  </div>
+  <div class="flts" id="invFlts"></div>
+  <div class="ntbar">
+    <button class="nbtn" id="niTgl">+ NEW INVOICE</button>
+    <div class="tfrm" id="iFrm">
+      <div class="fr fr2">
+        <div><label class="fl">Invoice Number</label><input type="text" class="fi" id="fiNum" placeholder="2026-08"></div>
+        <div><label class="fl">Date</label>
+          <div style="display:flex;gap:4px;align-items:center">
+            <input type="hidden" id="fiDate">
+            <div class="cal-wrap" style="flex:1">
+              <button type="button" class="fi" id="fiDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="fiDateLabel" style="flex:1">—</span></button>
+              <div class="cal-pop" id="fiDateCalPop"></div>
+            </div>
+            <button type="button" class="setnow-b" id="fiDateToday" style="white-space:nowrap;padding:8px 10px">TODAY</button>
+          </div>
+        </div>
+      </div>
+      <div class="fr fr2">
+        <div><label class="fl">Project</label><select class="fs" id="fiProj"></select></div>
+        <div class="sug-w"><label class="fl">Client</label><input type="text" class="fi" id="fiClient" placeholder="E.G., CANAL PLUS" autocomplete="off"><div class="sug-l" id="sugInvCl"></div></div>
+      </div>
+      <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Description</label><input type="text" class="fi" id="fiDesc" placeholder="E.G., PREACHAT DE DROITS DE DIFFUSION CRYPTEE ET CATCH-UP TV"></div></div>
+      <details style="margin:8px 0">
+        <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">Client Details (Address, SIREN...)</summary>
+        <div class="fr fr2">
+          <div><label class="fl">Client Address</label><input type="text" class="fi" id="fiClAddr" placeholder="48, QUAI DU POINT DU JOUR..."></div>
+          <div><label class="fl">SIREN</label><input type="text" class="fi" id="fiClSIREN" placeholder="420 624 553"></div>
+        </div>
+        <div class="fr fr2">
+          <div><label class="fl">Cost Center / Ref</label><input type="text" class="fi" id="fiClCC" placeholder="Optional"></div>
+          <div><label class="fl">Deal / Contract Ref</label><input type="text" class="fi" id="fiClDeal" placeholder="Optional"></div>
+        </div>
+      </details>
+      <div class="fr fr4">
+        <div><label class="fl">Diffusion HT</label><input type="text" class="fi" id="fiDiffHT" placeholder="218 000"></div>
+        <div><label class="fl">TVA %</label><select class="fs" id="fiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+        <div><label class="fl">Diffusion TTC</label><input type="text" class="fi" id="fiDiffTTC" placeholder="Auto" readonly style="opacity:.6"></div>
+        <div></div>
+      </div>
+      <div class="fr fr4">
+        <div><label class="fl">Catch-up HT</label><input type="text" class="fi" id="fiCatchHT" placeholder="Optional"></div>
+        <div><label class="fl">Catch-up TVA %</label><select class="fs" id="fiCatchTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+        <div><label class="fl">Catch-up TTC</label><input type="text" class="fi" id="fiCatchTTC" placeholder="Auto" readonly style="opacity:.6"></div>
+        <div></div>
+      </div>
+      <div class="fr fr2">
+        <div><label class="fl">Bank Account (RIB)</label><select class="fs" id="fiBankAcct"></select></div>
+        <div><label class="fl">Notes</label><input type="text" class="fi" id="fiNotes" placeholder="Optional..."></div>
+      </div>
+      <div class="fac"><button class="btn btn-gh" id="ciInv">CANCEL</button><button class="btn btn-g" id="siInv">CREATE INVOICE</button></div>
+    </div>
+  </div>
+  <div id="invList"></div>
+</div>
+
 </div>
 
 <div class="sov" id="sOv2"></div>
@@ -543,6 +629,8 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="arow arow5"><input type="text" class="fi" id="npC" placeholder="CODE"><input type="text" class="fi" id="npN" placeholder="Full Name"><input type="text" class="fi" id="npR" placeholder="Role"><input type="color" class="clr-i" id="npClr" value="#60a5fa" title="Color"><button class="abtn" id="aPpl">+</button></div></div>
     <div class="ssec"><div class="sst">Partners <span class="lprev" id="paPrv" style="background:rgba(96,165,250,.15);color:#60a5fa">PREVIEW</span></div><div id="paList"></div>
       <div class="arow arow5"><input type="text" class="fi" id="npaC" placeholder="CODE"><input type="text" class="fi" id="npaN" placeholder="Name"><input type="color" class="clr-i" id="npaBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="npaFg" value="#60a5fa" title="Text"><button class="abtn" id="aPa">+</button></div></div>
+    <div class="ssec"><div class="sst">Bank Accounts (RIB)</div><div id="baList"></div>
+      <div class="arow" style="grid-template-columns:1fr 1fr 32px"><input type="text" class="fi" id="nbaName" placeholder="Name (e.g., FRANCE)"><input type="text" class="fi" id="nbaFileId" placeholder="Drive File ID"><button class="abtn" id="aBa">+</button></div></div>
     </div>
   </div>
 </div>
@@ -598,6 +686,44 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="mdla"><button class="btn btn-gh" id="ePrjCn">CANCEL</button><button class="btn btn-g" id="ePrjSv">SAVE</button></div>
 </div></div>
 
+<!-- Edit Invoice Modal -->
+<div class="mbg" id="eiMdl"><div class="mdl" style="width:560px"><h3>✎ Edit Invoice</h3>
+  <div class="fr fr2">
+    <div class="fg"><label class="fl">Invoice #</label><input type="text" class="fi" id="eiNum"></div>
+    <div class="fg"><label class="fl">Date</label>
+      <div style="display:flex;gap:4px;align-items:center"><input type="hidden" id="eiDate"><div class="cal-wrap" style="flex:1"><button type="button" class="fi" id="eiDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%"><span style="opacity:.5">📅</span><span id="eiDateLabel" style="flex:1">—</span></button><div class="cal-pop" id="eiDateCalPop"></div></div></div>
+    </div>
+  </div>
+  <div class="fr fr2">
+    <div class="fg"><label class="fl">Project</label><select class="fs" id="eiProj"></select></div>
+    <div class="fg"><label class="fl">Client</label><input type="text" class="fi" id="eiClient"></div>
+  </div>
+  <div class="fg"><label class="fl">Description</label><input type="text" class="fi" id="eiDesc"></div>
+  <details style="margin:8px 0">
+    <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">Client Details</summary>
+    <div class="fr fr2"><div class="fg"><label class="fl">Address</label><input type="text" class="fi" id="eiClAddr"></div><div class="fg"><label class="fl">SIREN</label><input type="text" class="fi" id="eiClSIREN"></div></div>
+    <div class="fr fr2"><div class="fg"><label class="fl">Cost Center</label><input type="text" class="fi" id="eiClCC"></div><div class="fg"><label class="fl">Deal Ref</label><input type="text" class="fi" id="eiClDeal"></div></div>
+  </details>
+  <div class="fr fr4">
+    <div class="fg"><label class="fl">Diffusion HT</label><input type="text" class="fi" id="eiDiffHT"></div>
+    <div class="fg"><label class="fl">TVA %</label><select class="fs" id="eiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+    <div class="fg"><label class="fl">Diffusion TTC</label><input type="text" class="fi" id="eiDiffTTC" readonly style="opacity:.6"></div>
+    <div></div>
+  </div>
+  <div class="fr fr4">
+    <div class="fg"><label class="fl">Catch-up HT</label><input type="text" class="fi" id="eiCatchHT"></div>
+    <div class="fg"><label class="fl">Catch-up TVA</label><select class="fs" id="eiCatchTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+    <div class="fg"><label class="fl">Catch-up TTC</label><input type="text" class="fi" id="eiCatchTTC" readonly style="opacity:.6"></div>
+    <div></div>
+  </div>
+  <div class="fr fr2">
+    <div class="fg"><label class="fl">Bank Account</label><select class="fs" id="eiBankAcct"></select></div>
+    <div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eiNotes"></div>
+  </div>
+  <div class="fg"><label class="fl">Status</label><select class="fs" id="eiStatus"><option value="draft">DRAFT</option><option value="sent">SENT</option></select></div>
+  <div class="mdla"><button class="btn btn-r" id="eiDel" style="margin-right:auto">DELETE</button><button class="btn btn-gh" id="eiCn">CANCEL</button><button class="btn btn-g" id="eiSv">SAVE</button></div>
+</div></div>
+
 <div class="toast" id="toast"></div>
 <!-- Cloud Sync UI -->
 <div class="sync-indicator" id="syncInd"><span class="sync-dot"></span><span id="syncTxt">SYNCED</span></div>
@@ -637,6 +763,7 @@ async function saveToSheet() {
       projects: D.projects, closed: D.closed, people: D.people,
       monthly: D.monthly, projDone: D.projDone, nid: D.nid, dlid: D.dlid,
       posters: D.posters,
+      invoices: D.invoices, bankAccounts: D.bankAccounts, clients: D.clients, invid: D.invid,
       partners: PA, projectColors: PC, peopleColors: PP,
       _expectedSavedAt: _lastSavedAt
     };
@@ -681,6 +808,10 @@ async function loadFromSheet(manual = false) {
     if (data.projDone) D.projDone = data.projDone;
     if (data.nid) D.nid = data.nid;
     if (data.dlid) D.dlid = data.dlid;
+    if (data.invid) D.invid = data.invid;
+    if (data.invoices) D.invoices = data.invoices;
+    if (data.bankAccounts) D.bankAccounts = data.bankAccounts;
+    if (data.clients) D.clients = data.clients;
     if (data.savedAt) _lastSavedAt = data.savedAt;
     // Apply color maps
     if (data.partners && Object.keys(data.partners).length > 0) {
@@ -865,7 +996,11 @@ const D = {
   projDone: { 'CALLE MÁLAGA': 32, 'COURS, ET SANS TRISTESSE': 18, "L'ÉLUE": 5, 'RASS JBEL': 12, 'BNAT LALLA MENNANA S03': 8, "ESH EL TAMAA'": 6, 'TERRE ET CENDRES': 2, 'RAJA': 1 },
   nid: 12,
   dlid: 8,
-  posters: {}
+  invid: 1,
+  posters: {},
+  invoices: [],
+  bankAccounts: [],
+  clients: []
 };
 
 // Poster images - relative paths for GitHub Pages
@@ -940,7 +1075,7 @@ function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en
 tick();setInterval(tick,1e3);
 
 /* ═══════ NAV ═══════ */
-document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj()}));
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj();if(t.dataset.v==='invoices'){renderInv();fillInvDD()}}));
 
 /* ═══════ AUTO-SUGGEST ═══════ */
 function mkSug(iid,lid,getI,onSel){
@@ -967,6 +1102,7 @@ function initSug(){
   mkSug('ePe','sugEPe',gPS,v=>mtagAdd('ePeW',v,PP));
   mkSug('ePa','sugEPa',gPaS,v=>mtagAdd('ePaW',v,PA));
   mkSug('edPa','sugEdPa',gPaS);mkSug('edPe','sugEdPe',gPS);
+  mkSug('fiClient','sugInvCl',()=>(D.clients||[]).map(c=>({n:c.name,c:'#8a8898'})));
   // Enter key adds typed value as tag
   ['fPe','ePe'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PeW','PeW'),$(id).value,PP);$(id).value=''}})});
   ['fPa','ePa'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PaW','PaW'),$(id).value,PA);$(id).value=''}})});
@@ -1252,6 +1388,8 @@ initCal('fDuCal','fDuCalPop','fDu');
 initCal('eDuCal','eDuCalPop','eDu');
 initCal('fdDateCal','fdDateCalPop','fdDate');
 initCal('edDateCal','edDateCalPop','edDate');
+initCal('fiDateCal','fiDateCalPop','fiDate');
+initCal('eiDateCal','eiDateCalPop','eiDate');
 $('cTask').onclick=()=>$('tFrm').classList.remove('open');
 $('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mn=D.tasks.length?Math.min(...D.tasks.map(t=>t.order)):0;
   // Get multi-tag values; also include typed-but-not-entered text
@@ -1478,7 +1616,7 @@ $('projFilterTgl').onclick=()=>{_projShowAll=!_projShowAll;renderProj()};
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS
    ═══════════════════════════════════════════════════════════════ */
-$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa()};
+$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa();renderBa()};
 const closeSt=()=>{$('sOv2').classList.remove('op');$('sDr').classList.remove('op')};
 $('clS').onclick=closeSt;$('sOv2').onclick=closeSt;
 
@@ -1502,13 +1640,147 @@ $('aPa').onclick=()=>{const c=$('npaC').value.trim().toUpperCase(),n=$('npaN').v
 $('eprCn').onclick=()=>{$('eprMdl').classList.remove('op');eprKey=null};
 $('eprSv').onclick=()=>{if(!eprKey)return;pH('edit partner');const nn=$('eprNm').value.trim().toUpperCase(),fg=$('eprFg').value;if(nn!==eprKey){PA[nn]=PA[eprKey];delete PA[eprKey]}PA[nn]={c:fg,b:hexToRgba(fg,.15)};toast('UPDATED','gld');$('eprMdl').classList.remove('op');eprKey=null;renderPa();fillDD()};
 
+/* Bank Accounts */
+function renderBa(){const el=$('baList');el.innerHTML='';(D.bankAccounts||[]).forEach((ba,i)=>{el.innerHTML+=`<div class="prow"><span class="pcode" style="background:rgba(6,182,212,.12);color:#06b6d4">${ba.name}</span><span class="pnm" style="flex:1;font-size:.62rem;color:var(--t3);font-family:'JetBrains Mono'">${ba.ribImageFileId?ba.ribImageFileId.substring(0,20)+'...':'No RIB file'}</span><button class="pdel" data-i="${i}">✕</button></div>`});
+  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del bank acct');D.bankAccounts.splice(+b.dataset.i,1);renderBa();toast('REMOVED','rd')})}
+$('aBa').onclick=()=>{const name=$('nbaName').value.trim().toUpperCase(),fid=$('nbaFileId').value.trim();if(!name){toast('NAME REQUIRED','rd');return}pH('add bank acct');const maxId=D.bankAccounts.reduce((m,b)=>Math.max(m,b.id||0),0);D.bankAccounts.push({id:maxId+1,name:name,ribImageFileId:fid});['nbaName','nbaFileId'].forEach(i=>$(i).value='');renderBa();toast('BANK ACCOUNT ADDED','gld')};
+
 /* Add Project (Projects view) */
 $('npTgl').onclick=()=>{const f=$('npFrm');f.style.display=f.style.display==='none'?'flex':'none'};
 $('npCn').onclick=()=>{$('npFrm').style.display='none'};
 $('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';const posterUrl=fixPosterUrl($('nprPoster').value.trim());if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});if(posterUrl){D.posters=D.posters||{};D.posters[n]=posterUrl}['nprN','nprCd','nprDir','nprPoster'].forEach(i=>$(i).value='');$('nprYr').value='';$('npFrm').style.display='none';fillDD();renderProj();toast('PROJECT ADDED','gld')};
 
+/* ═══════════════════════════════════════════════════════════════
+   INVOICES
+   ═══════════════════════════════════════════════════════════════ */
+let invFilter='all';
+function calcTTC(ht,tvaRate){const h=parseFloat(String(ht).replace(/[^\d.,]/g,'').replace(',','.'))||0;return(h*(1+(tvaRate||0)/100)).toFixed(2)}
+function fmtEur(v){const n=parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0;return n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €'}
+function nextInvNum(){const yr=new Date().getFullYear();const mx=D.invoices.filter(i=>i.invoiceNumber&&i.invoiceNumber.startsWith(yr+'-')).reduce((m,i)=>{const n=parseInt(i.invoiceNumber.split('-')[1])||0;return Math.max(m,n)},0);return yr+'-'+String(mx+1).padStart(2,'0')}
+
+function renderInv(){
+  const el=$('invList');el.innerHTML='';
+  let all=[...D.invoices].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  if(invFilter==='draft')all=all.filter(i=>i.status==='draft');
+  else if(invFilter==='sent')all=all.filter(i=>i.status==='sent');
+  else if(invFilter!=='all')all=all.filter(i=>i.project===invFilter);
+
+  all.forEach(inv=>{
+    const pc=gpc(inv.project);
+    const tHT=(parseFloat(String(inv.montantHT).replace(/[^\d.,]/g,'').replace(',','.'))||0)+(parseFloat(String(inv.catchupHT).replace(/[^\d.,]/g,'').replace(',','.'))||0);
+    const tTTC=(parseFloat(String(inv.montantTTC).replace(/[^\d.,]/g,'').replace(',','.'))||0)+(parseFloat(String(inv.catchupTTC).replace(/[^\d.,]/g,'').replace(',','.'))||0);
+    const ba=D.bankAccounts.find(b=>b.id===inv.bankAccountId);
+    el.innerHTML+=`<div class="inv-card ${inv.status}" data-invid="${inv.id}">
+      <div class="inv-num">${inv.invoiceNumber}</div>
+      <div class="inv-info">
+        <div class="inv-title">${inv.project?`<span style="color:${pc.c};opacity:.5;font-size:.85em">${pc.code}</span> `:''}${inv.description||inv.client||'—'}</div>
+        <div class="inv-meta">
+          ${inv.client?tg(inv.client,{c:'#8a8898',b:'rgba(138,136,152,.10)'}):''}
+          ${inv.project?tg(inv.project,pc):''}
+          <span class="inv-status ${inv.status}">${inv.status.toUpperCase()}</span>
+          <span class="inv-date">${inv.date?new Date(inv.date+'T00:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}).toUpperCase():'—'}</span>
+          ${ba?tg(ba.name,{c:'#06b6d4',b:'rgba(6,182,212,.10)'}):''}
+        </div>
+      </div>
+      <div class="inv-amt">${fmtEur(tTTC)}<div class="inv-amt-sub">HT: ${fmtEur(tHT)}</div></div>
+      <div class="inv-acts">
+        <button class="inv-edit-btn" data-invid="${inv.id}">✎ Edit</button>
+        ${inv.pdfUrl?`<a class="inv-pdf-link" href="${inv.pdfUrl}" target="_blank">📄 PDF</a>`:`<button class="inv-pdf-btn" data-invid="${inv.id}">📄 Gen PDF</button>`}
+        <button class="inv-email-btn" data-invid="${inv.id}">📧 Email</button>
+        <button class="inv-del-btn" data-invid="${inv.id}">✕</button>
+      </div>
+    </div>`;
+  });
+  el.querySelectorAll('.inv-edit-btn').forEach(b=>b.onclick=()=>openEditInv(+b.dataset.invid));
+  el.querySelectorAll('.inv-del-btn').forEach(b=>b.onclick=()=>{pH('delete invoice');D.invoices=D.invoices.filter(i=>i.id!==+b.dataset.invid);toast('INVOICE DELETED','rd');renderInv()});
+  el.querySelectorAll('.inv-pdf-btn').forEach(b=>b.onclick=()=>toast('PDF GENERATION — COMING IN PHASE 2','gld'));
+  el.querySelectorAll('.inv-email-btn').forEach(b=>b.onclick=()=>toast('EMAIL SENDING — COMING IN PHASE 3','gld'));
+  $('invTotal').textContent=D.invoices.length;
+  $('invDraft').textContent=D.invoices.filter(i=>i.status==='draft').length;
+  $('invSent').textContent=D.invoices.filter(i=>i.status==='sent').length;
+  const yr=String(new Date().getFullYear());
+  $('invYear').textContent=D.invoices.filter(i=>(i.invoiceNumber||'').startsWith(yr)).length;
+  renderInvFlts();
+}
+
+function renderInvFlts(){
+  const fb=$('invFlts');fb.innerHTML='';
+  const fs=[{k:'all',l:'ALL',n:D.invoices.length},{k:'draft',l:'DRAFTS',n:D.invoices.filter(i=>i.status==='draft').length},{k:'sent',l:'SENT',n:D.invoices.filter(i=>i.status==='sent').length}];
+  [...new Set(D.invoices.map(i=>i.project).filter(Boolean))].forEach(p=>{const pc=gpc(p);fs.push({k:p,l:pc.code,n:D.invoices.filter(i=>i.project===p).length})});
+  fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${invFilter===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{invFilter=f.k;renderInv()};fb.appendChild(b)});
+}
+
+function fillInvDD(){
+  ['fiProj','eiProj'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);if(D.closed.length){s.innerHTML+='<option disabled>── COMPLETED ──</option>';D.closed.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`)}});
+  ['fiBankAcct','eiBankAcct'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.bankAccounts.forEach(ba=>s.innerHTML+=`<option value="${ba.id}">${ba.name}</option>`)});
+}
+
+// New invoice form
+$('niTgl').onclick=()=>{const f=$('iFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fiNum').value=nextInvNum();$('fiDate').value=td();updateCalLabel('fiDate');fillInvDD();$('fiClient').focus()}};
+$('fiDateToday').onclick=()=>{$('fiDate').value=td();updateCalLabel('fiDate')};
+$('ciInv').onclick=()=>$('iFrm').classList.remove('open');
+
+// Auto-calc TTC
+['fiDiffHT','fiTVA'].forEach(id=>$(id).addEventListener('input',()=>{$('fiDiffTTC').value=fmtEur(calcTTC($('fiDiffHT').value,+$('fiTVA').value))}));
+['fiCatchHT','fiCatchTVA'].forEach(id=>$(id).addEventListener('input',()=>{$('fiCatchTTC').value=fmtEur(calcTTC($('fiCatchHT').value,+$('fiCatchTVA').value))}));
+
+// Auto-fill client details on blur
+$('fiClient').addEventListener('blur',()=>{const name=$('fiClient').value.trim().toUpperCase();const cl=(D.clients||[]).find(c=>c.name===name);if(cl){if(cl.address&&!$('fiClAddr').value)$('fiClAddr').value=cl.address;if(cl.siren&&!$('fiClSIREN').value)$('fiClSIREN').value=cl.siren;if(cl.defaultCostCenter&&!$('fiClCC').value)$('fiClCC').value=cl.defaultCostCenter}});
+
+// Create invoice
+$('siInv').onclick=()=>{
+  const num=$('fiNum').value.trim(),client=$('fiClient').value.trim().toUpperCase();
+  if(!num){toast('INVOICE NUMBER REQUIRED','rd');return}
+  if(!client){toast('CLIENT REQUIRED','rd');return}
+  pH('create invoice');
+  const diffHT=$('fiDiffHT').value.trim(),tvaRate=+$('fiTVA').value,diffTTC=calcTTC(diffHT,tvaRate);
+  const catchHT=$('fiCatchHT').value.trim(),catchTVA=+$('fiCatchTVA').value,catchTTC=catchHT?calcTTC(catchHT,catchTVA):'';
+  D.invoices.push({id:D.invid++,invoiceNumber:num,date:$('fiDate').value||td(),client:client,project:$('fiProj').value,description:$('fiDesc').value.trim(),montantHT:diffHT,tvaRate:tvaRate,montantTTC:diffTTC,catchupHT:catchHT,catchupTVA:catchHT?catchTVA:0,catchupTTC:catchTTC,status:'draft',pdfUrl:'',emailSentDate:'',bankAccountId:+$('fiBankAcct').value||0,notes:$('fiNotes').value.trim(),clientAddress:$('fiClAddr').value.trim(),clientSIREN:$('fiClSIREN').value.trim(),clientCostCenter:$('fiClCC').value.trim(),clientDealRef:$('fiClDeal').value.trim()});
+  // Save client if new
+  if(client&&!(D.clients||[]).find(c=>c.name===client)){D.clients=D.clients||[];D.clients.push({name:client,address:$('fiClAddr').value.trim(),siren:$('fiClSIREN').value.trim(),defaultCostCenter:$('fiClCC').value.trim()})}
+  ['fiNum','fiClient','fiDesc','fiDiffHT','fiCatchHT','fiNotes','fiClAddr','fiClSIREN','fiClCC','fiClDeal'].forEach(i=>$(i).value='');
+  $('fiDiffTTC').value='';$('fiCatchTTC').value='';$('fiDate').value='';
+  $('iFrm').classList.remove('open');toast('INVOICE CREATED','gld');renderInv();
+};
+
+// Edit invoice
+let eiId=null;
+function openEditInv(id){
+  const inv=D.invoices.find(i=>i.id===id);if(!inv)return;eiId=id;fillInvDD();
+  $('eiNum').value=inv.invoiceNumber;$('eiDate').value=inv.date||'';updateCalLabel('eiDate');
+  $('eiProj').value=inv.project||'';$('eiClient').value=inv.client||'';$('eiDesc').value=inv.description||'';
+  $('eiDiffHT').value=inv.montantHT||'';$('eiTVA').value=inv.tvaRate||10;
+  $('eiDiffTTC').value=inv.montantTTC?fmtEur(inv.montantTTC):'';
+  $('eiCatchHT').value=inv.catchupHT||'';$('eiCatchTVA').value=inv.catchupTVA||10;
+  $('eiCatchTTC').value=inv.catchupTTC?fmtEur(inv.catchupTTC):'';
+  $('eiBankAcct').value=inv.bankAccountId||'';$('eiNotes').value=inv.notes||'';$('eiStatus').value=inv.status||'draft';
+  $('eiClAddr').value=inv.clientAddress||'';$('eiClSIREN').value=inv.clientSIREN||'';
+  $('eiClCC').value=inv.clientCostCenter||'';$('eiClDeal').value=inv.clientDealRef||'';
+  $('eiMdl').classList.add('op');
+}
+['eiDiffHT','eiTVA'].forEach(id=>$(id).addEventListener('input',()=>{$('eiDiffTTC').value=fmtEur(calcTTC($('eiDiffHT').value,+$('eiTVA').value))}));
+['eiCatchHT','eiCatchTVA'].forEach(id=>$(id).addEventListener('input',()=>{$('eiCatchTTC').value=fmtEur(calcTTC($('eiCatchHT').value,+$('eiCatchTVA').value))}));
+$('eiCn').onclick=()=>{$('eiMdl').classList.remove('op');eiId=null};
+$('eiSv').onclick=()=>{
+  if(eiId===null)return;const inv=D.invoices.find(i=>i.id===eiId);if(!inv)return;
+  pH('edit invoice');
+  inv.invoiceNumber=$('eiNum').value.trim();inv.date=$('eiDate').value||'';
+  inv.project=$('eiProj').value;inv.client=$('eiClient').value.trim().toUpperCase();
+  inv.description=$('eiDesc').value.trim();
+  inv.montantHT=$('eiDiffHT').value.trim();inv.tvaRate=+$('eiTVA').value;
+  inv.montantTTC=calcTTC($('eiDiffHT').value,+$('eiTVA').value);
+  inv.catchupHT=$('eiCatchHT').value.trim();inv.catchupTVA=+$('eiCatchTVA').value;
+  inv.catchupTTC=$('eiCatchHT').value.trim()?calcTTC($('eiCatchHT').value,+$('eiCatchTVA').value):'';
+  inv.bankAccountId=+$('eiBankAcct').value||0;inv.notes=$('eiNotes').value.trim();
+  inv.status=$('eiStatus').value;
+  inv.clientAddress=$('eiClAddr').value.trim();inv.clientSIREN=$('eiClSIREN').value.trim();
+  inv.clientCostCenter=$('eiClCC').value.trim();inv.clientDealRef=$('eiClDeal').value.trim();
+  toast('INVOICE UPDATED','gld');$('eiMdl').classList.remove('op');eiId=null;renderInv();
+};
+$('eiDel').onclick=()=>{if(eiId===null)return;pH('delete invoice');D.invoices=D.invoices.filter(i=>i.id!==eiId);toast('DELETED','rd');$('eiMdl').classList.remove('op');eiId=null;renderInv()};
+
 /* ═══════ FULL RENDER ═══════ */
-function fullR(){renderT();renderDL();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='projects')renderProj()}
+function fullR(){renderT();renderDL();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='projects')renderProj();if(v==='invoices')renderInv()}
 
 /* ═══════ RESIZE ═══════ */
 
