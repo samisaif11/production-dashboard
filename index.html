@@ -468,6 +468,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <button class="nav-tab active" data-v="tasks">Tasks</button>
     <button class="nav-tab" data-v="deadlines">Deadlines</button>
     <button class="nav-tab" data-v="projects">Projects</button>
+    <button class="nav-tab" data-v="invoices">Invoices</button>
   </nav>
 <button class="nav-tab" data-v="invoices">Invoices</button>
   <div class="hdr-r">
@@ -645,6 +646,8 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="arow arow5"><input type="text" class="fi" id="npC" placeholder="CODE"><input type="text" class="fi" id="npN" placeholder="Full Name"><input type="text" class="fi" id="npR" placeholder="Role"><input type="color" class="clr-i" id="npClr" value="#60a5fa" title="Color"><button class="abtn" id="aPpl">+</button></div></div>
     <div class="ssec"><div class="sst">Partners <span class="lprev" id="paPrv" style="background:rgba(96,165,250,.15);color:#60a5fa">PREVIEW</span></div><div id="paList"></div>
       <div class="arow arow5"><input type="text" class="fi" id="npaC" placeholder="CODE"><input type="text" class="fi" id="npaN" placeholder="Name"><input type="color" class="clr-i" id="npaBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="npaFg" value="#60a5fa" title="Text"><button class="abtn" id="aPa">+</button></div></div>
+    <div class="ssec"><div class="sst">Bank Accounts (RIB)</div><div id="baList"></div>
+      <div class="arow" style="grid-template-columns:1fr 1fr 32px"><input type="text" class="fi" id="nbaName" placeholder="Name (e.g., FRANCE)"><input type="text" class="fi" id="nbaFileId" placeholder="Drive File ID"><button class="abtn" id="aBa">+</button></div></div>
     </div>
   </div>
 </div>
@@ -840,6 +843,10 @@ async function loadFromSheet(manual = false) {
     if (data.projDone) D.projDone = data.projDone;
     if (data.nid) D.nid = data.nid;
     if (data.dlid) D.dlid = data.dlid;
+    if (data.invid) D.invid = data.invid;
+    if (data.invoices) D.invoices = data.invoices;
+    if (data.bankAccounts) D.bankAccounts = data.bankAccounts;
+    if (data.clients) D.clients = data.clients;
     if (data.savedAt) _lastSavedAt = data.savedAt;
 	if (data.invoices) D.invoices = data.invoices;
     if (data.bankAccounts) D.bankAccounts = data.bankAccounts;
@@ -1134,6 +1141,7 @@ function initSug(){
   mkSug('ePe','sugEPe',gPS,v=>mtagAdd('ePeW',v,PP));
   mkSug('ePa','sugEPa',gPaS,v=>mtagAdd('ePaW',v,PA));
   mkSug('edPa','sugEdPa',gPaS);mkSug('edPe','sugEdPe',gPS);
+  mkSug('fiClient','sugInvCl',()=>(D.clients||[]).map(c=>({n:c.name,c:'#8a8898'})));
   // Enter key adds typed value as tag
   ['fPe','ePe'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PeW','PeW'),$(id).value,PP);$(id).value=''}})});
   ['fPa','ePa'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PaW','PaW'),$(id).value,PA);$(id).value=''}})});
@@ -1940,7 +1948,7 @@ $('projFilterTgl').onclick=()=>{_projShowAll=!_projShowAll;renderProj()};
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS
    ═══════════════════════════════════════════════════════════════ */
-$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa()};
+$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa();renderBa()};
 const closeSt=()=>{$('sOv2').classList.remove('op');$('sDr').classList.remove('op')};
 $('clS').onclick=closeSt;$('sOv2').onclick=closeSt;
 
@@ -1963,6 +1971,11 @@ function renderPa(){const el=$('paList');el.innerHTML='';Object.entries(PA).forE
 $('aPa').onclick=()=>{const c=$('npaC').value.trim().toUpperCase(),n=$('npaN').value.trim(),fg=$('npaFg').value;const key=c||n;if(!key){toast('CODE OR NAME REQUIRED','rd');return}pH('add partner');PA[key.toUpperCase()]={c:fg,b:hexToRgba(fg,.15)};['npaC','npaN'].forEach(i=>$(i).value='');renderPa();fillDD();toast('PARTNER ADDED','gld')};
 $('eprCn').onclick=()=>{$('eprMdl').classList.remove('op');eprKey=null};
 $('eprSv').onclick=()=>{if(!eprKey)return;pH('edit partner');const nn=$('eprNm').value.trim().toUpperCase(),fg=$('eprFg').value;if(nn!==eprKey){PA[nn]=PA[eprKey];delete PA[eprKey]}PA[nn]={c:fg,b:hexToRgba(fg,.15)};toast('UPDATED','gld');$('eprMdl').classList.remove('op');eprKey=null;renderPa();fillDD()};
+
+/* Bank Accounts */
+function renderBa(){const el=$('baList');el.innerHTML='';(D.bankAccounts||[]).forEach((ba,i)=>{el.innerHTML+=`<div class="prow"><span class="pcode" style="background:rgba(6,182,212,.12);color:#06b6d4">${ba.name}</span><span class="pnm" style="flex:1;font-size:.62rem;color:var(--t3);font-family:'JetBrains Mono'">${ba.ribImageFileId?ba.ribImageFileId.substring(0,20)+'...':'No RIB file'}</span><button class="pdel" data-i="${i}">✕</button></div>`});
+  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del bank acct');D.bankAccounts.splice(+b.dataset.i,1);renderBa();toast('REMOVED','rd')})}
+$('aBa').onclick=()=>{const name=$('nbaName').value.trim().toUpperCase(),fid=$('nbaFileId').value.trim();if(!name){toast('NAME REQUIRED','rd');return}pH('add bank acct');const maxId=D.bankAccounts.reduce((m,b)=>Math.max(m,b.id||0),0);D.bankAccounts.push({id:maxId+1,name:name,ribImageFileId:fid});['nbaName','nbaFileId'].forEach(i=>$(i).value='');renderBa();toast('BANK ACCOUNT ADDED','gld')};
 
 /* Add Project (Projects view) */
 $('npTgl').onclick=()=>{const f=$('npFrm');f.style.display=f.style.display==='none'?'flex':'none'};
