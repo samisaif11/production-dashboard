@@ -795,6 +795,7 @@ async function saveToSheet() {
       projects: D.projects, closed: D.closed, people: D.people,
       monthly: D.monthly, projDone: D.projDone, nid: D.nid, dlid: D.dlid,
       posters: D.posters,
+	  invoices: D.invoices, bankAccounts: D.bankAccounts, clients: D.clients, invid: D.invid,
       partners: PA, projectColors: PC, peopleColors: PP,
       _expectedSavedAt: _lastSavedAt
     };
@@ -840,6 +841,10 @@ async function loadFromSheet(manual = false) {
     if (data.nid) D.nid = data.nid;
     if (data.dlid) D.dlid = data.dlid;
     if (data.savedAt) _lastSavedAt = data.savedAt;
+	if (data.invoices) D.invoices = data.invoices;
+    if (data.bankAccounts) D.bankAccounts = data.bankAccounts;
+    if (data.clients) D.clients = data.clients;
+    if (data.invid) D.invid = data.invid;
     // Apply color maps
     if (data.partners && Object.keys(data.partners).length > 0) {
       Object.keys(PA).forEach(k => delete PA[k]); Object.assign(PA, data.partners);
@@ -1024,6 +1029,10 @@ const D = {
   nid: 12,
   dlid: 8,
   posters: {}
+  invoices: [],
+  bankAccounts: [],
+  clients: [],
+  invid: 1,
 };
 
 // Poster images - relative paths for GitHub Pages
@@ -1516,6 +1525,299 @@ $('edDDel').onclick=()=>{if(eDLid===null)return;pH('delete deadline');D.deadline
    PROJECTS
    ═══════════════════════════════════════════════════════════════ */
 let _projShowAll=false;
+/* ═══════ INVOICES ═══════ */
+let invFilter = 'all';
+
+function calcTTC(ht, tvaRate) {
+  const h = parseFloat(String(ht).replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+  const ttc = h * (1 + (tvaRate || 0) / 100);
+  return ttc.toFixed(2);
+}
+
+function fmtEur(v) {
+  const n = parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+  return n.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+}
+
+function nextInvNum() {
+  const yr = new Date().getFullYear();
+  const existing = D.invoices.filter(i => i.invoiceNumber && i.invoiceNumber.startsWith(yr + '-'));
+  const maxSuffix = existing.reduce((mx, i) => {
+    const parts = i.invoiceNumber.split('-');
+    const num = parseInt(parts[1]) || 0;
+    return Math.max(mx, num);
+  }, 0);
+  return yr + '-' + String(maxSuffix + 1).padStart(2, '0');
+}
+
+function renderInv() {
+  const el = $('invList');
+  el.innerHTML = '';
+  let all = [...D.invoices].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+  // Filters
+  if (invFilter === 'draft') all = all.filter(i => i.status === 'draft');
+  else if (invFilter === 'sent') all = all.filter(i => i.status === 'sent');
+  else if (invFilter !== 'all') all = all.filter(i => i.project === invFilter);
+
+  all.forEach(inv => {
+    const pc = gpc(inv.project);
+    const totalHT = (parseFloat(String(inv.montantHT).replace(/[^\d.,]/g,'').replace(',','.')) || 0)
+                  + (parseFloat(String(inv.catchupHT).replace(/[^\d.,]/g,'').replace(',','.')) || 0);
+    const totalTTC = (parseFloat(String(inv.montantTTC).replace(/[^\d.,]/g,'').replace(',','.')) || 0)
+                   + (parseFloat(String(inv.catchupTTC).replace(/[^\d.,]/g,'').replace(',','.')) || 0);
+    const ba = D.bankAccounts.find(b => b.id === inv.bankAccountId);
+
+    el.innerHTML += `<div class="inv-card ${inv.status}" data-invid="${inv.id}">
+      <div class="inv-num">${inv.invoiceNumber}</div>
+      <div class="inv-info">
+        <div class="inv-title">${inv.project ? `<span style="color:${pc.c};opacity:.5;font-size:.85em">${pc.code}</span> ` : ''}${inv.description || inv.client || '—'}</div>
+        <div class="inv-meta">
+          ${inv.client ? tg(inv.client, { c: '#8a8898', b: 'rgba(138,136,152,.10)' }) : ''}
+          ${inv.project ? tg(inv.project, pc) : ''}
+          <span class="inv-status ${inv.status}">${inv.status.toUpperCase()}</span>
+          <span class="inv-date">${inv.date ? new Date(inv.date + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}).toUpperCase() : '—'}</span>
+          ${ba ? tg(ba.name, { c: '#06b6d4', b: 'rgba(6,182,212,.10)' }) : ''}
+        </div>
+      </div>
+      <div class="inv-amt">${fmtEur(totalTTC)}<div class="inv-amt-sub">HT: ${fmtEur(totalHT)}</div></div>
+      <div class="inv-acts">
+        <button class="inv-edit-btn" data-invid="${inv.id}">✎ Edit</button>
+        ${inv.pdfUrl ? `<a href="${inv.pdfUrl}" target="_blank" style="font-size:.55rem;padding:4px 8px;border-radius:4px;border:1px solid var(--b0);color:var(--blue);text-decoration:none;font-family:'Outfit';font-weight:600;text-transform:uppercase;letter-spacing:.6px">📄 PDF</a>` : `<button class="inv-pdf-btn" data-invid="${inv.id}">📄 Gen PDF</button>`}
+        <button class="inv-email-btn" data-invid="${inv.id}">📧 Email</button>
+        <button class="inv-del-btn" data-invid="${inv.id}">✕</button>
+      </div>
+    </div>`;
+  });
+
+  // Bind events
+  el.querySelectorAll('.inv-edit-btn').forEach(b => b.onclick = () => openEditInv(+b.dataset.invid));
+  el.querySelectorAll('.inv-del-btn').forEach(b => b.onclick = () => { pH('delete invoice'); D.invoices = D.invoices.filter(i => i.id !== +b.dataset.invid); toast('INVOICE DELETED', 'rd'); renderInv(); });
+  // PDF + Email buttons — Phase 2 & 3 stubs
+  el.querySelectorAll('.inv-pdf-btn').forEach(b => b.onclick = () => toast('PDF GENERATION — COMING SOON', 'gld'));
+  el.querySelectorAll('.inv-email-btn').forEach(b => b.onclick = () => toast('EMAIL SENDING — COMING SOON', 'gld'));
+
+  // Stats
+  $('invTotal').textContent = D.invoices.length;
+  $('invDraft').textContent = D.invoices.filter(i => i.status === 'draft').length;
+  $('invSent').textContent = D.invoices.filter(i => i.status === 'sent').length;
+  const yr = String(new Date().getFullYear());
+  $('invYear').textContent = D.invoices.filter(i => (i.invoiceNumber || '').startsWith(yr)).length;
+
+  renderInvFlts();
+}
+
+function renderInvFlts() {
+  const fb = $('invFlts');
+  fb.innerHTML = '';
+  const fs = [
+    { k: 'all', l: 'ALL', n: D.invoices.length },
+    { k: 'draft', l: 'DRAFTS', n: D.invoices.filter(i => i.status === 'draft').length },
+    { k: 'sent', l: 'SENT', n: D.invoices.filter(i => i.status === 'sent').length }
+  ];
+  [...new Set(D.invoices.map(i => i.project).filter(Boolean))].forEach(p => {
+    const pc = gpc(p);
+    fs.push({ k: p, l: pc.code, n: D.invoices.filter(i => i.project === p).length });
+  });
+  fs.forEach(f => {
+    const b = document.createElement('button');
+    b.className = `chip ${invFilter === f.k ? 'active' : ''}`;
+    b.innerHTML = `${f.l}<span class="chip-c">${f.n}</span>`;
+    b.onclick = () => { invFilter = f.k; renderInv(); };
+    fb.appendChild(b);
+  });
+}
+
+function fillInvDD() {
+  ['fiProj', 'eiProj'].forEach(id => {
+    const s = $(id); if (!s) return;
+    s.innerHTML = '<option value="">—</option>';
+    D.projects.forEach(p => s.innerHTML += `<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);
+    if (D.closed.length) {
+      s.innerHTML += '<option disabled>── COMPLETED ──</option>';
+      D.closed.forEach(p => s.innerHTML += `<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);
+    }
+  });
+  ['fiBankAcct', 'eiBankAcct'].forEach(id => {
+    const s = $(id); if (!s) return;
+    s.innerHTML = '<option value="">—</option>';
+    D.bankAccounts.forEach(ba => s.innerHTML += `<option value="${ba.id}">${ba.name}</option>`);
+  });
+}
+
+// Auto-suggest for client field
+function initInvSug() {
+  mkSug('fiClient', 'sugInvCl', () => (D.clients || []).map(c => ({ n: c.name, c: '#8a8898' })));
+}
+
+// Auto-calculate TTC when HT or TVA changes
+['fiDiffHT', 'fiTVA'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    $('fiDiffTTC').value = fmtEur(calcTTC($('fiDiffHT').value, +$('fiTVA').value));
+  });
+});
+['fiCatchHT', 'fiCatchTVA'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    $('fiCatchTTC').value = fmtEur(calcTTC($('fiCatchHT').value, +$('fiCatchTVA').value));
+  });
+});
+
+// Auto-fill client details when client selected
+$('fiClient').addEventListener('blur', () => {
+  const name = $('fiClient').value.trim().toUpperCase();
+  const cl = (D.clients || []).find(c => c.name === name);
+  if (cl) {
+    if (cl.address && !$('fiClAddr').value) $('fiClAddr').value = cl.address;
+    if (cl.siren && !$('fiClSIREN').value) $('fiClSIREN').value = cl.siren;
+    if (cl.defaultCostCenter && !$('fiClCC').value) $('fiClCC').value = cl.defaultCostCenter;
+  }
+});
+
+// New invoice form toggle
+$('niTgl').onclick = () => {
+  const f = $('iFrm');
+  f.classList.toggle('open');
+  if (f.classList.contains('open')) {
+    $('fiNum').value = nextInvNum();
+    $('fiDate').value = td();
+    updateCalLabel('fiDate');
+    fillInvDD();
+    $('fiClient').focus();
+  }
+};
+$('fiDateToday').onclick = () => { $('fiDate').value = td(); updateCalLabel('fiDate'); };
+$('ciInv').onclick = () => $('iFrm').classList.remove('open');
+
+// Create invoice
+$('siInv').onclick = () => {
+  const num = $('fiNum').value.trim();
+  const client = $('fiClient').value.trim().toUpperCase();
+  if (!num) { toast('INVOICE NUMBER REQUIRED', 'rd'); return; }
+  if (!client) { toast('CLIENT REQUIRED', 'rd'); return; }
+
+  pH('create invoice');
+
+  const diffHT = $('fiDiffHT').value.trim();
+  const tvaRate = +$('fiTVA').value;
+  const diffTTC = calcTTC(diffHT, tvaRate);
+  const catchHT = $('fiCatchHT').value.trim();
+  const catchTVA = +$('fiCatchTVA').value;
+  const catchTTC = catchHT ? calcTTC(catchHT, catchTVA) : '';
+
+  D.invoices.push({
+    id: D.invid++,
+    invoiceNumber: num,
+    date: $('fiDate').value || td(),
+    client: client,
+    project: $('fiProj').value,
+    description: $('fiDesc').value.trim(),
+    montantHT: diffHT,
+    tvaRate: tvaRate,
+    montantTTC: diffTTC,
+    catchupHT: catchHT,
+    catchupTVA: catchHT ? catchTVA : 0,
+    catchupTTC: catchTTC,
+    status: 'draft',
+    pdfUrl: '',
+    emailSentDate: '',
+    bankAccountId: +$('fiBankAcct').value || 0,
+    notes: $('fiNotes').value.trim(),
+    clientAddress: $('fiClAddr').value.trim(),
+    clientSIREN: $('fiClSIREN').value.trim(),
+    clientCostCenter: $('fiClCC').value.trim(),
+    clientDealRef: $('fiClDeal').value.trim()
+  });
+
+  // Save client if new
+  if (client && !(D.clients || []).find(c => c.name === client)) {
+    D.clients = D.clients || [];
+    D.clients.push({ name: client, address: $('fiClAddr').value.trim(), siren: $('fiClSIREN').value.trim(), defaultCostCenter: $('fiClCC').value.trim() });
+  }
+
+  // Clear form
+  ['fiNum','fiClient','fiDesc','fiDiffHT','fiCatchHT','fiNotes','fiClAddr','fiClSIREN','fiClCC','fiClDeal'].forEach(i => $(i).value = '');
+  $('fiDiffTTC').value = '';  $('fiCatchTTC').value = '';
+  $('fiDate').value = '';
+  $('iFrm').classList.remove('open');
+  toast('INVOICE CREATED', 'gld');
+  renderInv();
+};
+
+// Edit invoice
+let eiId = null;
+function openEditInv(id) {
+  const inv = D.invoices.find(i => i.id === id);
+  if (!inv) return;
+  eiId = id;
+  fillInvDD();
+  $('eiNum').value = inv.invoiceNumber;
+  $('eiDate').value = inv.date || '';
+  updateCalLabel('eiDate');
+  $('eiProj').value = inv.project || '';
+  $('eiClient').value = inv.client || '';
+  $('eiDesc').value = inv.description || '';
+  $('eiDiffHT').value = inv.montantHT || '';
+  $('eiTVA').value = inv.tvaRate || 10;
+  $('eiDiffTTC').value = inv.montantTTC ? fmtEur(inv.montantTTC) : '';
+  $('eiCatchHT').value = inv.catchupHT || '';
+  $('eiCatchTVA').value = inv.catchupTVA || 10;
+  $('eiCatchTTC').value = inv.catchupTTC ? fmtEur(inv.catchupTTC) : '';
+  $('eiBankAcct').value = inv.bankAccountId || '';
+  $('eiNotes').value = inv.notes || '';
+  $('eiStatus').value = inv.status || 'draft';
+  $('eiClAddr').value = inv.clientAddress || '';
+  $('eiClSIREN').value = inv.clientSIREN || '';
+  $('eiClCC').value = inv.clientCostCenter || '';
+  $('eiClDeal').value = inv.clientDealRef || '';
+  $('eiMdl').classList.add('op');
+}
+
+// Edit invoice TTC auto-calc
+['eiDiffHT','eiTVA'].forEach(id => $(id).addEventListener('input', () => {
+  $('eiDiffTTC').value = fmtEur(calcTTC($('eiDiffHT').value, +$('eiTVA').value));
+}));
+['eiCatchHT','eiCatchTVA'].forEach(id => $(id).addEventListener('input', () => {
+  $('eiCatchTTC').value = fmtEur(calcTTC($('eiCatchHT').value, +$('eiCatchTVA').value));
+}));
+
+$('eiCn').onclick = () => { $('eiMdl').classList.remove('op'); eiId = null; };
+$('eiSv').onclick = () => {
+  if (eiId === null) return;
+  const inv = D.invoices.find(i => i.id === eiId);
+  if (!inv) return;
+  pH('edit invoice');
+  inv.invoiceNumber = $('eiNum').value.trim();
+  inv.date = $('eiDate').value || '';
+  inv.project = $('eiProj').value;
+  inv.client = $('eiClient').value.trim().toUpperCase();
+  inv.description = $('eiDesc').value.trim();
+  inv.montantHT = $('eiDiffHT').value.trim();
+  inv.tvaRate = +$('eiTVA').value;
+  inv.montantTTC = calcTTC($('eiDiffHT').value, +$('eiTVA').value);
+  inv.catchupHT = $('eiCatchHT').value.trim();
+  inv.catchupTVA = +$('eiCatchTVA').value;
+  inv.catchupTTC = $('eiCatchHT').value.trim() ? calcTTC($('eiCatchHT').value, +$('eiCatchTVA').value) : '';
+  inv.bankAccountId = +$('eiBankAcct').value || 0;
+  inv.notes = $('eiNotes').value.trim();
+  inv.status = $('eiStatus').value;
+  inv.clientAddress = $('eiClAddr').value.trim();
+  inv.clientSIREN = $('eiClSIREN').value.trim();
+  inv.clientCostCenter = $('eiClCC').value.trim();
+  inv.clientDealRef = $('eiClDeal').value.trim();
+  toast('INVOICE UPDATED', 'gld');
+  $('eiMdl').classList.remove('op');
+  eiId = null;
+  renderInv();
+};
+$('eiDel').onclick = () => {
+  if (eiId === null) return;
+  pH('delete invoice');
+  D.invoices = D.invoices.filter(i => i.id !== eiId);
+  toast('DELETED', 'rd');
+  $('eiMdl').classList.remove('op');
+  eiId = null;
+  renderInv();
+};
 function renderProj(){
   const el=$('pSecs');el.innerHTML='';
   const filterActive=!_projShowAll;
