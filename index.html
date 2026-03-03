@@ -432,6 +432,28 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .pc:hover .pedb{opacity:.6}.pedb:hover{opacity:1!important;color:var(--gold)}
 /* Settings project row meta */
 .prow-meta{font-size:.58rem;color:var(--t3);display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px}
+/* Invoices */
+.inv-card{background:var(--bg-2);border:1px solid var(--b0);border-radius:var(--r);padding:18px 20px;margin-bottom:6px;display:flex;align-items:center;gap:16px;transition:var(--tr);position:relative}
+.inv-card:hover{border-color:var(--b1);background:var(--bg-3)}
+.inv-card.draft{border-left:3px solid var(--orange)}
+.inv-card.sent{border-left:3px solid var(--green)}
+.inv-num{font-family:'JetBrains Mono';font-size:.9rem;font-weight:700;color:var(--gold);min-width:80px}
+.inv-info{flex:1;min-width:0}
+.inv-title{font-size:var(--tf);font-weight:400;text-transform:uppercase;letter-spacing:.3px;line-height:1.3;margin-bottom:4px;font-size:1rem}
+.inv-meta{display:flex;gap:5px;flex-wrap:wrap;align-items:center;opacity:.5}
+.inv-amt{font-family:'JetBrains Mono';font-size:.85rem;font-weight:700;color:var(--t1);text-align:right;min-width:100px}
+.inv-amt-sub{font-size:.6rem;color:var(--t3);font-weight:400}
+.inv-acts{display:flex;gap:4px;flex-shrink:0;align-items:center}
+.inv-acts button{font-size:12px;cursor:pointer;background:none;border:1px solid var(--b0);border-radius:4px;color:var(--t3);transition:var(--tr);padding:4px 8px;opacity:0;white-space:nowrap;font-family:'Outfit';font-weight:600;text-transform:uppercase;letter-spacing:.6px;font-size:.55rem}
+.inv-card:hover .inv-acts button{opacity:1}
+.inv-acts button:hover{border-color:var(--gold);color:var(--gold)}
+.inv-acts .inv-pdf-btn:hover{border-color:var(--blue);color:var(--blue)}
+.inv-acts .inv-email-btn:hover{border-color:var(--green);color:var(--green)}
+.inv-acts .inv-del-btn:hover{border-color:var(--red);color:var(--red)}
+.inv-status{font-size:.55rem;padding:3px 9px;border-radius:20px;font-weight:700;text-transform:uppercase;letter-spacing:.6px}
+.inv-status.draft{background:var(--orange-d);color:var(--orange)}
+.inv-status.sent{background:var(--green-d);color:var(--green)}
+.inv-date{font-family:'JetBrains Mono';font-size:.68rem;color:var(--t3)}
 </style>
 </head>
 <body>
@@ -447,6 +469,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <button class="nav-tab" data-v="deadlines">Deadlines</button>
     <button class="nav-tab" data-v="projects">Projects</button>
   </nav>
+<button class="nav-tab" data-v="invoices">Invoices</button>
   <div class="hdr-r">
     <div class="clk" id="clk"></div>
     <div class="dtb" id="dtb"></div>
@@ -532,7 +555,86 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   </div>
   <div id="pSecs"></div>
 </div>
+<div class="vw" id="v-invoices">
+  <!-- Stats bar -->
+  <div class="stats">
+    <div class="st"><div class="st-n" id="invTotal" style="color:var(--gold)">—</div><div class="st-l">Total Invoices</div></div>
+    <div class="st"><div class="st-n" id="invDraft" style="color:var(--orange)">—</div><div class="st-l">Drafts</div></div>
+    <div class="st"><div class="st-n" id="invSent" style="color:var(--green)">—</div><div class="st-l">Sent</div></div>
+    <div class="st"><div class="st-n" id="invYear" style="color:var(--blue)">—</div><div class="st-l">This Year</div></div>
+  </div>
 
+  <!-- Filters -->
+  <div class="flts" id="invFlts"></div>
+
+  <!-- New Invoice button + form -->
+  <div class="ntbar">
+    <button class="nbtn" id="niTgl">+ NEW INVOICE</button>
+    <div class="tfrm" id="iFrm">
+      <div class="fr fr2">
+        <div><label class="fl">Invoice Number</label><input type="text" class="fi" id="fiNum" placeholder="2026-08"></div>
+        <div><label class="fl">Date</label>
+          <div style="display:flex;gap:4px;align-items:center">
+            <input type="hidden" id="fiDate">
+            <div class="cal-wrap" style="flex:1">
+              <button type="button" class="fi" id="fiDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%">
+                <span style="opacity:.5">📅</span><span id="fiDateLabel" style="flex:1">—</span>
+              </button>
+              <div class="cal-pop" id="fiDateCalPop"></div>
+            </div>
+            <button type="button" class="setnow-b" id="fiDateToday" style="white-space:nowrap;padding:8px 10px">TODAY</button>
+          </div>
+        </div>
+      </div>
+      <div class="fr fr2">
+        <div><label class="fl">Project</label><select class="fs" id="fiProj"></select></div>
+        <div class="sug-w"><label class="fl">Client</label><input type="text" class="fi" id="fiClient" placeholder="e.g., CANAL PLUS" autocomplete="off"><div class="sug-l" id="sugInvCl"></div></div>
+      </div>
+      <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Description</label><input type="text" class="fi" id="fiDesc" placeholder="e.g., Préachat de droits de diffusion cryptée et Catch-up TV"></div></div>
+
+      <!-- Client details (collapsible) -->
+      <details style="margin:8px 0">
+        <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">Client Details (Address, SIREN...)</summary>
+        <div class="fr fr2">
+          <div><label class="fl">Client Address</label><input type="text" class="fi" id="fiClAddr" placeholder="2, RUE DES CÉVENNES..."></div>
+          <div><label class="fl">SIREN</label><input type="text" class="fi" id="fiClSIREN" placeholder="420 624 553"></div>
+        </div>
+        <div class="fr fr2">
+          <div><label class="fl">Cost Center / Réf</label><input type="text" class="fi" id="fiClCC" placeholder="Optional"></div>
+          <div><label class="fl">Deal / Contract Ref</label><input type="text" class="fi" id="fiClDeal" placeholder="Optional"></div>
+        </div>
+      </details>
+
+      <!-- Amounts -->
+      <div class="fr fr4">
+        <div><label class="fl">Diffusion HT</label><input type="text" class="fi" id="fiDiffHT" placeholder="218 000"></div>
+        <div><label class="fl">TVA %</label><select class="fs" id="fiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+        <div><label class="fl">Diffusion TTC</label><input type="text" class="fi" id="fiDiffTTC" placeholder="Auto-calculated" readonly style="opacity:.6"></div>
+        <div></div>
+      </div>
+      <div class="fr fr4">
+        <div><label class="fl">Catch-up HT</label><input type="text" class="fi" id="fiCatchHT" placeholder="Optional"></div>
+        <div><label class="fl">Catch-up TVA %</label><select class="fs" id="fiCatchTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+        <div><label class="fl">Catch-up TTC</label><input type="text" class="fi" id="fiCatchTTC" placeholder="Auto" readonly style="opacity:.6"></div>
+        <div></div>
+      </div>
+
+      <!-- Bank + Notes -->
+      <div class="fr fr2">
+        <div><label class="fl">Bank Account (RIB)</label><select class="fs" id="fiBankAcct"></select></div>
+        <div><label class="fl">Notes</label><input type="text" class="fi" id="fiNotes" placeholder="Optional..."></div>
+      </div>
+
+      <div class="fac">
+        <button class="btn btn-gh" id="ciInv">CANCEL</button>
+        <button class="btn btn-g" id="siInv">CREATE INVOICE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invoice List -->
+  <div id="invList"></div>
+</div>
 </div>
 
 <div class="sov" id="sOv2"></div>
@@ -596,6 +698,62 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     </div>
   </div>
   <div class="mdla"><button class="btn btn-gh" id="ePrjCn">CANCEL</button><button class="btn btn-g" id="ePrjSv">SAVE</button></div>
+</div></div>
+
+	<!-- Edit Invoice Modal -->
+<div class="mbg" id="eiMdl"><div class="mdl" style="width:560px"><h3>✎ Edit Invoice</h3>
+  <div class="fr fr2">
+    <div class="fg"><label class="fl">Invoice #</label><input type="text" class="fi" id="eiNum"></div>
+    <div class="fg"><label class="fl">Date</label>
+      <div style="display:flex;gap:4px;align-items:center">
+        <input type="hidden" id="eiDate">
+        <div class="cal-wrap" style="flex:1">
+          <button type="button" class="fi" id="eiDateCal" style="text-align:left;cursor:pointer;display:flex;align-items:center;gap:6px;width:100%">
+            <span style="opacity:.5">📅</span><span id="eiDateLabel" style="flex:1">—</span>
+          </button>
+          <div class="cal-pop" id="eiDateCalPop"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="fr fr2">
+    <div class="fg"><label class="fl">Project</label><select class="fs" id="eiProj"></select></div>
+    <div class="fg"><label class="fl">Client</label><input type="text" class="fi" id="eiClient"></div>
+  </div>
+  <div class="fg"><label class="fl">Description</label><input type="text" class="fi" id="eiDesc"></div>
+  <details style="margin:8px 0">
+    <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">Client Details</summary>
+    <div class="fr fr2">
+      <div class="fg"><label class="fl">Address</label><input type="text" class="fi" id="eiClAddr"></div>
+      <div class="fg"><label class="fl">SIREN</label><input type="text" class="fi" id="eiClSIREN"></div>
+    </div>
+    <div class="fr fr2">
+      <div class="fg"><label class="fl">Cost Center</label><input type="text" class="fi" id="eiClCC"></div>
+      <div class="fg"><label class="fl">Deal Ref</label><input type="text" class="fi" id="eiClDeal"></div>
+    </div>
+  </details>
+  <div class="fr fr4">
+    <div class="fg"><label class="fl">Diffusion HT</label><input type="text" class="fi" id="eiDiffHT"></div>
+    <div class="fg"><label class="fl">TVA %</label><select class="fs" id="eiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+    <div class="fg"><label class="fl">Diffusion TTC</label><input type="text" class="fi" id="eiDiffTTC" readonly style="opacity:.6"></div>
+    <div></div>
+  </div>
+  <div class="fr fr4">
+    <div class="fg"><label class="fl">Catch-up HT</label><input type="text" class="fi" id="eiCatchHT"></div>
+    <div class="fg"><label class="fl">Catch-up TVA</label><select class="fs" id="eiCatchTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
+    <div class="fg"><label class="fl">Catch-up TTC</label><input type="text" class="fi" id="eiCatchTTC" readonly style="opacity:.6"></div>
+    <div></div>
+  </div>
+  <div class="fr fr2">
+    <div class="fg"><label class="fl">Bank Account</label><select class="fs" id="eiBankAcct"></select></div>
+    <div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eiNotes"></div>
+  </div>
+  <div class="fg"><label class="fl">Status</label><select class="fs" id="eiStatus"><option value="draft">DRAFT</option><option value="sent">SENT</option></select></div>
+  <div class="mdla">
+    <button class="btn btn-r" id="eiDel" style="margin-right:auto">DELETE</button>
+    <button class="btn btn-gh" id="eiCn">CANCEL</button>
+    <button class="btn btn-g" id="eiSv">SAVE</button>
+  </div>
 </div></div>
 
 <div class="toast" id="toast"></div>
