@@ -1107,8 +1107,8 @@ function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en
 tick();setInterval(tick,1e3);
 
 /* ═══════ NAV ═══════ */
-document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj()}));
-
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj();if(t.dataset.v==='invoices'){ renderInv(); fillInvDD(); }}));
+	
 /* ═══════ AUTO-SUGGEST ═══════ */
 function mkSug(iid,lid,getI,onSel){
   const inp=$(iid),list=$(lid);if(!inp||!list)return;
@@ -1419,6 +1419,8 @@ initCal('fDuCal','fDuCalPop','fDu');
 initCal('eDuCal','eDuCalPop','eDu');
 initCal('fdDateCal','fdDateCalPop','fdDate');
 initCal('edDateCal','edDateCalPop','edDate');
+initCal('fiDateCal','fiDateCalPop','fiDate');
+initCal('eiDateCal','eiDateCalPop','eiDate');
 $('cTask').onclick=()=>$('tFrm').classList.remove('open');
 $('sTask').onclick=()=>{const n=$('fN').value.trim().toUpperCase();if(!n){toast('ENTER A TASK NAME','rd');return}pH('create task');const bl=$('fBl').value.trim().toUpperCase();const mn=D.tasks.length?Math.min(...D.tasks.map(t=>t.order)):0;
   // Get multi-tag values; also include typed-but-not-entered text
@@ -1967,9 +1969,15 @@ $('npTgl').onclick=()=>{const f=$('npFrm');f.style.display=f.style.display==='no
 $('npCn').onclick=()=>{$('npFrm').style.display='none'};
 $('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';const posterUrl=fixPosterUrl($('nprPoster').value.trim());if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});if(posterUrl){D.posters=D.posters||{};D.posters[n]=posterUrl}['nprN','nprCd','nprDir','nprPoster'].forEach(i=>$(i).value='');$('nprYr').value='';$('npFrm').style.display='none';fillDD();renderProj();toast('PROJECT ADDED','gld')};
 
-/* ═══════ FULL RENDER ═══════ */
-function fullR(){renderT();renderDL();const v=document.querySelector('.nav-tab.active').dataset.v;if(v==='projects')renderProj()}
-
+/* ═══════ FULL RENDER ␐══════ */
+function fullR(){
+  renderT();
+  renderDL();
+  const v=document.querySelector('.nav-tab.active').dataset.v;
+  if(v==='projects')renderProj();
+  if(v==='invoices')renderInv();
+}
+	
 /* ═══════ RESIZE ═══════ */
 
 /* ═══════ INIT ═══════ */
