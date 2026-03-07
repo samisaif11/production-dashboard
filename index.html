@@ -593,14 +593,14 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       </div>
       <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Description</label><input type="text" class="fi" id="fiDesc" placeholder="e.g., Préachat de droits de diffusion cryptée et Catch-up TV"></div></div>
 
-      <!-- Client details (collapsible) -->
-      <details style="margin:8px 0">
-        <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">Client Details (Address, SIREN...)</summary>
-        <div class="fr fr2">
-          <div><label class="fl">Client Address</label><input type="text" class="fi" id="fiClAddr" placeholder="2, RUE DES CÉVENNES..."></div>
-          <div><label class="fl">SIREN</label><input type="text" class="fi" id="fiClSIREN" placeholder="420 624 553"></div>
-        </div>
-        <div class="fr fr2">
+      <!-- Client address (always visible) -->
+      <div class="fr" style="grid-template-columns:1fr"><div><label class="fl">Client Address</label><input type="text" class="fi" id="fiClAddr" placeholder="50 rue Camille Desmoulins, 92130 Issy-les-Moulineaux"></div></div>
+
+      <!-- Optional client details (collapsible) -->
+      <details style="margin:4px 0">
+        <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">SIREN, Cost Center, Deal Ref...</summary>
+        <div class="fr fr3">
+          <div><label class="fl">SIREN</label><input type="text" class="fi" id="fiClSIREN" placeholder="329 211 734"></div>
           <div><label class="fl">Cost Center / Réf</label><input type="text" class="fi" id="fiClCC" placeholder="Optional"></div>
           <div><label class="fl">Deal / Contract Ref</label><input type="text" class="fi" id="fiClDeal" placeholder="Optional"></div>
         </div>
@@ -608,17 +608,15 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
       <!-- Amounts -->
       <div class="fr fr4">
-        <div><label class="fl">Diffusion HT</label><input type="text" class="fi" id="fiDiffHT" placeholder="218 000"></div>
+        <div><label class="fl">Montant HT</label><input type="text" class="fi" id="fiDiffHT" placeholder="218 000"></div>
         <div><label class="fl">TVA %</label><select class="fs" id="fiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
-        <div><label class="fl">Diffusion TTC</label><input type="text" class="fi" id="fiDiffTTC" placeholder="Auto-calculated" readonly style="opacity:.6"></div>
+        <div><label class="fl">Montant TTC</label><input type="text" class="fi" id="fiDiffTTC" placeholder="Auto-calculated" readonly style="opacity:.6"></div>
         <div></div>
       </div>
-      <div class="fr fr4">
-        <div><label class="fl">Catch-up HT</label><input type="text" class="fi" id="fiCatchHT" placeholder="Optional"></div>
-        <div><label class="fl">Catch-up TVA %</label><select class="fs" id="fiCatchTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
-        <div><label class="fl">Catch-up TTC</label><input type="text" class="fi" id="fiCatchTTC" placeholder="Auto" readonly style="opacity:.6"></div>
-        <div></div>
-      </div>
+
+      <!-- Extra lines (dynamic rows) -->
+      <div id="fiExtraLines"></div>
+      <button type="button" class="btn" id="fiAddLine" style="font-size:.58rem;padding:6px 12px;margin:4px 0 8px;background:transparent;border:1px dashed var(--b0);color:var(--t3)">+ ADD LINE</button>
 
       <!-- Bank + Notes -->
       <div class="fr fr2">
@@ -722,29 +720,26 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="fg"><label class="fl">Client</label><input type="text" class="fi" id="eiClient"></div>
   </div>
   <div class="fg"><label class="fl">Description</label><input type="text" class="fi" id="eiDesc"></div>
-  <details style="margin:8px 0">
-    <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">Client Details</summary>
-    <div class="fr fr2">
-      <div class="fg"><label class="fl">Address</label><input type="text" class="fi" id="eiClAddr"></div>
+  <!-- Client address (always visible) -->
+  <div class="fg"><label class="fl">Client Address</label><input type="text" class="fi" id="eiClAddr"></div>
+  <!-- Optional client details (collapsible) -->
+  <details style="margin:4px 0">
+    <summary style="font-size:.6rem;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t3);cursor:pointer;margin-bottom:8px">SIREN, Cost Center, Deal Ref...</summary>
+    <div class="fr fr3">
       <div class="fg"><label class="fl">SIREN</label><input type="text" class="fi" id="eiClSIREN"></div>
-    </div>
-    <div class="fr fr2">
-      <div class="fg"><label class="fl">Cost Center</label><input type="text" class="fi" id="eiClCC"></div>
-      <div class="fg"><label class="fl">Deal Ref</label><input type="text" class="fi" id="eiClDeal"></div>
+      <div class="fg"><label class="fl">Cost Center / Réf</label><input type="text" class="fi" id="eiClCC"></div>
+      <div class="fg"><label class="fl">Deal / Contract Ref</label><input type="text" class="fi" id="eiClDeal"></div>
     </div>
   </details>
   <div class="fr fr4">
-    <div class="fg"><label class="fl">Diffusion HT</label><input type="text" class="fi" id="eiDiffHT"></div>
+    <div class="fg"><label class="fl">Montant HT</label><input type="text" class="fi" id="eiDiffHT"></div>
     <div class="fg"><label class="fl">TVA %</label><select class="fs" id="eiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
-    <div class="fg"><label class="fl">Diffusion TTC</label><input type="text" class="fi" id="eiDiffTTC" readonly style="opacity:.6"></div>
+    <div class="fg"><label class="fl">Montant TTC</label><input type="text" class="fi" id="eiDiffTTC" readonly style="opacity:.6"></div>
     <div></div>
   </div>
-  <div class="fr fr4">
-    <div class="fg"><label class="fl">Catch-up HT</label><input type="text" class="fi" id="eiCatchHT"></div>
-    <div class="fg"><label class="fl">Catch-up TVA</label><select class="fs" id="eiCatchTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
-    <div class="fg"><label class="fl">Catch-up TTC</label><input type="text" class="fi" id="eiCatchTTC" readonly style="opacity:.6"></div>
-    <div></div>
-  </div>
+  <!-- Extra lines (dynamic rows) -->
+  <div id="eiExtraLines"></div>
+  <button type="button" class="btn" id="eiAddLine" style="font-size:.58rem;padding:6px 12px;margin:4px 0 8px;background:transparent;border:1px dashed var(--b0);color:var(--t3)">+ ADD LINE</button>
   <div class="fr fr2">
     <div class="fg"><label class="fl">Bank Account</label><select class="fs" id="eiBankAcct"></select></div>
     <div class="fg"><label class="fl">Notes</label><input type="text" class="fi" id="eiNotes"></div>
@@ -1574,10 +1569,10 @@ function renderInv() {
 
   all.forEach(inv => {
     const pc = gpc(inv.project);
-    const totalHT = (parseFloat(String(inv.montantHT).replace(/[^\d.,]/g,'').replace(',','.')) || 0)
-                  + (parseFloat(String(inv.catchupHT).replace(/[^\d.,]/g,'').replace(',','.')) || 0);
-    const totalTTC = (parseFloat(String(inv.montantTTC).replace(/[^\d.,]/g,'').replace(',','.')) || 0)
-                   + (parseFloat(String(inv.catchupTTC).replace(/[^\d.,]/g,'').replace(',','.')) || 0);
+    const extraLinesHT  = (inv.extraLines || []).reduce((s, l) => s + (parseFloat(String(l.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0), 0);
+    const extraLinesTTC = (inv.extraLines || []).reduce((s, l) => s + (parseFloat(String(l.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0), 0);
+    const totalHT  = (parseFloat(String(inv.montantHT  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0) + extraLinesHT;
+    const totalTTC = (parseFloat(String(inv.montantTTC || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0) + extraLinesTTC;
     const ba = D.bankAccounts.find(b => b.id === inv.bankAccountId);
 
     el.innerHTML += `<div class="inv-card ${inv.status}" data-invid="${inv.id}">
@@ -1588,7 +1583,7 @@ function renderInv() {
           ${inv.client ? tg(inv.client, { c: '#8a8898', b: 'rgba(138,136,152,.10)' }) : ''}
           ${inv.project ? tg(inv.project, pc) : ''}
           <span class="inv-status ${inv.status}">${inv.status.toUpperCase()}</span>
-          <span class="inv-date">${inv.date ? new Date(inv.date + 'T00:00:00').toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}).toUpperCase() : '—'}</span>
+          <span class="inv-date">${inv.date ? (() => { const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(inv.date) ? inv.date + 'T00:00:00' : inv.date); return isNaN(d) ? inv.date : d.toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}).toUpperCase(); })() : '—'}</span>
           ${ba ? tg(ba.name, { c: '#06b6d4', b: 'rgba(6,182,212,.10)' }) : ''}
         </div>
       </div>
@@ -1684,10 +1679,77 @@ function initInvSug() {
     $('fiDiffTTC').value = fmtEur(calcTTC($('fiDiffHT').value, +$('fiTVA').value));
   });
 });
-['fiCatchHT', 'fiCatchTVA'].forEach(id => {
-  $(id).addEventListener('input', () => {
-    $('fiCatchTTC').value = fmtEur(calcTTC($('fiCatchHT').value, +$('fiCatchTVA').value));
+
+/* ═══════ EXTRA LINES ═══════ */
+// Each extra line: { label, ht, tva, ttc }
+
+function renderExtraLines(containerId, lines) {
+  const el = $(containerId);
+  el.innerHTML = '';
+  lines.forEach((line, idx) => {
+    const row = document.createElement('div');
+    row.className = 'fr';
+    row.style.cssText = 'grid-template-columns:2fr 1fr auto 1fr auto;gap:6px;align-items:end;margin-bottom:6px';
+    row.innerHTML = `
+      <div><label class="fl" style="font-size:.55rem">Désignation</label>
+        <input type="text" class="fi el-label" data-idx="${idx}" placeholder="e.g., Droits Catch-up TV" value="${(line.label||'').replace(/"/g,'&quot;')}">
+      </div>
+      <div><label class="fl" style="font-size:.55rem">Montant HT</label>
+        <input type="text" class="fi el-ht" data-idx="${idx}" placeholder="0" value="${line.ht||''}">
+      </div>
+      <div><label class="fl" style="font-size:.55rem">TVA %</label>
+        <select class="fs el-tva" data-idx="${idx}" style="width:70px">
+          <option value="10" ${(line.tva==10||line.tva==null)?'selected':''}>10%</option>
+          <option value="20" ${line.tva==20?'selected':''}>20%</option>
+          <option value="0"  ${line.tva==0?'selected':''}>0%</option>
+        </select>
+      </div>
+      <div><label class="fl" style="font-size:.55rem">Montant TTC</label>
+        <input type="text" class="fi el-ttc" data-idx="${idx}" placeholder="Auto" readonly style="opacity:.6" value="${line.ttc ? fmtEur(line.ttc) : ''}">
+      </div>
+      <div style="padding-bottom:2px">
+        <button type="button" class="btn el-del" data-idx="${idx}" style="padding:6px 8px;font-size:.7rem;background:transparent;color:var(--rd);border:1px solid var(--rd)">✕</button>
+      </div>`;
+    el.appendChild(row);
   });
+
+  // Bind events
+  el.querySelectorAll('.el-ht, .el-tva').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const idx2 = +inp.dataset.idx;
+      const htEl  = el.querySelector(`.el-ht[data-idx="${idx2}"]`);
+      const tvaEl = el.querySelector(`.el-tva[data-idx="${idx2}"]`);
+      const ttcEl = el.querySelector(`.el-ttc[data-idx="${idx2}"]`);
+      const ttcVal = calcTTC(htEl.value, +tvaEl.value);
+      ttcEl.value = fmtEur(ttcVal);
+      lines[idx2].ht  = htEl.value.trim();
+      lines[idx2].tva = +tvaEl.value;
+      lines[idx2].ttc = ttcVal;
+    });
+  });
+  el.querySelectorAll('.el-label').forEach(inp => {
+    inp.addEventListener('input', () => { lines[+inp.dataset.idx].label = inp.value; });
+  });
+  el.querySelectorAll('.el-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      lines.splice(+btn.dataset.idx, 1);
+      renderExtraLines(containerId, lines);
+    });
+  });
+}
+
+// Create-form extra lines state
+let fiLines = [];
+$('fiAddLine').addEventListener('click', () => {
+  fiLines.push({ label: '', ht: '', tva: 10, ttc: '' });
+  renderExtraLines('fiExtraLines', fiLines);
+});
+
+// Edit-form extra lines state
+let eiLines = [];
+$('eiAddLine').addEventListener('click', () => {
+  eiLines.push({ label: '', ht: '', tva: 10, ttc: '' });
+  renderExtraLines('eiExtraLines', eiLines);
 });
 
 // Auto-fill client details when client selected
@@ -1728,9 +1790,16 @@ $('siInv').onclick = () => {
   const diffHT = $('fiDiffHT').value.trim();
   const tvaRate = +$('fiTVA').value;
   const diffTTC = calcTTC(diffHT, tvaRate);
-  const catchHT = $('fiCatchHT').value.trim();
-  const catchTVA = +$('fiCatchTVA').value;
-  const catchTTC = catchHT ? calcTTC(catchHT, catchTVA) : '';
+
+  // Finalise extra lines (sync any live input values)
+  const el = $('fiExtraLines');
+  fiLines.forEach((line, idx) => {
+    const htEl = el.querySelector(`.el-ht[data-idx="${idx}"]`);
+    const tvaEl = el.querySelector(`.el-tva[data-idx="${idx}"]`);
+    const lblEl = el.querySelector(`.el-label[data-idx="${idx}"]`);
+    if (htEl)  { line.ht  = htEl.value.trim();  line.tva = +tvaEl.value; line.ttc = calcTTC(line.ht, line.tva); }
+    if (lblEl) { line.label = lblEl.value.trim(); }
+  });
 
   D.invoices.push({
     id: D.invid++,
@@ -1742,9 +1811,7 @@ $('siInv').onclick = () => {
     montantHT: diffHT,
     tvaRate: tvaRate,
     montantTTC: diffTTC,
-    catchupHT: catchHT,
-    catchupTVA: catchHT ? catchTVA : 0,
-    catchupTTC: catchTTC,
+    extraLines: fiLines.filter(l => l.label || l.ht),
     status: 'draft',
     pdfUrl: '',
     emailSentDate: '',
@@ -1763,9 +1830,11 @@ $('siInv').onclick = () => {
   }
 
   // Clear form
-  ['fiNum','fiClient','fiDesc','fiDiffHT','fiCatchHT','fiNotes','fiClAddr','fiClSIREN','fiClCC','fiClDeal'].forEach(i => $(i).value = '');
-  $('fiDiffTTC').value = '';  $('fiCatchTTC').value = '';
+  ['fiNum','fiClient','fiDesc','fiDiffHT','fiNotes','fiClAddr','fiClSIREN','fiClCC','fiClDeal'].forEach(i => $(i).value = '');
+  $('fiDiffTTC').value = '';
   $('fiDate').value = '';
+  fiLines = [];
+  renderExtraLines('fiExtraLines', fiLines);
   $('iFrm').classList.remove('open');
   toast('INVOICE CREATED', 'gld');
   pH('create invoice');
@@ -1788,9 +1857,8 @@ function openEditInv(id) {
   $('eiDiffHT').value = inv.montantHT || '';
   $('eiTVA').value = inv.tvaRate || 10;
   $('eiDiffTTC').value = inv.montantTTC ? fmtEur(inv.montantTTC) : '';
-  $('eiCatchHT').value = inv.catchupHT || '';
-  $('eiCatchTVA').value = inv.catchupTVA || 10;
-  $('eiCatchTTC').value = inv.catchupTTC ? fmtEur(inv.catchupTTC) : '';
+  eiLines = (inv.extraLines || []).map(l => Object.assign({}, l));
+  renderExtraLines('eiExtraLines', eiLines);
   $('eiBankAcct').value = inv.bankAccountId != null ? inv.bankAccountId : '';
   $('eiNotes').value = inv.notes || '';
   $('eiStatus').value = inv.status || 'draft';
@@ -1805,11 +1873,8 @@ function openEditInv(id) {
 ['eiDiffHT','eiTVA'].forEach(id => $(id).addEventListener('input', () => {
   $('eiDiffTTC').value = fmtEur(calcTTC($('eiDiffHT').value, +$('eiTVA').value));
 }));
-['eiCatchHT','eiCatchTVA'].forEach(id => $(id).addEventListener('input', () => {
-  $('eiCatchTTC').value = fmtEur(calcTTC($('eiCatchHT').value, +$('eiCatchTVA').value));
-}));
 
-$('eiCn').onclick = () => { $('eiMdl').classList.remove('op'); eiId = null; };
+$('eiCn').onclick = () => { $('eiMdl').classList.remove('op'); eiId = null; eiLines = []; };
 $('eiSv').onclick = () => {
   if (eiId === null) return;
   const inv = D.invoices.find(i => i.id === eiId);
@@ -1823,9 +1888,16 @@ $('eiSv').onclick = () => {
   inv.montantHT = $('eiDiffHT').value.trim();
   inv.tvaRate = +$('eiTVA').value;
   inv.montantTTC = calcTTC($('eiDiffHT').value, +$('eiTVA').value);
-  inv.catchupHT = $('eiCatchHT').value.trim();
-  inv.catchupTVA = +$('eiCatchTVA').value;
-  inv.catchupTTC = $('eiCatchHT').value.trim() ? calcTTC($('eiCatchHT').value, +$('eiCatchTVA').value) : '';
+  // Sync live input values for extra lines
+  const eiEl = $('eiExtraLines');
+  eiLines.forEach((line, idx) => {
+    const htEl  = eiEl.querySelector(`.el-ht[data-idx="${idx}"]`);
+    const tvaEl = eiEl.querySelector(`.el-tva[data-idx="${idx}"]`);
+    const lblEl = eiEl.querySelector(`.el-label[data-idx="${idx}"]`);
+    if (htEl)  { line.ht = htEl.value.trim(); line.tva = +tvaEl.value; line.ttc = calcTTC(line.ht, line.tva); }
+    if (lblEl) { line.label = lblEl.value.trim(); }
+  });
+  inv.extraLines = eiLines.filter(l => l.label || l.ht);
   inv.bankAccountId = $('eiBankAcct').value !== '' ? +$('eiBankAcct').value : 0;
   inv.notes = $('eiNotes').value.trim();
   inv.status = $('eiStatus').value;
@@ -1836,6 +1908,7 @@ $('eiSv').onclick = () => {
   toast('INVOICE UPDATED', 'gld');
   $('eiMdl').classList.remove('op');
   eiId = null;
+  eiLines = [];
   renderInv();
 };
 $('eiDel').onclick = () => {

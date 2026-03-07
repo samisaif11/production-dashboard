@@ -42,7 +42,7 @@ const PROJDONE_COLS = ['project','count'];
 const META_COLS     = ['key','value'];
 const PROJCOLOR_COLS = ['name','color','bgColor','code'];
 const PPLCOLOR_COLS  = ['code','color','bgColor'];
-const INVOICE_COLS   = ['id','invoiceNumber','date','client','project','description','montantHT','tvaRate','montantTTC','catchupHT','catchupTVA','catchupTTC','status','pdfUrl','emailSentDate','bankAccountId','notes','clientAddress','clientSIREN','clientCostCenter','clientDealRef'];
+const INVOICE_COLS   = ['id','invoiceNumber','date','client','project','description','montantHT','tvaRate','montantTTC','extraLines','status','pdfUrl','emailSentDate','bankAccountId','notes','clientAddress','clientSIREN','clientCostCenter','clientDealRef'];
 const BANKACCT_COLS  = ['id','name','ribImageFileId'];
 const CLIENT_COLS    = ['name','address','siren','defaultCostCenter'];
 
@@ -144,16 +144,20 @@ function doGet(e) {
     data.peopleColors = PPobj;
 
     // --- Invoices ---
-    data.invoices = readSheet(ss, SHEETS.INVOICES, INVOICE_COLS).map(row => ({
-      id: toNum(row.id), invoiceNumber: str(row.invoiceNumber), date: str(row.date),
-      client: str(row.client), project: str(row.project), description: str(row.description),
-      montantHT: str(row.montantHT), tvaRate: toNum(row.tvaRate), montantTTC: str(row.montantTTC),
-      catchupHT: str(row.catchupHT), catchupTVA: toNum(row.catchupTVA), catchupTTC: str(row.catchupTTC),
-      status: str(row.status) || 'draft', pdfUrl: str(row.pdfUrl), emailSentDate: str(row.emailSentDate),
-      bankAccountId: toNum(row.bankAccountId), notes: str(row.notes),
-      clientAddress: str(row.clientAddress), clientSIREN: str(row.clientSIREN),
-      clientCostCenter: str(row.clientCostCenter), clientDealRef: str(row.clientDealRef)
-    }));
+    data.invoices = readSheet(ss, SHEETS.INVOICES, INVOICE_COLS).map(row => {
+      let extraLines = [];
+      try { if (row.extraLines) extraLines = JSON.parse(str(row.extraLines)); } catch (_) {}
+      return {
+        id: toNum(row.id), invoiceNumber: str(row.invoiceNumber), date: toISODate(row.date),
+        client: str(row.client), project: str(row.project), description: str(row.description),
+        montantHT: str(row.montantHT), tvaRate: toNum(row.tvaRate), montantTTC: str(row.montantTTC),
+        extraLines: extraLines,
+        status: str(row.status) || 'draft', pdfUrl: str(row.pdfUrl), emailSentDate: str(row.emailSentDate),
+        bankAccountId: toNum(row.bankAccountId), notes: str(row.notes),
+        clientAddress: str(row.clientAddress), clientSIREN: str(row.clientSIREN),
+        clientCostCenter: str(row.clientCostCenter), clientDealRef: str(row.clientDealRef)
+      };
+    });
 
     // --- Bank Accounts ---
     data.bankAccounts = readSheet(ss, SHEETS.BANKACCTS, BANKACCT_COLS).map(row => ({
@@ -327,7 +331,8 @@ function doPost(e) {
     writeSheet(ss, SHEETS.INVOICES, INVOICE_COLS,
       (D.invoices || []).map(inv => [
         inv.id, inv.invoiceNumber, inv.date, inv.client, inv.project, inv.description,
-        inv.montantHT, inv.tvaRate, inv.montantTTC, inv.catchupHT, inv.catchupTVA || '', inv.catchupTTC,
+        inv.montantHT, inv.tvaRate, inv.montantTTC,
+        JSON.stringify(inv.extraLines || []),
         inv.status, inv.pdfUrl, inv.emailSentDate, inv.bankAccountId, inv.notes,
         inv.clientAddress, inv.clientSIREN, inv.clientCostCenter, inv.clientDealRef
       ]));
@@ -465,6 +470,26 @@ function toBool(v) {
   const s = String(v).toLowerCase().trim();
   return s === 'true' || s === '1' || s === 'yes';
 }
+/** Convert a value (Date object or string) to YYYY-MM-DD format */
+function toISODate(v) {
+  if (!v) return '';
+  if (v instanceof Date) {
+    const y = v.getFullYear();
+    const m = String(v.getMonth() + 1).padStart(2, '0');
+    const d = String(v.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + d;
+  }
+  const s = String(v).trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const d = new Date(s);
+  if (!isNaN(d.getTime())) {
+    const y = d.getFullYear();
+    const mo = String(d.getMonth() + 1).padStart(2, '0');
+    const da = String(d.getDate()).padStart(2, '0');
+    return y + '-' + mo + '-' + da;
+  }
+  return s;
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  SETUP — Run this once to create all sheets with headers
@@ -556,33 +581,95 @@ function generateInvoicePDF(invoiceData) {
   body.replaceText('\\{\\{diffusionHT\\}\\}',   invoiceData.montantHT || '');
   body.replaceText('\\{\\{tvaRate\\}\\}',        String(invoiceData.tvaRate != null ? invoiceData.tvaRate : 10));
   body.replaceText('\\{\\{diffusionTTC\\}\\}',  invoiceData.montantTTC || '');
-  body.replaceText('\\{\\{catchupHT\\}\\}',     invoiceData.catchupHT  || '—');
-  body.replaceText('\\{\\{catchupTVA\\}\\}',    String(invoiceData.catchupTVA != null ? invoiceData.catchupTVA : 10));
-  body.replaceText('\\{\\{catchupTTC\\}\\}',    invoiceData.catchupTTC || '—');
 
-  // Calculate totals
-  const totalHT  = (parseFloat(invoiceData.montantHT)  || 0) + (parseFloat(invoiceData.catchupHT)  || 0);
-  const totalTTC = (parseFloat(invoiceData.montantTTC) || 0) + (parseFloat(invoiceData.catchupTTC) || 0);
-  body.replaceText('\\{\\{totalHT\\}\\}',  totalHT.toFixed(2));
-  body.replaceText('\\{\\{totalTTC\\}\\}', totalTTC.toFixed(2));
+  // 3. Handle extra lines: find the invoice amounts table and manage rows
+  var extraLines = invoiceData.extraLines || [];
 
-  // 3. Replace RIB placeholder image
-  if (invoiceData.ribImageFileId) {
-    const images = body.getImages();
-    for (var i = 0; i < images.length; i++) {
-      var img = images[i];
-      if (img.getAltDescription() === 'rib-placeholder') {
-        var ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
-        var parent  = img.getParent();
-        var idx     = parent.getChildIndex(img);
-        img.removeFromParent();
-        parent.insertInlineImage(idx, ribBlob);
+  // Find the invoice amounts table (has a row with {{catchupHT}} placeholder or has 4 columns)
+  var invoiceTable = null;
+  var tables = body.getTables();
+  for (var t = 0; t < tables.length; t++) {
+    var tbl = tables[t];
+    if (tbl.getNumRows() >= 1 && tbl.getRow(0).getNumCells() >= 4) {
+      var tblText = tbl.getText();
+      if (tblText.indexOf('{{catchupHT}}') !== -1 || tblText.indexOf('{{diffusionHT}}') !== -1) {
+        invoiceTable = tbl;
         break;
       }
     }
   }
 
-  // 4. Save, export as PDF, delete the Doc copy
+  if (invoiceTable) {
+    // Find and handle the catch-up template row
+    var catchupRowIdx = -1;
+    for (var r = 0; r < invoiceTable.getNumRows(); r++) {
+      if (invoiceTable.getRow(r).getText().indexOf('{{catchupHT}}') !== -1) {
+        catchupRowIdx = r;
+        break;
+      }
+    }
+
+    if (extraLines.length > 0 && catchupRowIdx !== -1) {
+      // Use the catch-up row as a template for the first extra line, then insert more rows
+      var templateRow = invoiceTable.getRow(catchupRowIdx);
+      // Fill the first extra line into the existing catch-up row cells
+      var line0 = extraLines[0];
+      var htVal0 = parseFloat(String(line0.ht || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+      templateRow.getCell(0).setText(line0.label || '');
+      templateRow.getCell(1).setText(fmtAmountPDF(htVal0));
+      templateRow.getCell(2).setText(String(line0.tva != null ? line0.tva : 10) + '%');
+      var ttcVal0 = parseFloat(String(line0.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+      templateRow.getCell(3).setText(fmtAmountPDF(ttcVal0));
+      // Insert remaining extra lines as new rows after the template row
+      for (var li = 1; li < extraLines.length; li++) {
+        var line = extraLines[li];
+        var newRow = invoiceTable.insertTableRow(catchupRowIdx + li);
+        var htVal = parseFloat(String(line.ht || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+        var ttcVal = parseFloat(String(line.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+        newRow.appendTableCell(line.label || '');
+        newRow.appendTableCell(fmtAmountPDF(htVal));
+        newRow.appendTableCell(String(line.tva != null ? line.tva : 10) + '%');
+        newRow.appendTableCell(fmtAmountPDF(ttcVal));
+      }
+    } else if (catchupRowIdx !== -1) {
+      // No extra lines — remove the catch-up placeholder row entirely
+      invoiceTable.removeRow(catchupRowIdx);
+    }
+  }
+
+  // Calculate totals from main line + extra lines
+  var totalHT  = parseFloat(String(invoiceData.montantHT  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+  var totalTTC = parseFloat(String(invoiceData.montantTTC || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+  extraLines.forEach(function(line) {
+    totalHT  += parseFloat(String(line.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+    totalTTC += parseFloat(String(line.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+  });
+  body.replaceText('\\{\\{totalHT\\}\\}',  fmtAmountPDF(totalHT));
+  body.replaceText('\\{\\{totalTTC\\}\\}', fmtAmountPDF(totalTTC));
+
+  // 4. Replace RIB placeholder image — checks both Alt Description and Alt Title
+  if (invoiceData.ribImageFileId) {
+    var images = body.getImages();
+    for (var i = 0; i < images.length; i++) {
+      var img = images[i];
+      var altDesc  = img.getAltDescription() || '';
+      var altTitle = img.getAltTitle()       || '';
+      if (altDesc === 'rib-placeholder' || altTitle === 'rib-placeholder') {
+        try {
+          var ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
+          var parent  = img.getParent();
+          var idx     = parent.getChildIndex(img);
+          img.removeFromParent();
+          parent.insertInlineImage(idx, ribBlob);
+        } catch (ribErr) {
+          Logger.log('RIB image replacement failed: ' + ribErr.message);
+        }
+        break;
+      }
+    }
+  }
+
+  // 5. Save, export as PDF, delete the Doc copy
   doc.saveAndClose();
   var pdfBlob = DriveApp.getFileById(copy.getId()).getAs('application/pdf');
   pdfBlob.setName(fileName + '.pdf');
@@ -590,6 +677,11 @@ function generateInvoicePDF(invoiceData) {
   DriveApp.getFileById(copy.getId()).setTrashed(true);
 
   return pdfFile.getUrl();
+}
+
+/** Format a number as French-locale amount for PDF (e.g. 14 262,00 €) */
+function fmtAmountPDF(n) {
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
 }
 
 /** Format a YYYY-MM-DD date string as DD/MM/YYYY (French format) */
