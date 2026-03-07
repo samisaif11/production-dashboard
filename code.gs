@@ -46,6 +46,10 @@ const INVOICE_COLS   = ['id','invoiceNumber','date','client','project','descript
 const BANKACCT_COLS  = ['id','name','ribImageFileId'];
 const CLIENT_COLS    = ['name','address','siren','defaultCostCenter'];
 
+// ═══════ INVOICE PDF GENERATION ═══════
+const INVOICE_TEMPLATE_ID = '1VJ6jmvlNNf8sDb8WQ_KDe8IV6dlFXMNGq1wiMKObaRc';
+const INVOICE_FOLDER_ID   = '1bITyM8c_YG-IYrzya-X_o0XTqxCoK3eB';
+
 // ═══════════════════════════════════════════════════════════════
 //  doGet — READ all data from sheets, return as JSON
 // ═══════════════════════════════════════════════════════════════
@@ -180,6 +184,21 @@ function doPost(e) {
 
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const D = JSON.parse(e.postData.contents);
+
+    // --- Handle PDF generation (does not write sheets) ---
+    if (D._action === 'generatePDF') {
+      lock.releaseLock();
+      try {
+        const inv = D.invoiceData;
+        const ba = (D.bankAccounts || []).find(b => b.id === inv.bankAccountId);
+        const pdfUrl = generateInvoicePDF(Object.assign({}, inv, {
+          ribImageFileId: ba ? ba.ribImageFileId : ''
+        }));
+        return jsonResponse({ success: true, pdfUrl: pdfUrl });
+      } catch (err) {
+        return jsonResponse({ success: false, error: err.message });
+      }
+    }
 
     // --- Check for conflicts ---
     if (D._expectedSavedAt) {
@@ -433,4 +452,84 @@ function setupSheets() {
   }
 
   SpreadsheetApp.getUi().alert('✅ All sheets created successfully!\n\nYou can now deploy this as a Web App.');
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  PHASE 2 — PDF GENERATION
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Generates a PDF invoice from the Google Doc template.
+ * @param {Object} invoiceData - Invoice fields + ribImageFileId
+ * @returns {string} URL of the generated PDF in Drive
+ */
+function generateInvoicePDF(invoiceData) {
+  // 1. Copy template to invoices folder
+  const template = DriveApp.getFileById(INVOICE_TEMPLATE_ID);
+  const folder   = DriveApp.getFolderById(INVOICE_FOLDER_ID);
+
+  // File name: YYYYMMDD - CLIENT - PROJECT - DESCRIPTION - SUFFIX
+  const datePart = (invoiceData.date || '').replace(/-/g, '');
+  const suffix   = (invoiceData.invoiceNumber || '').split('-')[1] || invoiceData.invoiceNumber || '';
+  const fileName = [datePart, invoiceData.client, invoiceData.project, invoiceData.description, suffix]
+    .map(s => (s || '').trim()).filter(Boolean).join(' - ');
+
+  const copy = template.makeCopy(fileName, folder);
+  const doc  = DocumentApp.openById(copy.getId());
+  const body = doc.getBody();
+
+  // 2. Replace text placeholders
+  body.replaceText('\\{\\{invoiceNumber\\}\\}', invoiceData.invoiceNumber || '');
+  body.replaceText('\\{\\{date\\}\\}',          formatDateFR(invoiceData.date));
+  body.replaceText('\\{\\{clientName\\}\\}',    invoiceData.client || '');
+  body.replaceText('\\{\\{clientAddress\\}\\}', invoiceData.clientAddress || '');
+  body.replaceText('\\{\\{clientSIREN\\}\\}',   invoiceData.clientSIREN || '');
+  body.replaceText('\\{\\{clientCostCenter\\}\\}', invoiceData.clientCostCenter || '');
+  body.replaceText('\\{\\{clientDealRef\\}\\}', invoiceData.clientDealRef || '');
+  body.replaceText('\\{\\{projectName\\}\\}',   invoiceData.project || '');
+  body.replaceText('\\{\\{description\\}\\}',   invoiceData.description || '');
+  body.replaceText('\\{\\{diffusionHT\\}\\}',   invoiceData.montantHT || '');
+  body.replaceText('\\{\\{tvaRate\\}\\}',        String(invoiceData.tvaRate != null ? invoiceData.tvaRate : 10));
+  body.replaceText('\\{\\{diffusionTTC\\}\\}',  invoiceData.montantTTC || '');
+  body.replaceText('\\{\\{catchupHT\\}\\}',     invoiceData.catchupHT  || '—');
+  body.replaceText('\\{\\{catchupTVA\\}\\}',    String(invoiceData.catchupTVA != null ? invoiceData.catchupTVA : 10));
+  body.replaceText('\\{\\{catchupTTC\\}\\}',    invoiceData.catchupTTC || '—');
+
+  // Calculate totals
+  const totalHT  = (parseFloat(invoiceData.montantHT)  || 0) + (parseFloat(invoiceData.catchupHT)  || 0);
+  const totalTTC = (parseFloat(invoiceData.montantTTC) || 0) + (parseFloat(invoiceData.catchupTTC) || 0);
+  body.replaceText('\\{\\{totalHT\\}\\}',  totalHT.toFixed(2));
+  body.replaceText('\\{\\{totalTTC\\}\\}', totalTTC.toFixed(2));
+
+  // 3. Replace RIB placeholder image
+  if (invoiceData.ribImageFileId) {
+    const images = body.getImages();
+    for (var i = 0; i < images.length; i++) {
+      var img = images[i];
+      if (img.getAltDescription() === 'rib-placeholder') {
+        var ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
+        var parent  = img.getParent();
+        var idx     = parent.getChildIndex(img);
+        img.removeFromParent();
+        parent.insertInlineImage(idx, ribBlob);
+        break;
+      }
+    }
+  }
+
+  // 4. Save, export as PDF, delete the Doc copy
+  doc.saveAndClose();
+  var pdfBlob = DriveApp.getFileById(copy.getId()).getAs('application/pdf');
+  pdfBlob.setName(fileName + '.pdf');
+  var pdfFile = folder.createFile(pdfBlob);
+  DriveApp.getFileById(copy.getId()).setTrashed(true);
+
+  return pdfFile.getUrl();
+}
+
+/** Format a YYYY-MM-DD date string as DD/MM/YYYY (French format) */
+function formatDateFR(dateStr) {
+  if (!dateStr) return '';
+  var d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
