@@ -1743,7 +1743,7 @@ $('siInv').onclick = () => {
     status: 'draft',
     pdfUrl: '',
     emailSentDate: '',
-    bankAccountId: +$('fiBankAcct').value || 0,
+    bankAccountId: $('fiBankAcct').value !== '' ? +$('fiBankAcct').value : 0,
     notes: $('fiNotes').value.trim(),
     clientAddress: $('fiClAddr').value.trim(),
     clientSIREN: $('fiClSIREN').value.trim(),
@@ -1785,7 +1785,7 @@ function openEditInv(id) {
   $('eiCatchHT').value = inv.catchupHT || '';
   $('eiCatchTVA').value = inv.catchupTVA || 10;
   $('eiCatchTTC').value = inv.catchupTTC ? fmtEur(inv.catchupTTC) : '';
-  $('eiBankAcct').value = inv.bankAccountId || '';
+  $('eiBankAcct').value = inv.bankAccountId != null ? inv.bankAccountId : '';
   $('eiNotes').value = inv.notes || '';
   $('eiStatus').value = inv.status || 'draft';
   $('eiClAddr').value = inv.clientAddress || '';
@@ -1820,7 +1820,7 @@ $('eiSv').onclick = () => {
   inv.catchupHT = $('eiCatchHT').value.trim();
   inv.catchupTVA = +$('eiCatchTVA').value;
   inv.catchupTTC = $('eiCatchHT').value.trim() ? calcTTC($('eiCatchHT').value, +$('eiCatchTVA').value) : '';
-  inv.bankAccountId = +$('eiBankAcct').value || 0;
+  inv.bankAccountId = $('eiBankAcct').value !== '' ? +$('eiBankAcct').value : 0;
   inv.notes = $('eiNotes').value.trim();
   inv.status = $('eiStatus').value;
   inv.clientAddress = $('eiClAddr').value.trim();
