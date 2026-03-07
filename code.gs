@@ -618,15 +618,21 @@ function generateInvoicePDF(invoiceData) {
     extraLines.forEach(function(line, idx) {
       var htVal  = parseFloat(String(line.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
       var ttcVal = parseFloat(String(line.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+      var cellContents = [
+        line.label || '',
+        fmtAmountPDF(htVal),
+        String(line.tva != null ? line.tva : 10) + '%',
+        fmtAmountPDF(ttcVal)
+      ];
       var newRow = invoiceTable.getRow(dataRowIndex).copy();
-      newRow.getCell(0).setText(line.label || '');
-      newRow.getCell(1).setText(fmtAmountPDF(htVal));
-      newRow.getCell(2).setText(String(line.tva != null ? line.tva : 10) + '%');
-      newRow.getCell(3).setText(fmtAmountPDF(ttcVal));
-      // Apply zebra colour to every cell in the new row
       var bg = zebraColors[idx % 2];
       for (var c = 0; c < newRow.getNumCells(); c++) {
-        newRow.getCell(c).setBackgroundColor(bg);
+        var cell = newRow.getCell(c);
+        cell.setText(cellContents[c] || '');
+        // Clear text highlight carried over from the copied source row
+        cell.editAsText().setBackgroundColor(null);
+        // Apply zebra cell background colour
+        cell.setBackgroundColor(bg);
       }
       invoiceTable.appendTableRow(newRow);
     });
@@ -651,11 +657,13 @@ function generateInvoicePDF(invoiceData) {
       var altTitle = img.getAltTitle()       || '';
       if (altDesc === 'rib-placeholder' || altTitle === 'rib-placeholder') {
         try {
-          var ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
-          var parent  = img.getParent();
-          var idx     = parent.getChildIndex(img);
-          img.removeFromParent();
-          parent.insertInlineImage(idx, ribBlob);
+          var ribBlob = getRibBlob(invoiceData.ribImageFileId);
+          if (ribBlob) {
+            var parent = img.getParent();
+            var idx    = parent.getChildIndex(img);
+            img.removeFromParent();
+            parent.insertInlineImage(idx, ribBlob);
+          }
         } catch (ribErr) {
           Logger.log('RIB image replacement failed: ' + ribErr.message);
         }
@@ -672,6 +680,40 @@ function generateInvoicePDF(invoiceData) {
   DriveApp.getFileById(copy.getId()).setTrashed(true);
 
   return pdfFile.getUrl();
+}
+
+/**
+ * Returns an image-compatible blob for the given Drive file ID.
+ * - Image files (JPEG, PNG…): returned as-is.
+ * - PDF files: Google Drive can't be inserted as an image directly.
+ *   We fetch the first page as a high-res JPEG via Drive's thumbnail
+ *   endpoint using the script's own OAuth token.
+ */
+function getRibBlob(fileId) {
+  var file     = DriveApp.getFileById(fileId);
+  var mimeType = file.getMimeType();
+
+  if (mimeType !== 'application/pdf') {
+    // Already an image — use directly
+    return file.getBlob();
+  }
+
+  // PDF → fetch first page as high-resolution image from Drive's viewer.
+  // sz=s2048 requests a thumbnail up to 2048 px on its longest side.
+  var token   = ScriptApp.getOAuthToken();
+  var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
+  var resp = UrlFetchApp.fetch(thumbUrl, {
+    headers: { 'Authorization': 'Bearer ' + token },
+    muteHttpExceptions: true
+  });
+
+  if (resp.getResponseCode() === 200) {
+    return resp.getBlob();
+  }
+
+  // Fallback: log and return null so the placeholder is left untouched
+  Logger.log('RIB thumbnail fetch failed (HTTP ' + resp.getResponseCode() + ') for fileId: ' + fileId);
+  return null;
 }
 
 /** Format a number as French-locale amount for PDF (e.g. 14 262,00 €) */
