@@ -31,8 +31,6 @@ const SHEETS = {
 };
 
 // ═══════ COLUMN DEFINITIONS ═══════
-const INVOICE_TEMPLATE_ID = '1VJ6jmvlNNf8sDb8WQ_KDe8IV6dlFXMNGq1wiMKObaRc';  // Paste the Doc ID here
-const INVOICE_FOLDER_ID  = 'Invoice Template — FNM';           // Folder to store PDFs
 const TASK_COLS     = ['id','name','project','person','partner','priority','due','done','blocked','blockedBy','order','notes','createdAt','completedAt','doneDate','subtasks'];
 const DEADLINE_COLS = ['id','date','title','project','partner','type','allDay','keepCount'];
 const PROJECT_COLS  = ['title','year','status','type','director'];
