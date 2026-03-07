@@ -845,13 +845,13 @@ async function loadFromSheet(manual = false) {
     if (data.dlid) D.dlid = data.dlid;
     if (data.invid) D.invid = data.invid;
     if (data.invoices) D.invoices = data.invoices;
-    if (data.bankAccounts) D.bankAccounts = data.bankAccounts;
+    if (data.bankAccounts) {
+      D.bankAccounts = data.bankAccounts;
+      // Auto-fix bank account IDs if they are all 0 or missing
+      D.bankAccounts.forEach((ba, i) => { if (!ba.id) ba.id = i + 1; });
+    }
     if (data.clients) D.clients = data.clients;
     if (data.savedAt) _lastSavedAt = data.savedAt;
-	if (data.invoices) D.invoices = data.invoices;
-    if (data.bankAccounts) D.bankAccounts = data.bankAccounts;
-    if (data.clients) D.clients = data.clients;
-    if (data.invid) D.invid = data.invid;
     // Apply color maps
     if (data.partners && Object.keys(data.partners).length > 0) {
       Object.keys(PA).forEach(k => delete PA[k]); Object.assign(PA, data.partners);
@@ -1741,7 +1741,7 @@ $('siInv').onclick = () => {
     status: 'draft',
     pdfUrl: '',
     emailSentDate: '',
-    bankAccountId: +$('fiBankAcct').value || 0,
+    bankAccountId: $('fiBankAcct').value !== '' ? +$('fiBankAcct').value : 0,
     notes: $('fiNotes').value.trim(),
     clientAddress: $('fiClAddr').value.trim(),
     clientSIREN: $('fiClSIREN').value.trim(),
@@ -1783,7 +1783,7 @@ function openEditInv(id) {
   $('eiCatchHT').value = inv.catchupHT || '';
   $('eiCatchTVA').value = inv.catchupTVA || 10;
   $('eiCatchTTC').value = inv.catchupTTC ? fmtEur(inv.catchupTTC) : '';
-  $('eiBankAcct').value = inv.bankAccountId || '';
+  $('eiBankAcct').value = inv.bankAccountId != null ? inv.bankAccountId : '';
   $('eiNotes').value = inv.notes || '';
   $('eiStatus').value = inv.status || 'draft';
   $('eiClAddr').value = inv.clientAddress || '';
@@ -1818,7 +1818,7 @@ $('eiSv').onclick = () => {
   inv.catchupHT = $('eiCatchHT').value.trim();
   inv.catchupTVA = +$('eiCatchTVA').value;
   inv.catchupTTC = $('eiCatchHT').value.trim() ? calcTTC($('eiCatchHT').value, +$('eiCatchTVA').value) : '';
-  inv.bankAccountId = +$('eiBankAcct').value || 0;
+  inv.bankAccountId = $('eiBankAcct').value !== '' ? +$('eiBankAcct').value : 0;
   inv.notes = $('eiNotes').value.trim();
   inv.status = $('eiStatus').value;
   inv.clientAddress = $('eiClAddr').value.trim();
