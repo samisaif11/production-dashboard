@@ -148,7 +148,7 @@ function doGet(e) {
       let extraLines = [];
       try { if (row.extraLines) extraLines = JSON.parse(str(row.extraLines)); } catch (_) {}
       return {
-        id: toNum(row.id), invoiceNumber: str(row.invoiceNumber), date: toISODate(row.date),
+        id: toNum(row.id), invoiceNumber: toInvoiceNumber(row.invoiceNumber), date: toISODate(row.date),
         client: str(row.client), project: str(row.project), description: str(row.description),
         montantHT: str(row.montantHT), tvaRate: toNum(row.tvaRate), montantTTC: str(row.montantTTC),
         extraLines: extraLines,
@@ -490,6 +490,19 @@ function toISODate(v) {
   }
   return s;
 }
+/**
+ * Safely read an invoice number that Google Sheets may have parsed as a date.
+ * "2026-01" → Sheets sees it as Jan 2026 → Date object → we restore "2026-01".
+ */
+function toInvoiceNumber(v) {
+  if (!v) return '';
+  if (v instanceof Date) {
+    const y = v.getFullYear();
+    const m = String(v.getMonth() + 1).padStart(2, '0');
+    return y + '-' + m;
+  }
+  return String(v).trim();
+}
 
 // ═══════════════════════════════════════════════════════════════
 //  SETUP — Run this once to create all sheets with headers
@@ -598,7 +611,11 @@ function generateInvoicePDF(invoiceData) {
     // dataRowIndex stays fixed at the original last data row — appending
     // rows after it does not change its index.
     var dataRowIndex = invoiceTable.getNumRows() - 1;
-    extraLines.forEach(function(line) {
+    // Read the data row's background for zebra striping.
+    // The template's first data row is gray; extra lines alternate white / gray.
+    var dataRowBg = invoiceTable.getRow(dataRowIndex).getCell(0).getBackgroundColor() || '#b7b7b7';
+    var zebraColors = ['#ffffff', dataRowBg]; // idx 0 → white, idx 1 → gray, idx 2 → white …
+    extraLines.forEach(function(line, idx) {
       var htVal  = parseFloat(String(line.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
       var ttcVal = parseFloat(String(line.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
       var newRow = invoiceTable.getRow(dataRowIndex).copy();
@@ -606,6 +623,11 @@ function generateInvoicePDF(invoiceData) {
       newRow.getCell(1).setText(fmtAmountPDF(htVal));
       newRow.getCell(2).setText(String(line.tva != null ? line.tva : 10) + '%');
       newRow.getCell(3).setText(fmtAmountPDF(ttcVal));
+      // Apply zebra colour to every cell in the new row
+      var bg = zebraColors[idx % 2];
+      for (var c = 0; c < newRow.getNumCells(); c++) {
+        newRow.getCell(c).setBackgroundColor(bg);
+      }
       invoiceTable.appendTableRow(newRow);
     });
   }

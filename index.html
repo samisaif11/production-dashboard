@@ -1554,7 +1554,7 @@ function nextInvNum() {
     const num = parseInt(parts[1]) || 0;
     return Math.max(mx, num);
   }, 0);
-  return yr + '-' + String(maxSuffix + 1).padStart(2, '0');
+  return yr + '-' + String(maxSuffix + 1).padStart(3, '0');
 }
 
 function renderInv() {
