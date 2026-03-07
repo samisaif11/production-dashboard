@@ -1605,8 +1605,19 @@ function renderInv() {
   // Bind events
   el.querySelectorAll('.inv-edit-btn').forEach(b => b.onclick = () => openEditInv(+b.dataset.invid));
   el.querySelectorAll('.inv-del-btn').forEach(b => b.onclick = () => { pH('delete invoice'); D.invoices = D.invoices.filter(i => i.id !== +b.dataset.invid); toast('INVOICE DELETED', 'rd'); renderInv(); });
-  // PDF + Email buttons — Phase 2 & 3 stubs
-  el.querySelectorAll('.inv-pdf-btn').forEach(b => b.onclick = () => toast('PDF GENERATION — COMING SOON', 'gld'));
+  // PDF button — Phase 2
+  el.querySelectorAll('.inv-pdf-btn').forEach(b => b.onclick = async () => {
+    const inv = D.invoices.find(i => i.id === +b.dataset.invid);
+    if (!inv) return;
+    b.disabled = true; b.textContent = '⏳ Generating...';
+    try {
+      const res = await fetch(SHEET_API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ _action: 'generatePDF', invoiceData: inv, bankAccounts: D.bankAccounts }) });
+      const data = await res.json();
+      if (data.success) { inv.pdfUrl = data.pdfUrl; pH('generate PDF'); toast('PDF GENERATED', 'gld'); renderInv(); }
+      else { toast('PDF ERROR: ' + (data.error || 'Unknown error'), 'rd'); b.disabled = false; b.textContent = '📄 Gen PDF'; }
+    } catch (err) { toast('PDF ERROR: ' + err.message, 'rd'); b.disabled = false; b.textContent = '📄 Gen PDF'; }
+  });
   el.querySelectorAll('.inv-email-btn').forEach(b => b.onclick = () => toast('EMAIL SENDING — COMING SOON', 'gld'));
 
   // Stats
@@ -1979,7 +1990,7 @@ $('npTgl').onclick=()=>{const f=$('npFrm');f.style.display=f.style.display==='no
 $('npCn').onclick=()=>{$('npFrm').style.display='none'};
 $('aPrj').onclick=()=>{const n=$('nprN').value.trim().toUpperCase(),cd=$('nprCd').value.trim().toUpperCase(),fg=$('nprFg').value,dir=$('nprDir').value.trim()||'TBD',yr=+$('nprYr').value||new Date().getFullYear(),typ=$('nprTyp').value||'Feature Film';const posterUrl=fixPosterUrl($('nprPoster').value.trim());if(!n||!cd){toast('NAME+CODE REQUIRED','rd');return}pH('add project');PC[n]={c:fg,b:hexToRgba(fg,.12),code:cd};D.projects.push({title:n,year:yr,status:'idea',type:typ,director:dir});if(posterUrl){D.posters=D.posters||{};D.posters[n]=posterUrl}['nprN','nprCd','nprDir','nprPoster'].forEach(i=>$(i).value='');$('nprYr').value='';$('npFrm').style.display='none';fillDD();renderProj();toast('PROJECT ADDED','gld')};
 
-/* ═══════ FULL RENDER ␐══════ */
+/* ═══════ FULL RENDER ═══════ */
 function fullR(){
   renderT();
   renderDL();
