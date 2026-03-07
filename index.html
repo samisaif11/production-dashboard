@@ -1613,10 +1613,15 @@ function renderInv() {
     try {
       const res = await fetch(SHEET_API_URL, { method: 'POST', redirect: 'follow', headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({ _action: 'generatePDF', invoiceData: inv, bankAccounts: D.bankAccounts }) });
-      const data = await res.json();
+      const txt = await res.text();
+      let data;
+      try { data = JSON.parse(txt); } catch (_) {
+        console.error('PDF response not JSON:', txt.substring(0, 500));
+        toast('PDF ERROR: Invalid response from server', 'rd'); b.disabled = false; b.textContent = '📄 Gen PDF'; return;
+      }
       if (data.success) { inv.pdfUrl = data.pdfUrl; pH('generate PDF'); toast('PDF GENERATED', 'gld'); renderInv(); }
-      else { toast('PDF ERROR: ' + (data.error || 'Unknown error'), 'rd'); b.disabled = false; b.textContent = '📄 Gen PDF'; }
-    } catch (err) { toast('PDF ERROR: ' + err.message, 'rd'); b.disabled = false; b.textContent = '📄 Gen PDF'; }
+      else { console.error('PDF error:', data); toast('PDF ERROR: ' + (data.error || 'Unknown error'), 'rd'); b.disabled = false; b.textContent = '📄 Gen PDF'; }
+    } catch (err) { console.error('PDF fetch error:', err); toast('PDF ERROR: ' + err.message, 'rd'); b.disabled = false; b.textContent = '📄 Gen PDF'; }
   });
   el.querySelectorAll('.inv-email-btn').forEach(b => b.onclick = () => toast('EMAIL SENDING — COMING SOON', 'gld'));
 
@@ -1763,6 +1768,7 @@ $('siInv').onclick = () => {
   $('fiDate').value = '';
   $('iFrm').classList.remove('open');
   toast('INVOICE CREATED', 'gld');
+  pH('create invoice');
   renderInv();
 };
 
