@@ -593,14 +593,20 @@ function generateInvoicePDF(invoiceData) {
   // 4. Append extra line rows to the amounts table
   var extraLines = invoiceData.extraLines || [];
   if (invoiceTable && extraLines.length > 0) {
+    // Use .copy() on the existing data row so each new row inherits
+    // the exact column widths, borders, fonts and cell styling.
+    // dataRowIndex stays fixed at the original last data row — appending
+    // rows after it does not change its index.
+    var dataRowIndex = invoiceTable.getNumRows() - 1;
     extraLines.forEach(function(line) {
       var htVal  = parseFloat(String(line.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
       var ttcVal = parseFloat(String(line.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
-      var newRow = invoiceTable.appendTableRow();
-      newRow.appendTableCell(line.label || '');
-      newRow.appendTableCell(fmtAmountPDF(htVal));
-      newRow.appendTableCell(String(line.tva != null ? line.tva : 10) + '%');
-      newRow.appendTableCell(fmtAmountPDF(ttcVal));
+      var newRow = invoiceTable.getRow(dataRowIndex).copy();
+      newRow.getCell(0).setText(line.label || '');
+      newRow.getCell(1).setText(fmtAmountPDF(htVal));
+      newRow.getCell(2).setText(String(line.tva != null ? line.tva : 10) + '%');
+      newRow.getCell(3).setText(fmtAmountPDF(ttcVal));
+      invoiceTable.appendTableRow(newRow);
     });
   }
 
