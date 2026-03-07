@@ -1,3 +1,4 @@
+<!-- index (phase 1).html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -159,8 +160,6 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 
 /* Inline edit */
 .inline-edit{background:var(--bg-1);border:1px solid var(--gold);border-radius:4px;color:var(--t0);font-family:'Outfit';font-size:inherit;font-weight:inherit;text-transform:uppercase;letter-spacing:inherit;padding:2px 6px;outline:none;width:100%;line-height:inherit}
-
-
 
 .ntbar{margin-bottom:10px}
 .nbtn{display:flex;align-items:center;gap:8px;padding:12px 18px;border:1px dashed var(--b1);border-radius:var(--r);background:transparent;color:var(--t3);font-size:var(--cf);font-weight:700;cursor:pointer;transition:var(--tr);width:100%;font-family:'Outfit';text-transform:uppercase;letter-spacing:1px}
@@ -470,7 +469,6 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <button class="nav-tab" data-v="projects">Projects</button>
     <button class="nav-tab" data-v="invoices">Invoices</button>
   </nav>
-<button class="nav-tab" data-v="invoices">Invoices</button>
   <div class="hdr-r">
     <div class="clk" id="clk"></div>
     <div class="dtb" id="dtb"></div>
@@ -556,6 +554,8 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   </div>
   <div id="pSecs"></div>
 </div>
+
+<!-- Invoice View -->
 <div class="vw" id="v-invoices">
   <!-- Stats bar -->
   <div class="stats">
@@ -646,8 +646,6 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
       <div class="arow arow5"><input type="text" class="fi" id="npC" placeholder="CODE"><input type="text" class="fi" id="npN" placeholder="Full Name"><input type="text" class="fi" id="npR" placeholder="Role"><input type="color" class="clr-i" id="npClr" value="#60a5fa" title="Color"><button class="abtn" id="aPpl">+</button></div></div>
     <div class="ssec"><div class="sst">Partners <span class="lprev" id="paPrv" style="background:rgba(96,165,250,.15);color:#60a5fa">PREVIEW</span></div><div id="paList"></div>
       <div class="arow arow5"><input type="text" class="fi" id="npaC" placeholder="CODE"><input type="text" class="fi" id="npaN" placeholder="Name"><input type="color" class="clr-i" id="npaBg" value="#1e3a5f" title="BG"><input type="color" class="clr-i" id="npaFg" value="#60a5fa" title="Text"><button class="abtn" id="aPa">+</button></div></div>
-    <div class="ssec"><div class="sst">Bank Accounts (RIB)</div><div id="baList"></div>
-      <div class="arow" style="grid-template-columns:1fr 1fr 32px"><input type="text" class="fi" id="nbaName" placeholder="Name (e.g., FRANCE)"><input type="text" class="fi" id="nbaFileId" placeholder="Drive File ID"><button class="abtn" id="aBa">+</button></div></div>
     </div>
   </div>
 </div>
@@ -703,7 +701,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
   <div class="mdla"><button class="btn btn-gh" id="ePrjCn">CANCEL</button><button class="btn btn-g" id="ePrjSv">SAVE</button></div>
 </div></div>
 
-	<!-- Edit Invoice Modal -->
+<!-- Edit Invoice Modal -->
 <div class="mbg" id="eiMdl"><div class="mdl" style="width:560px"><h3>✎ Edit Invoice</h3>
   <div class="fr fr2">
     <div class="fg"><label class="fl">Invoice #</label><input type="text" class="fi" id="eiNum"></div>
@@ -798,7 +796,7 @@ async function saveToSheet() {
       projects: D.projects, closed: D.closed, people: D.people,
       monthly: D.monthly, projDone: D.projDone, nid: D.nid, dlid: D.dlid,
       posters: D.posters,
-	  invoices: D.invoices, bankAccounts: D.bankAccounts, clients: D.clients, invid: D.invid,
+      invoices: D.invoices, bankAccounts: D.bankAccounts, clients: D.clients, invid: D.invid,
       partners: PA, projectColors: PC, peopleColors: PP,
       _expectedSavedAt: _lastSavedAt
     };
@@ -843,15 +841,11 @@ async function loadFromSheet(manual = false) {
     if (data.projDone) D.projDone = data.projDone;
     if (data.nid) D.nid = data.nid;
     if (data.dlid) D.dlid = data.dlid;
-    if (data.invid) D.invid = data.invid;
-    if (data.invoices) D.invoices = data.invoices;
-    if (data.bankAccounts) {
-      D.bankAccounts = data.bankAccounts;
-      // Auto-fix bank account IDs if they are all 0 or missing
-      D.bankAccounts.forEach((ba, i) => { if (!ba.id) ba.id = i + 1; });
-    }
-    if (data.clients) D.clients = data.clients;
     if (data.savedAt) _lastSavedAt = data.savedAt;
+    if (data.invoices) D.invoices = data.invoices;
+    if (data.bankAccounts) D.bankAccounts = data.bankAccounts;
+    if (data.clients) D.clients = data.clients;
+    if (data.invid) D.invid = data.invid;
     // Apply color maps
     if (data.partners && Object.keys(data.partners).length > 0) {
       Object.keys(PA).forEach(k => delete PA[k]); Object.assign(PA, data.partners);
@@ -1035,7 +1029,7 @@ const D = {
   projDone: { 'CALLE MÁLAGA': 32, 'COURS, ET SANS TRISTESSE': 18, "L'ÉLUE": 5, 'RASS JBEL': 12, 'BNAT LALLA MENNANA S03': 8, "ESH EL TAMAA'": 6, 'TERRE ET CENDRES': 2, 'RAJA': 1 },
   nid: 12,
   dlid: 8,
-  posters: {}
+  posters: {},
   invoices: [],
   bankAccounts: [],
   clients: [],
@@ -1114,8 +1108,16 @@ function tick(){const n=new Date();$('clk').textContent=n.toLocaleTimeString('en
 tick();setInterval(tick,1e3);
 
 /* ═══════ NAV ═══════ */
-document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));t.classList.add('active');$('v-'+t.dataset.v).classList.add('active');if(t.dataset.v==='deadlines')renderDL();if(t.dataset.v==='projects')renderProj();if(t.dataset.v==='invoices'){ renderInv(); fillInvDD(); }}));
-	
+document.querySelectorAll('.nav-tab').forEach(t=>t.addEventListener('click',()=>{
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.vw').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  $('v-'+t.dataset.v).classList.add('active');
+  if(t.dataset.v==='deadlines')renderDL();
+  if(t.dataset.v==='projects')renderProj();
+  if(t.dataset.v==='invoices'){ renderInv(); fillInvDD(); }
+}));
+
 /* ═══════ AUTO-SUGGEST ═══════ */
 function mkSug(iid,lid,getI,onSel){
   const inp=$(iid),list=$(lid);if(!inp||!list)return;
@@ -1141,12 +1143,12 @@ function initSug(){
   mkSug('ePe','sugEPe',gPS,v=>mtagAdd('ePeW',v,PP));
   mkSug('ePa','sugEPa',gPaS,v=>mtagAdd('ePaW',v,PA));
   mkSug('edPa','sugEdPa',gPaS);mkSug('edPe','sugEdPe',gPS);
-  mkSug('fiClient','sugInvCl',()=>(D.clients||[]).map(c=>({n:c.name,c:'#8a8898'})));
   // Enter key adds typed value as tag
   ['fPe','ePe'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PeW','PeW'),$(id).value,PP);$(id).value=''}})});
   ['fPa','ePa'].forEach(id=>{$(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();mtagAdd(id+'W'.replace('PaW','PaW'),$(id).value,PA);$(id).value=''}})});
   // Click on wrapper focuses input
   ['fPeW','fPaW','ePeW','ePaW'].forEach(id=>{const w=$(id);if(w)w.onclick=()=>w.querySelector('.mtag-inp')?.focus()});
+  initInvSug();
 }
 function renderLogo(){const c=$('logoContainer');if(!c)return;if(COMPANY_LOGO){c.innerHTML=`<img class="logo-img" src="${COMPANY_LOGO}" alt="Company Logo" onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\\'logo-text\\'><span>ALI N\\'</span><span class=\\'logo-div\\'></span><span>FNM</span></div><span class=\\'logo-sub\\'>Production Dashboard</span>'">`}}
 
@@ -1379,7 +1381,7 @@ function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.le
   $('sD').textContent=doneActive+doneArchived+doneSubs;
   $('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length}
 
-function fillDD(){['fP','fdP','eP','edP'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);if(D.closed.length){s.innerHTML+=`<option disabled style="font-size:.6rem;color:var(--t3)">── COMPLETED ──</option>`;D.closed.forEach(p=>s.innerHTML+=`<option value="${p.title}" style="color:#22c55e">${gpc(p.title).code} — ${p.title}</option>`)}})}
+function fillDD(){['fP','fdP','eP','edP','fiProj','eiProj'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);if(D.closed.length){s.innerHTML+=`<option disabled style="font-size:.6rem;color:var(--t3)">── COMPLETED ──</option>`;D.closed.forEach(p=>s.innerHTML+=`<option value="${p.title}" style="color:#22c55e">${gpc(p.title).code} — ${p.title}</option>`)}})}
 
 // Task form
 $('ntTgl').onclick=()=>{const f=$('tFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fDu').value=td();updateCalLabel('fDu');$('fN').focus()}};
@@ -1959,7 +1961,7 @@ $('projFilterTgl').onclick=()=>{_projShowAll=!_projShowAll;renderProj()};
 /* ═══════════════════════════════════════════════════════════════
    SETTINGS
    ═══════════════════════════════════════════════════════════════ */
-$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa();renderBa()};
+$('openS').onclick=()=>{$('sOv2').classList.add('op');$('sDr').classList.add('op');renderPpl();renderPa()};
 const closeSt=()=>{$('sOv2').classList.remove('op');$('sDr').classList.remove('op')};
 $('clS').onclick=closeSt;$('sOv2').onclick=closeSt;
 
@@ -1982,11 +1984,6 @@ function renderPa(){const el=$('paList');el.innerHTML='';Object.entries(PA).forE
 $('aPa').onclick=()=>{const c=$('npaC').value.trim().toUpperCase(),n=$('npaN').value.trim(),fg=$('npaFg').value;const key=c||n;if(!key){toast('CODE OR NAME REQUIRED','rd');return}pH('add partner');PA[key.toUpperCase()]={c:fg,b:hexToRgba(fg,.15)};['npaC','npaN'].forEach(i=>$(i).value='');renderPa();fillDD();toast('PARTNER ADDED','gld')};
 $('eprCn').onclick=()=>{$('eprMdl').classList.remove('op');eprKey=null};
 $('eprSv').onclick=()=>{if(!eprKey)return;pH('edit partner');const nn=$('eprNm').value.trim().toUpperCase(),fg=$('eprFg').value;if(nn!==eprKey){PA[nn]=PA[eprKey];delete PA[eprKey]}PA[nn]={c:fg,b:hexToRgba(fg,.15)};toast('UPDATED','gld');$('eprMdl').classList.remove('op');eprKey=null;renderPa();fillDD()};
-
-/* Bank Accounts */
-function renderBa(){const el=$('baList');el.innerHTML='';(D.bankAccounts||[]).forEach((ba,i)=>{el.innerHTML+=`<div class="prow"><span class="pcode" style="background:rgba(6,182,212,.12);color:#06b6d4">${ba.name}</span><span class="pnm" style="flex:1;font-size:.62rem;color:var(--t3);font-family:'JetBrains Mono'">${ba.ribImageFileId?ba.ribImageFileId.substring(0,20)+'...':'No RIB file'}</span><button class="pdel" data-i="${i}">✕</button></div>`});
-  el.querySelectorAll('.pdel').forEach(b=>b.onclick=()=>{pH('del bank acct');D.bankAccounts.splice(+b.dataset.i,1);renderBa();toast('REMOVED','rd')})}
-$('aBa').onclick=()=>{const name=$('nbaName').value.trim().toUpperCase(),fid=$('nbaFileId').value.trim();if(!name){toast('NAME REQUIRED','rd');return}pH('add bank acct');const maxId=D.bankAccounts.reduce((m,b)=>Math.max(m,b.id||0),0);D.bankAccounts.push({id:maxId+1,name:name,ribImageFileId:fid});['nbaName','nbaFileId'].forEach(i=>$(i).value='');renderBa();toast('BANK ACCOUNT ADDED','gld')};
 
 /* Add Project (Projects view) */
 $('npTgl').onclick=()=>{const f=$('npFrm');f.style.display=f.style.display==='none'?'flex':'none'};
