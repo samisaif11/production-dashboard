@@ -610,27 +610,32 @@ function generateInvoicePDF(invoiceData) {
       throw new Error('RIB file could not be converted to an image. If your RIB is a PDF, try uploading a PNG/JPG.');
     }
 
-    var replaced = replaceRibPlaceholderInContainer(body, ribBlob);
-    if (!replaced) {
-      var header = doc.getHeader();
-      if (header) replaced = replaceRibPlaceholderInContainer(header, ribBlob) || replaced;
-    }
-    if (!replaced) {
-      var footer = doc.getFooter();
-      if (footer) replaced = replaceRibPlaceholderInContainer(footer, ribBlob) || replaced;
-    }
+    // Deterministic mode (preferred): render RIB as the whole second page.
+    // This avoids template crop/transform artifacts that can cause zoomed output.
+    var replaced = renderRibAsSecondPage_(body, ribBlob);
 
-    // Fallback mode: if template marker is missing, replace the largest image
-    // (usually the full-page RIB placeholder on page 2).
+    // Compatibility fallback for legacy templates.
     if (!replaced) {
-      replaced = replaceLargestImageInContainer(body, ribBlob) || replaced;
+      replaced = replaceRibPlaceholderInContainer(body, ribBlob);
       if (!replaced) {
-        var h2 = doc.getHeader();
-        if (h2) replaced = replaceLargestImageInContainer(h2, ribBlob) || replaced;
+        var header = doc.getHeader();
+        if (header) replaced = replaceRibPlaceholderInContainer(header, ribBlob) || replaced;
       }
       if (!replaced) {
-        var f2 = doc.getFooter();
-        if (f2) replaced = replaceLargestImageInContainer(f2, ribBlob) || replaced;
+        var footer = doc.getFooter();
+        if (footer) replaced = replaceRibPlaceholderInContainer(footer, ribBlob) || replaced;
+      }
+
+      if (!replaced) {
+        replaced = replaceLargestImageInContainer(body, ribBlob) || replaced;
+        if (!replaced) {
+          var h2 = doc.getHeader();
+          if (h2) replaced = replaceLargestImageInContainer(h2, ribBlob) || replaced;
+        }
+        if (!replaced) {
+          var f2 = doc.getFooter();
+          if (f2) replaced = replaceLargestImageInContainer(f2, ribBlob) || replaced;
+        }
       }
     }
 
@@ -647,6 +652,39 @@ function generateInvoicePDF(invoiceData) {
   DriveApp.getFileById(copy.getId()).setTrashed(true);
 
   return pdfFile.getUrl();
+}
+
+
+
+function renderRibAsSecondPage_(body, ribBlob) {
+  var pageBreakIndex = -1;
+  for (var i = 0; i < body.getNumChildren(); i++) {
+    if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
+      pageBreakIndex = i;
+      break;
+    }
+  }
+
+  if (pageBreakIndex === -1) {
+    body.appendPageBreak();
+    pageBreakIndex = body.getNumChildren() - 1;
+  }
+
+  // Remove everything after the first page break so page 2 is clean.
+  while (body.getNumChildren() > pageBreakIndex + 1) {
+    body.removeChild(body.getChild(pageBreakIndex + 1));
+  }
+
+  var para = body.insertParagraph(pageBreakIndex + 1, '');
+  var inserted = para.appendInlineImage(ribBlob);
+
+  // Fit image to page-2 content area (no crop).
+  var sourceW = 0;
+  var sourceH = 0;
+  try { sourceW = inserted.getWidth(); sourceH = inserted.getHeight(); } catch (e) {}
+  applyImageSizeSafely_(inserted, sourceW, sourceH);
+
+  return true;
 }
 
 
@@ -667,8 +705,12 @@ function replaceRibPlaceholderInContainer(container, ribBlob) {
 
     var parent = img.getParent();
     var idx = parent.getChildIndex(img);
+    var w = 0;
+    var h = 0;
+    try { w = img.getWidth(); h = img.getHeight(); } catch (e) {}
     img.removeFromParent();
-    parent.insertInlineImage(idx, ribBlob);
+    var insertedInline = parent.insertInlineImage(idx, ribBlob);
+    applyImageSizeSafely_(insertedInline, w, h);
     replaced = true;
   }
 
@@ -679,18 +721,14 @@ function replaceRibPlaceholderInContainer(container, ribBlob) {
       var posImg = posImgs[p];
       if (!isRibPlaceholderImage_(posImg)) continue;
 
-      try {
-        posImg.setImage(ribBlob);
-      } catch (e) {
-        // Fallback: remove floating image and insert inline at anchor paragraph.
-        var anchorParagraph = posImg.getAnchor().asParagraph();
-        var w = posImg.getWidth();
-        var h = posImg.getHeight();
-        posImg.remove();
-        var inserted = anchorParagraph.appendInlineImage(ribBlob);
-        inserted.setWidth(w);
-        inserted.setHeight(h);
-      }
+      // Always reinsert instead of setImage(): setImage may preserve prior
+      // crop/transform from placeholder and cause a "zoomed" result.
+      var anchorParagraph = posImg.getAnchor().asParagraph();
+      var w = posImg.getWidth();
+      var h = posImg.getHeight();
+      posImg.remove();
+      var inserted = anchorParagraph.appendInlineImage(ribBlob);
+      applyImageSizeSafely_(inserted, w, h);
       replaced = true;
     }
   }
@@ -725,23 +763,48 @@ function replaceLargestImageInContainer(container, ribBlob) {
   if (best.type === 'inline') {
     var parent = best.img.getParent();
     var idx = parent.getChildIndex(best.img);
+    var w = 0;
+    var h = 0;
+    try { w = best.img.getWidth(); h = best.img.getHeight(); } catch (e) {}
     best.img.removeFromParent();
-    parent.insertInlineImage(idx, ribBlob);
+    var insertedInline = parent.insertInlineImage(idx, ribBlob);
+    applyImageSizeSafely_(insertedInline, w, h);
     return true;
   }
 
+  var anchorParagraph = best.img.getAnchor().asParagraph();
+  var w = best.img.getWidth();
+  var h = best.img.getHeight();
+  best.img.remove();
+  var inserted = anchorParagraph.appendInlineImage(ribBlob);
+  applyImageSizeSafely_(inserted, w, h);
+  return true;
+}
+
+
+
+function applyImageSizeSafely_(image, targetWidth, targetHeight) {
+  var maxW = 520;   // ~A4 width minus margins in Google Docs points(px-like)
+  var maxH = 760;   // keep within one page height to avoid accidental overflow
+
+  var w = Number(targetWidth) || 0;
+  var h = Number(targetHeight) || 0;
+
+  // If placeholder size isn't readable, keep conservative default.
+  if (w <= 0 || h <= 0) {
+    w = maxW;
+    h = 700;
+  }
+
+  var scale = Math.min(maxW / w, maxH / h, 1);
+  var finalW = Math.max(1, Math.round(w * scale));
+  var finalH = Math.max(1, Math.round(h * scale));
+
   try {
-    best.img.setImage(ribBlob);
-    return true;
+    image.setWidth(finalW);
+    image.setHeight(finalH);
   } catch (e) {
-    var anchorParagraph = best.img.getAnchor().asParagraph();
-    var w = best.img.getWidth();
-    var h = best.img.getHeight();
-    best.img.remove();
-    var inserted = anchorParagraph.appendInlineImage(ribBlob);
-    inserted.setWidth(w);
-    inserted.setHeight(h);
-    return true;
+    // Best effort: leave inserted image with default size.
   }
 }
 
@@ -753,60 +816,20 @@ function replaceLargestImageInContainer(container, ribBlob) {
  *   (primary) or Drive API thumbnailLink (fallback).
  */
 function getRibBlob(fileId) {
-  var file     = DriveApp.getFileById(fileId);
+  var file = DriveApp.getFileById(fileId);
   var mimeType = file.getMimeType();
 
-  if (mimeType !== 'application/pdf') {
-    // Already an image — use directly
-    return file.getBlob();
+  // Foolproof path: only image files are accepted for RIB replacement.
+  // PDF-to-image conversion via URL Fetch is flaky across accounts and scopes.
+  if (mimeType === 'application/pdf') {
+    throw new Error('RIB file is a PDF. For reliable page-2 replacement, upload the RIB as PNG or JPG and paste that file ID in BankAccounts.');
   }
 
-  // PDF → fetch first page as high-resolution image from Drive's viewer.
-  // sz=s2048 requests a thumbnail up to 2048 px on its longest side.
-  var token = ScriptApp.getOAuthToken();
-  var authHeaders = { 'Authorization': 'Bearer ' + token };
-  var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
-
-  var resp = safeUrlFetch_(thumbUrl, authHeaders);
-  if (resp.ok && resp.response.getResponseCode() === 200) {
-    return resp.response.getBlob();
+  if (mimeType.indexOf('image/') !== 0) {
+    throw new Error('Unsupported RIB file type: ' + mimeType + '. Please use PNG or JPG.');
   }
 
-  // Fallback 2: Drive v3 thumbnailLink (more reliable in some tenants)
-  var metaResp = safeUrlFetch_('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=thumbnailLink', authHeaders);
-  if (metaResp.ok && metaResp.response.getResponseCode() === 200) {
-    var meta = JSON.parse(metaResp.response.getContentText() || '{}');
-    if (meta.thumbnailLink) {
-      var thumbResp = safeUrlFetch_(meta.thumbnailLink, authHeaders);
-      if (thumbResp.ok && thumbResp.response.getResponseCode() === 200) {
-        return thumbResp.response.getBlob();
-      }
-    }
-  }
-
-  if (resp.error || metaResp.error) {
-    var errText = String((resp.error && resp.error.message) || (metaResp.error && metaResp.error.message) || '');
-    if (errText.indexOf('script.external_request') !== -1 || errText.indexOf('UrlFetchApp') !== -1) {
-      throw new Error('Missing Apps Script authorization: enable URL Fetch scope (script.external_request), redeploy Web App, then run once as owner to grant permissions.');
-    }
-  }
-
-  throw new Error('Unable to read a PDF preview image from Drive for fileId: ' + fileId + '. If this keeps failing, upload RIB as PNG/JPG.');
-}
-
-function safeUrlFetch_(url, headers) {
-  try {
-    return {
-      ok: true,
-      response: UrlFetchApp.fetch(url, {
-        headers: headers,
-        muteHttpExceptions: true
-      }),
-      error: null
-    };
-  } catch (e) {
-    return { ok: false, response: null, error: e };
-  }
+  return file.getBlob();
 }
 
 
