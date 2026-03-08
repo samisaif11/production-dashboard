@@ -611,7 +611,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
         <div><label class="fl">Montant HT</label><input type="text" class="fi" id="fiDiffHT" placeholder="218 000"></div>
         <div><label class="fl">TVA %</label><select class="fs" id="fiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
         <div><label class="fl">Montant TTC</label><input type="text" class="fi" id="fiDiffTTC" placeholder="Auto-calculated" readonly style="opacity:.6"></div>
-        <div></div>
+        <div><label class="fl">Currency</label><select class="fs" id="fiCurrency"><option value="EUR">€ EUR</option><option value="USD">$ USD</option></select></div>
       </div>
 
       <!-- Extra lines (dynamic rows) -->
@@ -735,7 +735,7 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
     <div class="fg"><label class="fl">Montant HT</label><input type="text" class="fi" id="eiDiffHT"></div>
     <div class="fg"><label class="fl">TVA %</label><select class="fs" id="eiTVA"><option value="10">10%</option><option value="20">20%</option><option value="0">0%</option></select></div>
     <div class="fg"><label class="fl">Montant TTC</label><input type="text" class="fi" id="eiDiffTTC" readonly style="opacity:.6"></div>
-    <div></div>
+    <div class="fg"><label class="fl">Currency</label><select class="fs" id="eiCurrency"><option value="EUR">€ EUR</option><option value="USD">$ USD</option></select></div>
   </div>
   <!-- Extra lines (dynamic rows) -->
   <div id="eiExtraLines"></div>
@@ -1541,10 +1541,14 @@ function calcTTC(ht, tvaRate) {
   return ttc.toFixed(2);
 }
 
-function fmtEur(v) {
+function fmtAmt(v, currency) {
   const n = parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.')) || 0;
+  if ((currency || 'EUR') === 'USD') {
+    return '$ ' + n.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
   return n.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
 }
+function fmtEur(v) { return fmtAmt(v, 'EUR'); }
 
 function nextInvNum() {
   const yr = new Date().getFullYear();
@@ -1554,7 +1558,7 @@ function nextInvNum() {
     const num = parseInt(parts[1]) || 0;
     return Math.max(mx, num);
   }, 0);
-  return yr + '-' + String(maxSuffix + 1).padStart(3, '0');
+  return yr + '-' + String(maxSuffix + 1).padStart(2, '0');
 }
 
 function renderInv() {
@@ -1569,6 +1573,7 @@ function renderInv() {
 
   all.forEach(inv => {
     const pc = gpc(inv.project);
+    const cur = inv.currency || 'EUR';
     const extraLinesHT  = (inv.extraLines || []).reduce((s, l) => s + (parseFloat(String(l.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0), 0);
     const extraLinesTTC = (inv.extraLines || []).reduce((s, l) => s + (parseFloat(String(l.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0), 0);
     const totalHT  = (parseFloat(String(inv.montantHT  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0) + extraLinesHT;
@@ -1587,7 +1592,7 @@ function renderInv() {
           ${ba ? tg(ba.name, { c: '#06b6d4', b: 'rgba(6,182,212,.10)' }) : ''}
         </div>
       </div>
-      <div class="inv-amt">${fmtEur(totalTTC)}<div class="inv-amt-sub">HT: ${fmtEur(totalHT)}</div></div>
+      <div class="inv-amt">${fmtAmt(totalTTC, cur)}<div class="inv-amt-sub">HT: ${fmtAmt(totalHT, cur)}</div></div>
       <div class="inv-acts">
         <button class="inv-edit-btn" data-invid="${inv.id}">✎ Edit</button>
         ${inv.pdfUrl ? `<a href="${inv.pdfUrl}" target="_blank" style="font-size:.55rem;padding:4px 8px;border-radius:4px;border:1px solid var(--b0);color:var(--blue);text-decoration:none;font-family:'Outfit';font-weight:600;text-transform:uppercase;letter-spacing:.6px">📄 PDF</a>` : `<button class="inv-pdf-btn" data-invid="${inv.id}">📄 Gen PDF</button>`}
@@ -1673,10 +1678,10 @@ function initInvSug() {
   mkSug('fiClient', 'sugInvCl', () => (D.clients || []).map(c => ({ n: c.name, c: '#8a8898' })));
 }
 
-// Auto-calculate TTC when HT or TVA changes
-['fiDiffHT', 'fiTVA'].forEach(id => {
+// Auto-calculate TTC when HT, TVA, or currency changes
+['fiDiffHT', 'fiTVA', 'fiCurrency'].forEach(id => {
   $(id).addEventListener('input', () => {
-    $('fiDiffTTC').value = fmtEur(calcTTC($('fiDiffHT').value, +$('fiTVA').value));
+    $('fiDiffTTC').value = fmtAmt(calcTTC($('fiDiffHT').value, +$('fiTVA').value), $('fiCurrency').value);
   });
 });
 
@@ -1812,6 +1817,7 @@ $('siInv').onclick = () => {
     tvaRate: tvaRate,
     montantTTC: diffTTC,
     extraLines: fiLines.filter(l => l.label || l.ht),
+    currency: $('fiCurrency').value || 'EUR',
     status: 'draft',
     pdfUrl: '',
     emailSentDate: '',
@@ -1859,6 +1865,7 @@ function openEditInv(id) {
   $('eiDiffTTC').value = inv.montantTTC ? fmtEur(inv.montantTTC) : '';
   eiLines = (inv.extraLines || []).map(l => Object.assign({}, l));
   renderExtraLines('eiExtraLines', eiLines);
+  $('eiCurrency').value = inv.currency || 'EUR';
   $('eiBankAcct').value = inv.bankAccountId != null ? inv.bankAccountId : '';
   $('eiNotes').value = inv.notes || '';
   $('eiStatus').value = inv.status || 'draft';
@@ -1870,8 +1877,8 @@ function openEditInv(id) {
 }
 
 // Edit invoice TTC auto-calc
-['eiDiffHT','eiTVA'].forEach(id => $(id).addEventListener('input', () => {
-  $('eiDiffTTC').value = fmtEur(calcTTC($('eiDiffHT').value, +$('eiTVA').value));
+['eiDiffHT','eiTVA','eiCurrency'].forEach(id => $(id).addEventListener('input', () => {
+  $('eiDiffTTC').value = fmtAmt(calcTTC($('eiDiffHT').value, +$('eiTVA').value), $('eiCurrency').value);
 }));
 
 $('eiCn').onclick = () => { $('eiMdl').classList.remove('op'); eiId = null; eiLines = []; };
@@ -1898,6 +1905,7 @@ $('eiSv').onclick = () => {
     if (lblEl) { line.label = lblEl.value.trim(); }
   });
   inv.extraLines = eiLines.filter(l => l.label || l.ht);
+  inv.currency = $('eiCurrency').value || 'EUR';
   inv.bankAccountId = $('eiBankAcct').value !== '' ? +$('eiBankAcct').value : 0;
   inv.notes = $('eiNotes').value.trim();
   inv.status = $('eiStatus').value;
