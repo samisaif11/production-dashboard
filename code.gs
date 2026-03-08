@@ -684,7 +684,17 @@ function renderRibAsSecondPage_(body, ribBlob) {
   }
 
   while (body.getNumChildren() > cutIndex + 1) {
-    body.removeChild(body.getChild(cutIndex + 1));
+    var child = body.getChild(cutIndex + 1);
+    try {
+      body.removeChild(child);
+    } catch (e) {
+      // GAS prohibits removing the last paragraph in a body section.
+      // Clear its content instead so the body remains structurally valid.
+      if (child.getType() === DocumentApp.ElementType.PARAGRAPH) {
+        child.asParagraph().clear();
+      }
+      break;
+    }
   }
 
   // 2) Remove any residual page breaks/positioned images in the kept page
