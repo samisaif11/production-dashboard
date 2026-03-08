@@ -615,7 +615,7 @@ function generateInvoicePDF(invoiceData) {
     var replaced = false;
     var deterministicModeError = '';
     try {
-      replaced = renderRibAsSecondPage_(body, ribBlob);
+      replaced = renderRibAsSecondPage_(doc, body, ribBlob);
     } catch (e) {
       deterministicModeError = (e && e.message) ? e.message : String(e || 'Unknown error');
       replaced = false;
@@ -668,7 +668,7 @@ function generateInvoicePDF(invoiceData) {
 
 
 
-function renderRibAsSecondPage_(body, ribBlob) {
+function renderRibAsSecondPage_(doc, body, ribBlob) {
   // 1) Truncate template right after invoice totals on page 1.
   var cutIndex = -1;
   var anchor = findInvoiceEndElement_(body);
@@ -724,18 +724,59 @@ function renderRibAsSecondPage_(body, ribBlob) {
   } catch (e) {}
 
   var inserted = para.appendInlineImage(ribBlob);
-  // Make page-2 RIB as large as possible without crop.
-  // Use image intrinsic ratio (not placeholder ratio) and let Docs clamp to
-  // page limits when oversized values are requested.
+  // Fit as large as possible without crop, inside the printable area.
+  // We use intrinsic image ratio and computed page content bounds.
   var iw = 0;
   var ih = 0;
   try {
     iw = inserted.getWidth();
     ih = inserted.getHeight();
   } catch (e) {}
-  applyImageSizeSafely_(inserted, iw, ih, true, 2000, 2000);
+
+  var bounds = getPageContentBounds_(doc, body);
+  applyImageSizeSafely_(inserted, iw, ih, true, bounds.maxW, bounds.maxH);
 
   return true;
+}
+
+
+
+function getPageContentBounds_(doc, body) {
+  // Conservative defaults that avoid clipping on common Docs templates.
+  var defaultBounds = { maxW: 469, maxH: 703 };
+
+  try {
+    var pageWidth = null;
+    var pageHeight = null;
+    var mLeft = 0;
+    var mRight = 0;
+    var mTop = 0;
+    var mBottom = 0;
+
+    if (body && typeof body.getPageWidth === 'function') pageWidth = Number(body.getPageWidth()) || null;
+    if (body && typeof body.getPageHeight === 'function') pageHeight = Number(body.getPageHeight()) || null;
+    if (body && typeof body.getMarginLeft === 'function') mLeft = Number(body.getMarginLeft()) || 0;
+    if (body && typeof body.getMarginRight === 'function') mRight = Number(body.getMarginRight()) || 0;
+    if (body && typeof body.getMarginTop === 'function') mTop = Number(body.getMarginTop()) || 0;
+    if (body && typeof body.getMarginBottom === 'function') mBottom = Number(body.getMarginBottom()) || 0;
+
+    // Fallback page size to A4 in points if the API does not expose it.
+    if (!pageWidth || !pageHeight) {
+      pageWidth = 595;
+      pageHeight = 842;
+    }
+
+    var maxW = Math.max(1, Math.floor(pageWidth - mLeft - mRight));
+    var maxH = Math.max(1, Math.floor(pageHeight - mTop - mBottom));
+
+    // Keep within safe practical bounds for inline images in Docs.
+    maxW = Math.min(maxW, 469);
+    maxH = Math.min(maxH, 703);
+
+    return { maxW: maxW, maxH: maxH };
+  } catch (e) {
+    return defaultBounds;
+  }
 }
 
 function removeAllPageBreaks_(body) {
