@@ -195,6 +195,9 @@ function doPost(e) {
       lock.releaseLock();
       try {
         const inv = D.invoiceData;
+        if (!inv || typeof inv !== 'object') {
+          throw new Error('Missing invoiceData payload for PDF generation. Please refresh and try again.');
+        }
         const selectedBankId = str(inv.bankAccountId);
         const ba = (D.bankAccounts || []).find(b => str(b.id) === selectedBankId);
 
@@ -513,6 +516,10 @@ function setupSheets() {
 // ═══════════════════════════════════════════════════════════════
 
 function generateInvoicePDF(invoiceData) {
+  if (!invoiceData || typeof invoiceData !== 'object') {
+    throw new Error('generateInvoicePDF requires a valid invoiceData object.');
+  }
+
   // 1. Copy template to invoices folder
   const template = DriveApp.getFileById(INVOICE_TEMPLATE_ID);
   const folder   = DriveApp.getFolderById(INVOICE_FOLDER_ID);
@@ -613,8 +620,22 @@ function generateInvoicePDF(invoiceData) {
       if (footer) replaced = replaceRibPlaceholderInContainer(footer, ribBlob) || replaced;
     }
 
+    // Fallback mode: if template marker is missing, replace the largest image
+    // (usually the full-page RIB placeholder on page 2).
     if (!replaced) {
-      throw new Error('RIB placeholder not found. Set Alt Text (Title or Description) exactly to "rib-placeholder" on the template image.');
+      replaced = replaceLargestImageInContainer(body, ribBlob) || replaced;
+      if (!replaced) {
+        var h2 = doc.getHeader();
+        if (h2) replaced = replaceLargestImageInContainer(h2, ribBlob) || replaced;
+      }
+      if (!replaced) {
+        var f2 = doc.getFooter();
+        if (f2) replaced = replaceLargestImageInContainer(f2, ribBlob) || replaced;
+      }
+    }
+
+    if (!replaced) {
+      throw new Error('RIB placeholder not found. Add alt text "rib-placeholder" to the template image, or keep a large placeholder image for fallback replacement.');
     }
   }
 
@@ -644,17 +665,10 @@ function replaceRibPlaceholderInContainer(container, ribBlob) {
     var img = inlineImgs[i];
     if (!isRibPlaceholderImage_(img)) continue;
 
-    var origWidth  = img.getWidth();
-    var origHeight = img.getHeight();
     var parent = img.getParent();
     var idx = parent.getChildIndex(img);
     img.removeFromParent();
-    var newImg = parent.insertInlineImage(idx, ribBlob);
-    // Preserve original placeholder dimensions so the RIB fits the layout
-    if (origWidth && origHeight) {
-      newImg.setWidth(origWidth);
-      newImg.setHeight(origHeight);
-    }
+    parent.insertInlineImage(idx, ribBlob);
     replaced = true;
   }
 
@@ -684,6 +698,54 @@ function replaceRibPlaceholderInContainer(container, ribBlob) {
   return replaced;
 }
 
+
+function replaceLargestImageInContainer(container, ribBlob) {
+  var best = null;
+
+  var inlineImgs = container.getImages();
+  for (var i = 0; i < inlineImgs.length; i++) {
+    var img = inlineImgs[i];
+    var area = 0;
+    try { area = (img.getWidth() || 0) * (img.getHeight() || 0); } catch (e) {}
+    if (!best || area > best.area) best = { type: 'inline', img: img, area: area };
+  }
+
+  if (container.getPositionedImages) {
+    var posImgs = container.getPositionedImages();
+    for (var p = 0; p < posImgs.length; p++) {
+      var pimg = posImgs[p];
+      var parea = 0;
+      try { parea = (pimg.getWidth() || 0) * (pimg.getHeight() || 0); } catch (e) {}
+      if (!best || parea > best.area) best = { type: 'positioned', img: pimg, area: parea };
+    }
+  }
+
+  if (!best) return false;
+
+  if (best.type === 'inline') {
+    var parent = best.img.getParent();
+    var idx = parent.getChildIndex(best.img);
+    best.img.removeFromParent();
+    parent.insertInlineImage(idx, ribBlob);
+    return true;
+  }
+
+  try {
+    best.img.setImage(ribBlob);
+    return true;
+  } catch (e) {
+    var anchorParagraph = best.img.getAnchor().asParagraph();
+    var w = best.img.getWidth();
+    var h = best.img.getHeight();
+    best.img.remove();
+    var inserted = anchorParagraph.appendInlineImage(ribBlob);
+    inserted.setWidth(w);
+    inserted.setHeight(h);
+    return true;
+  }
+}
+
+
 /**
  * Returns an image-compatible blob for the given Drive file ID.
  * - Image files (JPEG, PNG…): returned as-is.
@@ -699,85 +761,37 @@ function getRibBlob(fileId) {
     return file.getBlob();
   }
 
-  // PDF → render as image. We try multiple approaches.
-  var errors = [];
-
-  // ── Approach 1: Google Docs conversion (preferred — no UrlFetchApp needed) ──
-  // Import the PDF into Google Docs (which rasterizes it), then extract
-  // the page image from the converted document. Uses only DriveApp and
-  // the Advanced Drive Service, so it works even without the
-  // script.external_request OAuth scope.
-  try {
-    var pdfBlob = file.getBlob();
-    var convResource = {
-      title: 'temp-rib-convert-' + fileId,
-      mimeType: 'application/vnd.google-apps.document'
-    };
-    var convFile = Drive.Files.insert(convResource, pdfBlob, { convert: true });
-    var convDoc  = DocumentApp.openById(convFile.id);
-    var convBody = convDoc.getBody();
-    var convImgs = convBody.getImages();
-    if (convImgs.length > 0) {
-      var imgBlob = convImgs[0].getBlob();
-      imgBlob.setName('rib-' + fileId + '.png');
-      DriveApp.getFileById(convFile.id).setTrashed(true);
-      return imgBlob;
-    }
-    // Conversion succeeded but no images found — trash and continue
-    DriveApp.getFileById(convFile.id).setTrashed(true);
-    errors.push('Docs conversion: no images found in converted document');
-  } catch (convErr) {
-    errors.push('Docs conversion: ' + convErr.message);
-  }
-
-  // ── Approach 2: Drive API v3 thumbnailLink ──
-  // The API returns a signed CDN URL (lh3.googleusercontent.com) that
-  // does NOT need auth headers. We enlarge it from the default =s220
-  // to =s4000 for document-quality resolution.
+  // PDF → fetch first page as high-resolution image from Drive's viewer.
+  // sz=s2048 requests a thumbnail up to 2048 px on its longest side.
   var token = ScriptApp.getOAuthToken();
   var authHeaders = { 'Authorization': 'Bearer ' + token };
-  var metaResp = safeUrlFetch_(
-    'https://www.googleapis.com/drive/v3/files/' + fileId +
-    '?fields=thumbnailLink,hasThumbnail',
-    authHeaders
-  );
+  var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
+
+  var resp = safeUrlFetch_(thumbUrl, authHeaders);
+  if (resp.ok && resp.response.getResponseCode() === 200) {
+    return resp.response.getBlob();
+  }
+
+  // Fallback 2: Drive v3 thumbnailLink (more reliable in some tenants)
+  var metaResp = safeUrlFetch_('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=thumbnailLink', authHeaders);
   if (metaResp.ok && metaResp.response.getResponseCode() === 200) {
     var meta = JSON.parse(metaResp.response.getContentText() || '{}');
     if (meta.thumbnailLink) {
-      var bigThumbUrl = meta.thumbnailLink.replace(/=s\d+$/, '=s4000');
-      var thumbResp = safeUrlFetch_(bigThumbUrl, {});
+      var thumbResp = safeUrlFetch_(meta.thumbnailLink, authHeaders);
       if (thumbResp.ok && thumbResp.response.getResponseCode() === 200) {
-        var contentType = thumbResp.response.getHeaders()['Content-Type'] || '';
-        if (contentType.indexOf('image') !== -1) {
-          var blob = thumbResp.response.getBlob();
-          blob.setName('rib-' + fileId + '.png');
-          return blob;
-        }
+        return thumbResp.response.getBlob();
       }
     }
   }
-  if (metaResp.error) errors.push('thumbnailLink: ' + metaResp.error.message);
 
-  // ── Approach 3: drive.google.com/thumbnail with OAuth ──
-  var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
-  var resp = safeUrlFetch_(thumbUrl, authHeaders);
-  if (resp.ok && resp.response.getResponseCode() === 200) {
-    var ct = resp.response.getHeaders()['Content-Type'] || '';
-    if (ct.indexOf('image') !== -1) {
-      var blob2 = resp.response.getBlob();
-      blob2.setName('rib-' + fileId + '.png');
-      return blob2;
+  if (resp.error || metaResp.error) {
+    var errText = String((resp.error && resp.error.message) || (metaResp.error && metaResp.error.message) || '');
+    if (errText.indexOf('script.external_request') !== -1 || errText.indexOf('UrlFetchApp') !== -1) {
+      throw new Error('Missing Apps Script authorization: enable URL Fetch scope (script.external_request), redeploy Web App, then run once as owner to grant permissions.');
     }
   }
-  if (resp.error) errors.push('thumbnail endpoint: ' + resp.error.message);
 
-  // ── Build a helpful error message ──
-  var errDetail = errors.length ? ' (' + errors.join('; ') + ')' : '';
-
-  throw new Error(
-    'Unable to render PDF as image for RIB fileId: ' + fileId + '.' + errDetail +
-    ' Try uploading the RIB as a PNG or JPG image instead.'
-  );
+  throw new Error('Unable to read a PDF preview image from Drive for fileId: ' + fileId + '. If this keeps failing, upload RIB as PNG/JPG.');
 }
 
 function safeUrlFetch_(url, headers) {
