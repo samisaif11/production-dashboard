@@ -819,3 +819,9 @@ function formatDateFR(dateStr) {
   var d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
+
+/** Run this once from the editor to trigger OAuth consent for the Advanced Drive Service */
+function triggerAuth() {
+  var about = Drive.About.get();
+  Logger.log('Authorized as: ' + about.user.displayName);
+}
