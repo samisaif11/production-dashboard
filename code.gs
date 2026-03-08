@@ -687,7 +687,8 @@ function replaceRibPlaceholderInContainer(container, ribBlob) {
 /**
  * Returns an image-compatible blob for the given Drive file ID.
  * - Image files (JPEG, PNG…): returned as-is.
- * - PDF files: rendered as a high-res image via Drive API v3 thumbnailLink.
+ * - PDF files: rendered as a high-res image via Google Docs conversion
+ *   (primary) or Drive API thumbnailLink (fallback).
  */
 function getRibBlob(fileId) {
   var file     = DriveApp.getFileById(fileId);
@@ -698,54 +699,14 @@ function getRibBlob(fileId) {
     return file.getBlob();
   }
 
-  // PDF → render first page as high-resolution image via Drive API.
-  var token = ScriptApp.getOAuthToken();
-  var authHeaders = { 'Authorization': 'Bearer ' + token };
+  // PDF → render as image. We try multiple approaches.
+  var errors = [];
 
-  // ── Approach 1: Drive API v3 thumbnailLink (most reliable) ──
-  // The API returns a signed CDN URL (lh3.googleusercontent.com) that
-  // does NOT need auth headers. We enlarge it from the default =s220
-  // to =s4000 for document-quality resolution.
-  var metaResp = safeUrlFetch_(
-    'https://www.googleapis.com/drive/v3/files/' + fileId +
-    '?fields=thumbnailLink,hasThumbnail',
-    authHeaders
-  );
-  if (metaResp.ok && metaResp.response.getResponseCode() === 200) {
-    var meta = JSON.parse(metaResp.response.getContentText() || '{}');
-    if (meta.thumbnailLink) {
-      // Enlarge: replace trailing =sNNN with =s4000 for high-res render
-      var bigThumbUrl = meta.thumbnailLink.replace(/=s\d+$/, '=s4000');
-      // CDN URLs are self-authenticating — do NOT send auth headers
-      var thumbResp = safeUrlFetch_(bigThumbUrl, {});
-      if (thumbResp.ok && thumbResp.response.getResponseCode() === 200) {
-        var contentType = thumbResp.response.getHeaders()['Content-Type'] || '';
-        if (contentType.indexOf('image') !== -1) {
-          var blob = thumbResp.response.getBlob();
-          blob.setName('rib-' + fileId + '.png');
-          return blob;
-        }
-      }
-    }
-  }
-
-  // ── Approach 2: drive.google.com/thumbnail with OAuth ──
-  // This endpoint sometimes works with Bearer tokens in certain tenants.
-  var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
-  var resp = safeUrlFetch_(thumbUrl, authHeaders);
-  if (resp.ok && resp.response.getResponseCode() === 200) {
-    var ct = resp.response.getHeaders()['Content-Type'] || '';
-    // Only accept actual image responses — this endpoint may return HTML
-    if (ct.indexOf('image') !== -1) {
-      var blob2 = resp.response.getBlob();
-      blob2.setName('rib-' + fileId + '.png');
-      return blob2;
-    }
-  }
-
-  // ── Approach 3: Google Docs conversion ──
+  // ── Approach 1: Google Docs conversion (preferred — no UrlFetchApp needed) ──
   // Import the PDF into Google Docs (which rasterizes it), then extract
-  // the page image from the converted document.
+  // the page image from the converted document. Uses only DriveApp and
+  // the Advanced Drive Service, so it works even without the
+  // script.external_request OAuth scope.
   try {
     var pdfBlob = file.getBlob();
     var convResource = {
@@ -762,23 +723,56 @@ function getRibBlob(fileId) {
       DriveApp.getFileById(convFile.id).setTrashed(true);
       return imgBlob;
     }
+    // Conversion succeeded but no images found — trash and continue
     DriveApp.getFileById(convFile.id).setTrashed(true);
+    errors.push('Docs conversion: no images found in converted document');
   } catch (convErr) {
-    // Drive Advanced Service may not be enabled — continue to error
+    errors.push('Docs conversion: ' + convErr.message);
   }
+
+  // ── Approach 2: Drive API v3 thumbnailLink ──
+  // The API returns a signed CDN URL (lh3.googleusercontent.com) that
+  // does NOT need auth headers. We enlarge it from the default =s220
+  // to =s4000 for document-quality resolution.
+  var token = ScriptApp.getOAuthToken();
+  var authHeaders = { 'Authorization': 'Bearer ' + token };
+  var metaResp = safeUrlFetch_(
+    'https://www.googleapis.com/drive/v3/files/' + fileId +
+    '?fields=thumbnailLink,hasThumbnail',
+    authHeaders
+  );
+  if (metaResp.ok && metaResp.response.getResponseCode() === 200) {
+    var meta = JSON.parse(metaResp.response.getContentText() || '{}');
+    if (meta.thumbnailLink) {
+      var bigThumbUrl = meta.thumbnailLink.replace(/=s\d+$/, '=s4000');
+      var thumbResp = safeUrlFetch_(bigThumbUrl, {});
+      if (thumbResp.ok && thumbResp.response.getResponseCode() === 200) {
+        var contentType = thumbResp.response.getHeaders()['Content-Type'] || '';
+        if (contentType.indexOf('image') !== -1) {
+          var blob = thumbResp.response.getBlob();
+          blob.setName('rib-' + fileId + '.png');
+          return blob;
+        }
+      }
+    }
+  }
+  if (metaResp.error) errors.push('thumbnailLink: ' + metaResp.error.message);
+
+  // ── Approach 3: drive.google.com/thumbnail with OAuth ──
+  var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
+  var resp = safeUrlFetch_(thumbUrl, authHeaders);
+  if (resp.ok && resp.response.getResponseCode() === 200) {
+    var ct = resp.response.getHeaders()['Content-Type'] || '';
+    if (ct.indexOf('image') !== -1) {
+      var blob2 = resp.response.getBlob();
+      blob2.setName('rib-' + fileId + '.png');
+      return blob2;
+    }
+  }
+  if (resp.error) errors.push('thumbnail endpoint: ' + resp.error.message);
 
   // ── Build a helpful error message ──
-  var errors = [];
-  if (metaResp.error) errors.push('thumbnailLink: ' + metaResp.error.message);
-  if (resp.error) errors.push('thumbnail endpoint: ' + resp.error.message);
   var errDetail = errors.length ? ' (' + errors.join('; ') + ')' : '';
-
-  if (errDetail.indexOf('script.external_request') !== -1 || errDetail.indexOf('UrlFetchApp') !== -1) {
-    throw new Error(
-      'Missing Apps Script authorization: open the script editor, run any function manually ' +
-      'to trigger the OAuth consent screen, then redeploy the Web App.'
-    );
-  }
 
   throw new Error(
     'Unable to render PDF as image for RIB fileId: ' + fileId + '.' + errDetail +
