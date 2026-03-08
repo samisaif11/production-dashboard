@@ -211,19 +211,10 @@ function generateInvoicePDF(invoiceData) {
   body.replaceText('{{totalHT}}', totalHT.toFixed(2));
   body.replaceText('{{totalTTC}}', totalTTC.toFixed(2));
 
-  // 3. Replace RIB image
+  // 3. Replace RIB image (supports inline + positioned placeholders)
   if (invoiceData.ribImageFileId) {
-    const images = body.getImages();
-    for (const img of images) {
-      if (img.getAltDescription() === 'rib-placeholder') {
-        const ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
-        const parent = img.getParent();
-        const idx = parent.getChildIndex(img);
-        img.removeFromParent();
-        parent.insertInlineImage(idx, ribBlob);
-        break;
-      }
-    }
+    const ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
+    replaceRibPlaceholderInBody(body, ribBlob);
   }
 
   // 4. Export as PDF
@@ -236,6 +227,44 @@ function generateInvoicePDF(invoiceData) {
   DriveApp.getFileById(copy.getId()).setTrashed(true);
 
   return pdfFile.getUrl();
+}
+
+/**
+ * Replace the invoice RIB placeholder image in a Doc body.
+ * Handles both inline images and positioned (wrapped/floating) images.
+ */
+function replaceRibPlaceholderInBody(body, ribBlob) {
+  const placeholderAlt = 'rib-placeholder';
+
+  // 1) Inline image placeholders
+  const inlineImages = body.getImages();
+  for (const img of inlineImages) {
+    if (img.getAltDescription() === placeholderAlt) {
+      const parent = img.getParent();
+      const idx = parent.getChildIndex(img);
+      img.removeFromParent();
+      parent.insertInlineImage(idx, ribBlob);
+      return true;
+    }
+  }
+
+  // 2) Positioned image placeholders (wrap/break/floating)
+  const positionedImages = body.getPositionedImages();
+  for (const pImg of positionedImages) {
+    if (pImg.getAltDescription() === placeholderAlt) {
+      const anchorParagraph = pImg.getAnchor().asParagraph();
+      const width = pImg.getWidth();
+      const height = pImg.getHeight();
+      pImg.remove();
+
+      const inserted = anchorParagraph.appendInlineImage(ribBlob);
+      inserted.setWidth(width);
+      inserted.setHeight(height);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 function formatDateFR(dateStr) {
