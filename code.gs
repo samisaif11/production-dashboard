@@ -698,31 +698,30 @@ function getRibBlob(fileId) {
   var token   = ScriptApp.getOAuthToken();
   var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
 
-  try {
-    var resp = UrlFetchApp.fetch(thumbUrl, {
-      headers: { 'Authorization': 'Bearer ' + token },
-      muteHttpExceptions: true
-    });
+  if (resp.getResponseCode() === 200) {
+    var b1 = resp.getBlob();
+    b1.setContentType('image/jpeg');
+    b1.setName('rib.jpg');
+    return b1;
+  }
 
-    if (resp.getResponseCode() === 200) {
-      return resp.getBlob();
-    }
-
-    // Fallback 2: Drive v3 thumbnailLink (more reliable in some tenants)
-    var metaResp = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=thumbnailLink', {
-      headers: { 'Authorization': 'Bearer ' + token },
-      muteHttpExceptions: true
-    });
-    if (metaResp.getResponseCode() === 200) {
-      var meta = JSON.parse(metaResp.getContentText() || '{}');
-      if (meta.thumbnailLink) {
-        var thumbResp = UrlFetchApp.fetch(meta.thumbnailLink, {
-          headers: { 'Authorization': 'Bearer ' + token },
-          muteHttpExceptions: true
-        });
-        if (thumbResp.getResponseCode() === 200) {
-          return thumbResp.getBlob();
-        }
+  // Fallback 2: Drive v3 thumbnailLink (more reliable in some tenants)
+  var metaResp = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=thumbnailLink', {
+    headers: { 'Authorization': 'Bearer ' + token },
+    muteHttpExceptions: true
+  });
+  if (metaResp.getResponseCode() === 200) {
+    var meta = JSON.parse(metaResp.getContentText() || '{}');
+    if (meta.thumbnailLink) {
+      var thumbResp = UrlFetchApp.fetch(meta.thumbnailLink, {
+        headers: { 'Authorization': 'Bearer ' + token },
+        muteHttpExceptions: true
+      });
+      if (thumbResp.getResponseCode() === 200) {
+        var b2 = thumbResp.getBlob();
+        b2.setContentType('image/jpeg');
+        b2.setName('rib.jpg');
+        return b2;
       }
     }
   } catch (e) {
