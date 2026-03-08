@@ -179,71 +179,6 @@ function doGet(e) {
   }
 }
 
-function generateInvoicePDF(invoiceData) {
-  // 1. Copy template
-  const template = DriveApp.getFileById(INVOICE_TEMPLATE_ID);
-  const folder = DriveApp.getFolderById(INVOICE_FOLDER_ID);
-  const fileName = `${invoiceData.date.replace(/-/g,'')} - ${invoiceData.client} - ${invoiceData.project} - ${invoiceData.description} - ${invoiceData.invoiceNumber.split('-')[1]}`;
-  const copy = template.makeCopy(fileName, folder);
-  const doc = DocumentApp.openById(copy.getId());
-  const body = doc.getBody();
-
-  // 2. Replace text placeholders
-  body.replaceText('{{invoiceNumber}}', invoiceData.invoiceNumber);
-  body.replaceText('{{date}}', formatDateFR(invoiceData.date));
-  body.replaceText('{{clientName}}', invoiceData.client);
-  body.replaceText('{{clientAddress}}', invoiceData.clientAddress || '');
-  body.replaceText('{{clientSIREN}}', invoiceData.clientSIREN || '');
-  body.replaceText('{{clientCostCenter}}', invoiceData.clientCostCenter || '');
-  body.replaceText('{{clientDealRef}}', invoiceData.clientDealRef || '');
-  body.replaceText('{{projectName}}', invoiceData.project || '');
-  body.replaceText('{{description}}', invoiceData.description || '');
-  body.replaceText('{{diffusionHT}}', invoiceData.montantHT || '');
-  body.replaceText('{{tvaRate}}', String(invoiceData.tvaRate || 10));
-  body.replaceText('{{diffusionTTC}}', invoiceData.montantTTC || '');
-  body.replaceText('{{catchupHT}}', invoiceData.catchupHT || '—');
-  body.replaceText('{{catchupTVA}}', String(invoiceData.catchupTVA || 10));
-  body.replaceText('{{catchupTTC}}', invoiceData.catchupTTC || '—');
-  
-  // Calculate totals
-  const totalHT = (parseFloat(invoiceData.montantHT) || 0) + (parseFloat(invoiceData.catchupHT) || 0);
-  const totalTTC = (parseFloat(invoiceData.montantTTC) || 0) + (parseFloat(invoiceData.catchupTTC) || 0);
-  body.replaceText('{{totalHT}}', totalHT.toFixed(2));
-  body.replaceText('{{totalTTC}}', totalTTC.toFixed(2));
-
-  // 3. Replace RIB image
-  if (invoiceData.ribImageFileId) {
-    const images = body.getImages();
-    for (const img of images) {
-      if (img.getAltDescription() === 'rib-placeholder') {
-        const ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
-        const parent = img.getParent();
-        const idx = parent.getChildIndex(img);
-        img.removeFromParent();
-        parent.insertInlineImage(idx, ribBlob);
-        break;
-      }
-    }
-  }
-
-  // 4. Export as PDF
-  doc.saveAndClose();
-  const pdfBlob = DriveApp.getFileById(copy.getId()).getAs('application/pdf');
-  pdfBlob.setName(fileName + '.pdf');
-  const pdfFile = folder.createFile(pdfBlob);
-
-  // 5. Delete the Doc copy (keep only PDF)
-  DriveApp.getFileById(copy.getId()).setTrashed(true);
-
-  return pdfFile.getUrl();
-}
-
-function formatDateFR(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
 // ═══════════════════════════════════════════════════════════════
 //  doPost — WRITE full D object to all sheets
 // ═══════════════════════════════════════════════════════════════
@@ -649,51 +584,28 @@ function generateInvoicePDF(invoiceData) {
   body.replaceText('\\{\\{totalTTC\\}\\}', fmtAmountPDF(totalTTC, cur));
 
   // 6. Replace RIB placeholder image.
-  // body.getImages() only returns INLINE images.  If the placeholder was
-  // inserted as a floating/wrapped image it becomes a PositionedImage and
-  // won't appear in getImages().  We search both collections.
+  // We support inline, positioned, header and footer placeholders.
+  // IMPORTANT: we fail hard when replacement cannot be done so the UI
+  // gets an explicit error instead of silently generating a PDF with the
+  // old placeholder still visible.
   if (invoiceData.ribImageFileId) {
-    var ribBlob = null;
-    try { ribBlob = getRibBlob(invoiceData.ribImageFileId); } catch(e) { Logger.log('getRibBlob: ' + e.message); }
+    var ribBlob = getRibBlob(invoiceData.ribImageFileId);
+    if (!ribBlob) {
+      throw new Error('RIB file could not be converted to an image. If your RIB is a PDF, try uploading a PNG/JPG.');
+    }
 
-    if (ribBlob) {
-      var replaced = false;
+    var replaced = replaceRibPlaceholderInContainer(body, ribBlob);
+    if (!replaced) {
+      var header = doc.getHeader();
+      if (header) replaced = replaceRibPlaceholderInContainer(header, ribBlob) || replaced;
+    }
+    if (!replaced) {
+      var footer = doc.getFooter();
+      if (footer) replaced = replaceRibPlaceholderInContainer(footer, ribBlob) || replaced;
+    }
 
-      // — Inline images —
-      var inlineImgs = body.getImages();
-      for (var i = 0; i < inlineImgs.length && !replaced; i++) {
-        var img = inlineImgs[i];
-        if ((img.getAltDescription() || '') === 'rib-placeholder' ||
-            (img.getAltTitle()       || '') === 'rib-placeholder') {
-          try {
-            var par = img.getParent();
-            var pos = par.getChildIndex(img);
-            img.removeFromParent();
-            par.insertInlineImage(pos, ribBlob);
-            replaced = true;
-          } catch(e) { Logger.log('Inline RIB replace failed: ' + e.message); }
-        }
-      }
-
-      // — Positioned (floating/wrapped) images — searched paragraph by paragraph
-      if (!replaced) {
-        var paras = body.getParagraphs();
-        for (var p = 0; p < paras.length && !replaced; p++) {
-          var posImgs = paras[p].getPositionedImages();
-          for (var pi = 0; pi < posImgs.length && !replaced; pi++) {
-            var posImg = posImgs[pi];
-            if ((posImg.getAltDescription() || '') === 'rib-placeholder' ||
-                (posImg.getAltTitle()       || '') === 'rib-placeholder') {
-              try {
-                posImg.setImage(ribBlob);
-                replaced = true;
-              } catch(e) { Logger.log('Positioned RIB replace failed: ' + e.message); }
-            }
-          }
-        }
-      }
-
-      if (!replaced) Logger.log('RIB placeholder image not found in document.');
+    if (!replaced) {
+      throw new Error('RIB placeholder not found. Set Alt Text (Title or Description) exactly to "rib-placeholder" on the template image.');
     }
   }
 
@@ -705,6 +617,55 @@ function generateInvoicePDF(invoiceData) {
   DriveApp.getFileById(copy.getId()).setTrashed(true);
 
   return pdfFile.getUrl();
+}
+
+
+function isRibPlaceholderImage_(img) {
+  var altDesc = String(img.getAltDescription ? (img.getAltDescription() || '') : '').trim().toLowerCase();
+  var altTitle = String(img.getAltTitle ? (img.getAltTitle() || '') : '').trim().toLowerCase();
+  return altDesc === 'rib-placeholder' || altTitle === 'rib-placeholder';
+}
+
+function replaceRibPlaceholderInContainer(container, ribBlob) {
+  var replaced = false;
+
+  // Inline images
+  var inlineImgs = container.getImages();
+  for (var i = 0; i < inlineImgs.length && !replaced; i++) {
+    var img = inlineImgs[i];
+    if (!isRibPlaceholderImage_(img)) continue;
+
+    var parent = img.getParent();
+    var idx = parent.getChildIndex(img);
+    img.removeFromParent();
+    parent.insertInlineImage(idx, ribBlob);
+    replaced = true;
+  }
+
+  // Positioned images
+  if (!replaced && container.getPositionedImages) {
+    var posImgs = container.getPositionedImages();
+    for (var p = 0; p < posImgs.length && !replaced; p++) {
+      var posImg = posImgs[p];
+      if (!isRibPlaceholderImage_(posImg)) continue;
+
+      try {
+        posImg.setImage(ribBlob);
+      } catch (e) {
+        // Fallback: remove floating image and insert inline at anchor paragraph.
+        var anchorParagraph = posImg.getAnchor().asParagraph();
+        var w = posImg.getWidth();
+        var h = posImg.getHeight();
+        posImg.remove();
+        var inserted = anchorParagraph.appendInlineImage(ribBlob);
+        inserted.setWidth(w);
+        inserted.setHeight(h);
+      }
+      replaced = true;
+    }
+  }
+
+  return replaced;
 }
 
 /**
@@ -736,9 +697,25 @@ function getRibBlob(fileId) {
     return resp.getBlob();
   }
 
-  // Fallback: log and return null so the placeholder is left untouched
-  Logger.log('RIB thumbnail fetch failed (HTTP ' + resp.getResponseCode() + ') for fileId: ' + fileId);
-  return null;
+  // Fallback 2: Drive v3 thumbnailLink (more reliable in some tenants)
+  var metaResp = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=thumbnailLink', {
+    headers: { 'Authorization': 'Bearer ' + token },
+    muteHttpExceptions: true
+  });
+  if (metaResp.getResponseCode() === 200) {
+    var meta = JSON.parse(metaResp.getContentText() || '{}');
+    if (meta.thumbnailLink) {
+      var thumbResp = UrlFetchApp.fetch(meta.thumbnailLink, {
+        headers: { 'Authorization': 'Bearer ' + token },
+        muteHttpExceptions: true
+      });
+      if (thumbResp.getResponseCode() === 200) {
+        return thumbResp.getBlob();
+      }
+    }
+  }
+
+  throw new Error('Unable to read a PDF preview image from Drive for fileId: ' + fileId);
 }
 
 /** Format a number as a currency amount for PDF.
