@@ -703,7 +703,10 @@ function getRibBlob(fileId) {
   });
 
   if (resp.getResponseCode() === 200) {
-    return resp.getBlob();
+    var b1 = resp.getBlob();
+    b1.setContentType('image/jpeg');
+    b1.setName('rib.jpg');
+    return b1;
   }
 
   // Fallback 2: Drive v3 thumbnailLink (more reliable in some tenants)
@@ -719,7 +722,10 @@ function getRibBlob(fileId) {
         muteHttpExceptions: true
       });
       if (thumbResp.getResponseCode() === 200) {
-        return thumbResp.getBlob();
+        var b2 = thumbResp.getBlob();
+        b2.setContentType('image/jpeg');
+        b2.setName('rib.jpg');
+        return b2;
       }
     }
   }
