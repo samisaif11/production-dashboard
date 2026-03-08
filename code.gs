@@ -179,71 +179,6 @@ function doGet(e) {
   }
 }
 
-function generateInvoicePDF(invoiceData) {
-  // 1. Copy template
-  const template = DriveApp.getFileById(INVOICE_TEMPLATE_ID);
-  const folder = DriveApp.getFolderById(INVOICE_FOLDER_ID);
-  const fileName = `${invoiceData.date.replace(/-/g,'')} - ${invoiceData.client} - ${invoiceData.project} - ${invoiceData.description} - ${invoiceData.invoiceNumber.split('-')[1]}`;
-  const copy = template.makeCopy(fileName, folder);
-  const doc = DocumentApp.openById(copy.getId());
-  const body = doc.getBody();
-
-  // 2. Replace text placeholders
-  body.replaceText('{{invoiceNumber}}', invoiceData.invoiceNumber);
-  body.replaceText('{{date}}', formatDateFR(invoiceData.date));
-  body.replaceText('{{clientName}}', invoiceData.client);
-  body.replaceText('{{clientAddress}}', invoiceData.clientAddress || '');
-  body.replaceText('{{clientSIREN}}', invoiceData.clientSIREN || '');
-  body.replaceText('{{clientCostCenter}}', invoiceData.clientCostCenter || '');
-  body.replaceText('{{clientDealRef}}', invoiceData.clientDealRef || '');
-  body.replaceText('{{projectName}}', invoiceData.project || '');
-  body.replaceText('{{description}}', invoiceData.description || '');
-  body.replaceText('{{diffusionHT}}', invoiceData.montantHT || '');
-  body.replaceText('{{tvaRate}}', String(invoiceData.tvaRate || 10));
-  body.replaceText('{{diffusionTTC}}', invoiceData.montantTTC || '');
-  body.replaceText('{{catchupHT}}', invoiceData.catchupHT || '—');
-  body.replaceText('{{catchupTVA}}', String(invoiceData.catchupTVA || 10));
-  body.replaceText('{{catchupTTC}}', invoiceData.catchupTTC || '—');
-  
-  // Calculate totals
-  const totalHT = (parseFloat(invoiceData.montantHT) || 0) + (parseFloat(invoiceData.catchupHT) || 0);
-  const totalTTC = (parseFloat(invoiceData.montantTTC) || 0) + (parseFloat(invoiceData.catchupTTC) || 0);
-  body.replaceText('{{totalHT}}', totalHT.toFixed(2));
-  body.replaceText('{{totalTTC}}', totalTTC.toFixed(2));
-
-  // 3. Replace RIB image
-  if (invoiceData.ribImageFileId) {
-    const images = body.getImages();
-    for (const img of images) {
-      if (img.getAltDescription() === 'rib-placeholder') {
-        const ribBlob = DriveApp.getFileById(invoiceData.ribImageFileId).getBlob();
-        const parent = img.getParent();
-        const idx = parent.getChildIndex(img);
-        img.removeFromParent();
-        parent.insertInlineImage(idx, ribBlob);
-        break;
-      }
-    }
-  }
-
-  // 4. Export as PDF
-  doc.saveAndClose();
-  const pdfBlob = DriveApp.getFileById(copy.getId()).getAs('application/pdf');
-  pdfBlob.setName(fileName + '.pdf');
-  const pdfFile = folder.createFile(pdfBlob);
-
-  // 5. Delete the Doc copy (keep only PDF)
-  DriveApp.getFileById(copy.getId()).setTrashed(true);
-
-  return pdfFile.getUrl();
-}
-
-function formatDateFR(dateStr) {
-  if (!dateStr) return '';
-  const d = new Date(dateStr + 'T00:00:00');
-  return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-}
-
 // ═══════════════════════════════════════════════════════════════
 //  doPost — WRITE full D object to all sheets
 // ═══════════════════════════════════════════════════════════════
@@ -260,7 +195,19 @@ function doPost(e) {
       lock.releaseLock();
       try {
         const inv = D.invoiceData;
-        const ba = (D.bankAccounts || []).find(b => b.id === inv.bankAccountId);
+        if (!inv || typeof inv !== 'object') {
+          throw new Error('Missing invoiceData payload for PDF generation. Please refresh and try again.');
+        }
+        const selectedBankId = str(inv.bankAccountId);
+        const ba = (D.bankAccounts || []).find(b => str(b.id) === selectedBankId);
+
+        if (selectedBankId && !ba) {
+          throw new Error('Selected bank account was not found. Please refresh and select the bank again.');
+        }
+        if (selectedBankId && ba && !str(ba.ribImageFileId)) {
+          throw new Error('Selected bank account has no RIB file ID configured.');
+        }
+
         const pdfUrl = generateInvoicePDF(Object.assign({}, inv, {
           ribImageFileId: ba ? ba.ribImageFileId : ''
         }));
@@ -569,6 +516,10 @@ function setupSheets() {
 // ═══════════════════════════════════════════════════════════════
 
 function generateInvoicePDF(invoiceData) {
+  if (!invoiceData || typeof invoiceData !== 'object') {
+    throw new Error('generateInvoicePDF requires a valid invoiceData object.');
+  }
+
   // 1. Copy template to invoices folder
   const template = DriveApp.getFileById(INVOICE_TEMPLATE_ID);
   const folder   = DriveApp.getFolderById(INVOICE_FOLDER_ID);
@@ -649,51 +600,47 @@ function generateInvoicePDF(invoiceData) {
   body.replaceText('\\{\\{totalTTC\\}\\}', fmtAmountPDF(totalTTC, cur));
 
   // 6. Replace RIB placeholder image.
-  // body.getImages() only returns INLINE images.  If the placeholder was
-  // inserted as a floating/wrapped image it becomes a PositionedImage and
-  // won't appear in getImages().  We search both collections.
+  // We support inline, positioned, header and footer placeholders.
+  // IMPORTANT: we fail hard when replacement cannot be done so the UI
+  // gets an explicit error instead of silently generating a PDF with the
+  // old placeholder still visible.
   if (invoiceData.ribImageFileId) {
-    var ribBlob = null;
-    try { ribBlob = getRibBlob(invoiceData.ribImageFileId); } catch(e) { Logger.log('getRibBlob: ' + e.message); }
+    var ribBlob = getRibBlob(invoiceData.ribImageFileId);
+    if (!ribBlob) {
+      throw new Error('RIB file could not be converted to an image. If your RIB is a PDF, try uploading a PNG/JPG.');
+    }
 
-    if (ribBlob) {
-      var replaced = false;
+    // Deterministic mode (preferred): render RIB as the whole second page.
+    // This avoids template crop/transform artifacts that can cause zoomed output.
+    var replaced = renderRibAsSecondPage_(body, ribBlob);
 
-      // — Inline images —
-      var inlineImgs = body.getImages();
-      for (var i = 0; i < inlineImgs.length && !replaced; i++) {
-        var img = inlineImgs[i];
-        if ((img.getAltDescription() || '') === 'rib-placeholder' ||
-            (img.getAltTitle()       || '') === 'rib-placeholder') {
-          try {
-            var par = img.getParent();
-            var pos = par.getChildIndex(img);
-            img.removeFromParent();
-            par.insertInlineImage(pos, ribBlob);
-            replaced = true;
-          } catch(e) { Logger.log('Inline RIB replace failed: ' + e.message); }
-        }
-      }
-
-      // — Positioned (floating/wrapped) images — searched paragraph by paragraph
+    // Compatibility fallback for legacy templates.
+    if (!replaced) {
+      replaced = replaceRibPlaceholderInContainer(body, ribBlob);
       if (!replaced) {
-        var paras = body.getParagraphs();
-        for (var p = 0; p < paras.length && !replaced; p++) {
-          var posImgs = paras[p].getPositionedImages();
-          for (var pi = 0; pi < posImgs.length && !replaced; pi++) {
-            var posImg = posImgs[pi];
-            if ((posImg.getAltDescription() || '') === 'rib-placeholder' ||
-                (posImg.getAltTitle()       || '') === 'rib-placeholder') {
-              try {
-                posImg.setImage(ribBlob);
-                replaced = true;
-              } catch(e) { Logger.log('Positioned RIB replace failed: ' + e.message); }
-            }
-          }
-        }
+        var header = doc.getHeader();
+        if (header) replaced = replaceRibPlaceholderInContainer(header, ribBlob) || replaced;
+      }
+      if (!replaced) {
+        var footer = doc.getFooter();
+        if (footer) replaced = replaceRibPlaceholderInContainer(footer, ribBlob) || replaced;
       }
 
-      if (!replaced) Logger.log('RIB placeholder image not found in document.');
+      if (!replaced) {
+        replaced = replaceLargestImageInContainer(body, ribBlob) || replaced;
+        if (!replaced) {
+          var h2 = doc.getHeader();
+          if (h2) replaced = replaceLargestImageInContainer(h2, ribBlob) || replaced;
+        }
+        if (!replaced) {
+          var f2 = doc.getFooter();
+          if (f2) replaced = replaceLargestImageInContainer(f2, ribBlob) || replaced;
+        }
+      }
+    }
+
+    if (!replaced) {
+      throw new Error('RIB placeholder not found. Add alt text "rib-placeholder" to the template image, or keep a large placeholder image for fallback replacement.');
     }
   }
 
@@ -707,6 +654,164 @@ function generateInvoicePDF(invoiceData) {
   return pdfFile.getUrl();
 }
 
+
+
+function renderRibAsSecondPage_(body, ribBlob) {
+  var pageBreakIndex = -1;
+  for (var i = 0; i < body.getNumChildren(); i++) {
+    if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
+      pageBreakIndex = i;
+      break;
+    }
+  }
+
+  if (pageBreakIndex === -1) {
+    body.appendPageBreak();
+    pageBreakIndex = body.getNumChildren() - 1;
+  }
+
+  // Remove everything after the first page break so page 2 is clean.
+  while (body.getNumChildren() > pageBreakIndex + 1) {
+    body.removeChild(body.getChild(pageBreakIndex + 1));
+  }
+
+  var para = body.insertParagraph(pageBreakIndex + 1, '');
+  try {
+    para.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    para.setSpacingBefore(0);
+    para.setSpacingAfter(0);
+  } catch (e) {}
+
+  var inserted = para.appendInlineImage(ribBlob);
+
+  // Fit image to page-2 content area (no crop), with fixed frame target.
+  applyImageSizeSafely_(inserted, 469, 703);
+
+  return true;
+}
+
+
+function isRibPlaceholderImage_(img) {
+  var altDesc = String(img.getAltDescription ? (img.getAltDescription() || '') : '').trim().toLowerCase();
+  var altTitle = String(img.getAltTitle ? (img.getAltTitle() || '') : '').trim().toLowerCase();
+  return altDesc === 'rib-placeholder' || altTitle === 'rib-placeholder';
+}
+
+function replaceRibPlaceholderInContainer(container, ribBlob) {
+  var replaced = false;
+
+  // Inline images
+  var inlineImgs = container.getImages();
+  for (var i = 0; i < inlineImgs.length && !replaced; i++) {
+    var img = inlineImgs[i];
+    if (!isRibPlaceholderImage_(img)) continue;
+
+    var parent = img.getParent();
+    var idx = parent.getChildIndex(img);
+    var w = 0;
+    var h = 0;
+    try { w = img.getWidth(); h = img.getHeight(); } catch (e) {}
+    img.removeFromParent();
+    var insertedInline = parent.insertInlineImage(idx, ribBlob);
+    applyImageSizeSafely_(insertedInline, w, h);
+    replaced = true;
+  }
+
+  // Positioned images
+  if (!replaced && container.getPositionedImages) {
+    var posImgs = container.getPositionedImages();
+    for (var p = 0; p < posImgs.length && !replaced; p++) {
+      var posImg = posImgs[p];
+      if (!isRibPlaceholderImage_(posImg)) continue;
+
+      // Always reinsert instead of setImage(): setImage may preserve prior
+      // crop/transform from placeholder and cause a "zoomed" result.
+      var anchorParagraph = posImg.getAnchor().asParagraph();
+      var w = posImg.getWidth();
+      var h = posImg.getHeight();
+      posImg.remove();
+      var inserted = anchorParagraph.appendInlineImage(ribBlob);
+      applyImageSizeSafely_(inserted, w, h);
+      replaced = true;
+    }
+  }
+
+  return replaced;
+}
+
+
+function replaceLargestImageInContainer(container, ribBlob) {
+  var best = null;
+
+  var inlineImgs = container.getImages();
+  for (var i = 0; i < inlineImgs.length; i++) {
+    var img = inlineImgs[i];
+    var area = 0;
+    try { area = (img.getWidth() || 0) * (img.getHeight() || 0); } catch (e) {}
+    if (!best || area > best.area) best = { type: 'inline', img: img, area: area };
+  }
+
+  if (container.getPositionedImages) {
+    var posImgs = container.getPositionedImages();
+    for (var p = 0; p < posImgs.length; p++) {
+      var pimg = posImgs[p];
+      var parea = 0;
+      try { parea = (pimg.getWidth() || 0) * (pimg.getHeight() || 0); } catch (e) {}
+      if (!best || parea > best.area) best = { type: 'positioned', img: pimg, area: parea };
+    }
+  }
+
+  if (!best) return false;
+
+  if (best.type === 'inline') {
+    var parent = best.img.getParent();
+    var idx = parent.getChildIndex(best.img);
+    var w = 0;
+    var h = 0;
+    try { w = best.img.getWidth(); h = best.img.getHeight(); } catch (e) {}
+    best.img.removeFromParent();
+    var insertedInline = parent.insertInlineImage(idx, ribBlob);
+    applyImageSizeSafely_(insertedInline, w, h);
+    return true;
+  }
+
+  var anchorParagraph = best.img.getAnchor().asParagraph();
+  var w = best.img.getWidth();
+  var h = best.img.getHeight();
+  best.img.remove();
+  var inserted = anchorParagraph.appendInlineImage(ribBlob);
+  applyImageSizeSafely_(inserted, w, h);
+  return true;
+}
+
+
+
+function applyImageSizeSafely_(image, targetWidth, targetHeight) {
+  var maxW = 469;   // 6.51 in in Google Docs points (6.51*72)
+  var maxH = 703;   // 9.77 in in Google Docs points (9.77*72)
+
+  var w = Number(targetWidth) || 0;
+  var h = Number(targetHeight) || 0;
+
+  // If placeholder size isn't readable, keep conservative default.
+  if (w <= 0 || h <= 0) {
+    w = maxW;
+    h = 703;
+  }
+
+  var scale = Math.min(maxW / w, maxH / h, 1);
+  var finalW = Math.max(1, Math.round(w * scale));
+  var finalH = Math.max(1, Math.round(h * scale));
+
+  try {
+    image.setWidth(finalW);
+    image.setHeight(finalH);
+  } catch (e) {
+    // Best effort: leave inserted image with default size.
+  }
+}
+
+
 /**
  * Returns an image-compatible blob for the given Drive file ID.
  * - Image files (JPEG, PNG…): returned as-is.
@@ -715,31 +820,27 @@ function generateInvoicePDF(invoiceData) {
  *   endpoint using the script's own OAuth token.
  */
 function getRibBlob(fileId) {
-  var file     = DriveApp.getFileById(fileId);
+  var file = DriveApp.getFileById(fileId);
   var mimeType = file.getMimeType();
 
-  if (mimeType !== 'application/pdf') {
-    // Already an image — use directly
+  // Foolproof path: only image files are accepted for RIB replacement.
+  // PDF-to-image conversion via URL Fetch is flaky across accounts and scopes.
+  if (mimeType === 'application/pdf') {
+    throw new Error('RIB file is a PDF. For reliable page-2 replacement, upload the RIB as PNG or JPG and paste that file ID in BankAccounts.');
+  }
+
+  if (mimeType.indexOf('image/') !== 0) {
+    throw new Error('Unsupported RIB file type: ' + mimeType + '. Please use PNG or JPG.');
+  }
+
+  // Normalize to PNG to avoid EXIF/orientation/crop metadata oddities in Docs rendering.
+  try {
+    return file.getBlob().getAs('image/png');
+  } catch (e) {
     return file.getBlob();
   }
-
-  // PDF → fetch first page as high-resolution image from Drive's viewer.
-  // sz=s2048 requests a thumbnail up to 2048 px on its longest side.
-  var token   = ScriptApp.getOAuthToken();
-  var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
-  var resp = UrlFetchApp.fetch(thumbUrl, {
-    headers: { 'Authorization': 'Bearer ' + token },
-    muteHttpExceptions: true
-  });
-
-  if (resp.getResponseCode() === 200) {
-    return resp.getBlob();
-  }
-
-  // Fallback: log and return null so the placeholder is left untouched
-  Logger.log('RIB thumbnail fetch failed (HTTP ' + resp.getResponseCode() + ') for fileId: ' + fileId);
-  return null;
 }
+
 
 /** Format a number as a currency amount for PDF.
  *  EUR (default): French locale → "14 262,00 €"
