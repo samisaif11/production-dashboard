@@ -724,9 +724,16 @@ function renderRibAsSecondPage_(body, ribBlob) {
   } catch (e) {}
 
   var inserted = para.appendInlineImage(ribBlob);
-  // Make page-2 RIB visibly larger (~40%) while keeping aspect ratio.
-  // We use expanded bounds only for this deterministic full-page render.
-  applyImageSizeSafely_(inserted, 469, 703, true, 657, 984);
+  // Make page-2 RIB as large as possible without crop.
+  // Use image intrinsic ratio (not placeholder ratio) and let Docs clamp to
+  // page limits when oversized values are requested.
+  var iw = 0;
+  var ih = 0;
+  try {
+    iw = inserted.getWidth();
+    ih = inserted.getHeight();
+  } catch (e) {}
+  applyImageSizeSafely_(inserted, iw, ih, true, 2000, 2000);
 
   return true;
 }
@@ -882,7 +889,7 @@ function applyImageSizeSafely_(image, targetWidth, targetHeight, allowUpscale, m
   // If placeholder size isn't readable, keep conservative default.
   if (w <= 0 || h <= 0) {
     w = maxW;
-    h = 703;
+    h = maxH;
   }
 
   var scale = Math.min(maxW / w, maxH / h);
