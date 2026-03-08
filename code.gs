@@ -724,7 +724,9 @@ function renderRibAsSecondPage_(body, ribBlob) {
   } catch (e) {}
 
   var inserted = para.appendInlineImage(ribBlob);
-  applyImageSizeSafely_(inserted, 469, 703, true);
+  // Make page-2 RIB visibly larger (~40%) while keeping aspect ratio.
+  // We use expanded bounds only for this deterministic full-page render.
+  applyImageSizeSafely_(inserted, 469, 703, true, 657, 984);
 
   return true;
 }
@@ -870,9 +872,9 @@ function clearCellTextHighlight_(cell) {
 }
 
 
-function applyImageSizeSafely_(image, targetWidth, targetHeight, allowUpscale) {
-  var maxW = 469;   // 6.51 in in Google Docs points (6.51*72)
-  var maxH = 703;   // 9.77 in in Google Docs points (9.77*72)
+function applyImageSizeSafely_(image, targetWidth, targetHeight, allowUpscale, maxWidth, maxHeight) {
+  var maxW = Number(maxWidth)  || 469; // Default: 6.51 in in Google Docs points (6.51*72)
+  var maxH = Number(maxHeight) || 703; // Default: 9.77 in in Google Docs points (9.77*72)
 
   var w = Number(targetWidth) || 0;
   var h = Number(targetHeight) || 0;
