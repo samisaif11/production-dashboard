@@ -662,10 +662,16 @@ function renderRibAsSecondPage_(body, ribBlob) {
   var anchor = findInvoiceEndElement_(body);
   if (anchor) {
     var direct = anchor;
-    while (direct.getParent && direct.getParent() && direct.getParent() !== body) {
+    while (direct.getParent && direct.getParent() &&
+           direct.getParent().getType() !== DocumentApp.ElementType.BODY_SECTION) {
       direct = direct.getParent();
     }
-    cutIndex = body.getChildIndex(direct);
+    if (direct.getParent && direct.getParent() &&
+        direct.getParent().getType() === DocumentApp.ElementType.BODY_SECTION) {
+      cutIndex = body.getChildIndex(direct);
+    } else {
+      cutIndex = body.getNumChildren() - 1;
+    }
   } else {
     // Fallback: first page break defines page-1 end.
     for (var i = 0; i < body.getNumChildren(); i++) {
