@@ -612,7 +612,14 @@ function generateInvoicePDF(invoiceData) {
 
     // Deterministic mode (preferred): render RIB as the whole second page.
     // This avoids template crop/transform artifacts that can cause zoomed output.
-    var replaced = renderRibAsSecondPage_(body, ribBlob);
+    var replaced = false;
+    var deterministicModeError = '';
+    try {
+      replaced = renderRibAsSecondPage_(body, ribBlob);
+    } catch (e) {
+      deterministicModeError = (e && e.message) ? e.message : String(e || 'Unknown error');
+      replaced = false;
+    }
 
     // Compatibility fallback for legacy templates.
     if (!replaced) {
@@ -640,6 +647,11 @@ function generateInvoicePDF(invoiceData) {
     }
 
     if (!replaced) {
+      if (deterministicModeError) {
+        throw new Error('Unable to render invoice + RIB with the current template. ' +
+          'Please keep one placeholder image (alt text "rib-placeholder") in the template for fallback replacement. ' +
+          'Technical detail: ' + deterministicModeError);
+      }
       throw new Error('RIB placeholder not found. Add alt text "rib-placeholder" to the template image, or keep a large placeholder image for fallback replacement.');
     }
   }
@@ -720,7 +732,12 @@ function renderRibAsSecondPage_(body, ribBlob) {
 function removeAllPageBreaks_(body) {
   for (var i = body.getNumChildren() - 1; i >= 0; i--) {
     if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
-      body.removeChild(body.getChild(i));
+      try {
+        body.removeChild(body.getChild(i));
+      } catch (e) {
+        // Keep generation resilient to template structures where deleting an
+        // element would violate "last paragraph" constraints.
+      }
     }
   }
 }
