@@ -657,25 +657,36 @@ function generateInvoicePDF(invoiceData) {
 
 
 function renderRibAsSecondPage_(body, ribBlob) {
-  var pageBreakIndex = -1;
-  for (var i = 0; i < body.getNumChildren(); i++) {
-    if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
-      pageBreakIndex = i;
-      break;
+  // 1) Truncate template right after invoice totals on page 1.
+  var anchor = findInvoiceEndElement_(body);
+  if (anchor) {
+    var direct = anchor;
+    while (direct.getParent && direct.getParent() && direct.getParent() !== body) {
+      direct = direct.getParent();
+    }
+    var anchorIndex = body.getChildIndex(direct);
+    while (body.getNumChildren() > anchorIndex + 1) {
+      body.removeChild(body.getChild(anchorIndex + 1));
+    }
+  } else {
+    // Fallback: if totals text is not found, keep old behavior using first page break.
+    var pageBreakIndex = -1;
+    for (var i = 0; i < body.getNumChildren(); i++) {
+      if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
+        pageBreakIndex = i;
+        break;
+      }
+    }
+    if (pageBreakIndex !== -1) {
+      while (body.getNumChildren() > pageBreakIndex + 1) {
+        body.removeChild(body.getChild(pageBreakIndex + 1));
+      }
     }
   }
 
-  if (pageBreakIndex === -1) {
-    body.appendPageBreak();
-    pageBreakIndex = body.getNumChildren() - 1;
-  }
-
-  // Remove everything after the first page break so page 2 is clean.
-  while (body.getNumChildren() > pageBreakIndex + 1) {
-    body.removeChild(body.getChild(pageBreakIndex + 1));
-  }
-
-  var para = body.insertParagraph(pageBreakIndex + 1, '');
+  // 2) Add a single clean RIB page.
+  body.appendPageBreak();
+  var para = body.appendParagraph('');
   try {
     para.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
     para.setSpacingBefore(0);
@@ -683,11 +694,16 @@ function renderRibAsSecondPage_(body, ribBlob) {
   } catch (e) {}
 
   var inserted = para.appendInlineImage(ribBlob);
-
-  // Fit image to page-2 content area (no crop), with fixed frame target.
   applyImageSizeSafely_(inserted, 469, 703);
 
   return true;
+}
+
+function findInvoiceEndElement_(body) {
+  var needle = 'Total TTC';
+  var match = body.findText(needle);
+  if (!match) return null;
+  return match.getElement();
 }
 
 
