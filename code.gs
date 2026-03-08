@@ -42,7 +42,7 @@ const PROJDONE_COLS = ['project','count'];
 const META_COLS     = ['key','value'];
 const PROJCOLOR_COLS = ['name','color','bgColor','code'];
 const PPLCOLOR_COLS  = ['code','color','bgColor'];
-const INVOICE_COLS   = ['id','invoiceNumber','date','client','project','description','montantHT','tvaRate','montantTTC','extraLines','status','pdfUrl','emailSentDate','bankAccountId','notes','clientAddress','clientSIREN','clientCostCenter','clientDealRef'];
+const INVOICE_COLS   = ['id','invoiceNumber','date','client','project','description','montantHT','tvaRate','montantTTC','extraLines','status','pdfUrl','emailSentDate','bankAccountId','notes','clientAddress','clientSIREN','clientCostCenter','clientDealRef','currency'];
 const BANKACCT_COLS  = ['id','name','ribImageFileId'];
 const CLIENT_COLS    = ['name','address','siren','defaultCostCenter'];
 
@@ -155,7 +155,8 @@ function doGet(e) {
         status: str(row.status) || 'draft', pdfUrl: str(row.pdfUrl), emailSentDate: str(row.emailSentDate),
         bankAccountId: toNum(row.bankAccountId), notes: str(row.notes),
         clientAddress: str(row.clientAddress), clientSIREN: str(row.clientSIREN),
-        clientCostCenter: str(row.clientCostCenter), clientDealRef: str(row.clientDealRef)
+        clientCostCenter: str(row.clientCostCenter), clientDealRef: str(row.clientDealRef),
+        currency: str(row.currency) || 'EUR'
       };
     });
 
@@ -334,7 +335,8 @@ function doPost(e) {
         inv.montantHT, inv.tvaRate, inv.montantTTC,
         JSON.stringify(inv.extraLines || []),
         inv.status, inv.pdfUrl, inv.emailSentDate, inv.bankAccountId, inv.notes,
-        inv.clientAddress, inv.clientSIREN, inv.clientCostCenter, inv.clientDealRef
+        inv.clientAddress, inv.clientSIREN, inv.clientCostCenter, inv.clientDealRef,
+        inv.currency || 'EUR'
       ]));
 
     // --- Bank Accounts ---
@@ -451,6 +453,11 @@ function writeSheet(ss, name, cols, rows) {
       while (row.length < cols.length) row.push('');
       return row.slice(0, cols.length);
     });
+    // For Invoices: pre-format invoiceNumber column (col 2) as plain text so
+    // Google Sheets never auto-converts "2026-04" into a Date object.
+    if (name === SHEETS.INVOICES) {
+      sheet.getRange(2, 2, padded.length, 1).setNumberFormat('@');
+    }
     sheet.getRange(2, 1, padded.length, cols.length).setValues(padded);
   }
 }
@@ -599,39 +606,32 @@ function generateInvoicePDF(invoiceData) {
   body.replaceText('\\{\\{clientDealRef\\}\\}', invoiceData.clientDealRef || '');
   body.replaceText('\\{\\{projectName\\}\\}',   invoiceData.project || '');
   body.replaceText('\\{\\{description\\}\\}',   invoiceData.description || '');
-  body.replaceText('\\{\\{diffusionHT\\}\\}',   fmtAmountPDF(parseFloat(String(invoiceData.montantHT  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0));
+  var cur = invoiceData.currency || 'EUR';
+  body.replaceText('\\{\\{diffusionHT\\}\\}',   fmtAmountPDF(parseFloat(String(invoiceData.montantHT  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0, cur));
   body.replaceText('\\{\\{tvaRate\\}\\}',        String(invoiceData.tvaRate != null ? invoiceData.tvaRate : 10));
-  body.replaceText('\\{\\{diffusionTTC\\}\\}',  fmtAmountPDF(parseFloat(String(invoiceData.montantTTC || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0));
+  body.replaceText('\\{\\{diffusionTTC\\}\\}',  fmtAmountPDF(parseFloat(String(invoiceData.montantTTC || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0, cur));
 
   // 4. Append extra line rows to the amounts table
   var extraLines = invoiceData.extraLines || [];
   if (invoiceTable && extraLines.length > 0) {
-    // Use .copy() on the existing data row so each new row inherits
-    // the exact column widths, borders, fonts and cell styling.
-    // dataRowIndex stays fixed at the original last data row — appending
-    // rows after it does not change its index.
     var dataRowIndex = invoiceTable.getNumRows() - 1;
-    // Read the data row's background for zebra striping.
-    // The template's first data row is gray; extra lines alternate white / gray.
     var dataRowBg = invoiceTable.getRow(dataRowIndex).getCell(0).getBackgroundColor() || '#b7b7b7';
-    var zebraColors = ['#ffffff', dataRowBg]; // idx 0 → white, idx 1 → gray, idx 2 → white …
+    var zebraColors = ['#ffffff', dataRowBg];
     extraLines.forEach(function(line, idx) {
       var htVal  = parseFloat(String(line.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
       var ttcVal = parseFloat(String(line.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
       var cellContents = [
         line.label || '',
-        fmtAmountPDF(htVal),
+        fmtAmountPDF(htVal, cur),
         String(line.tva != null ? line.tva : 10) + '%',
-        fmtAmountPDF(ttcVal)
+        fmtAmountPDF(ttcVal, cur)
       ];
       var newRow = invoiceTable.getRow(dataRowIndex).copy();
       var bg = zebraColors[idx % 2];
       for (var c = 0; c < newRow.getNumCells(); c++) {
         var cell = newRow.getCell(c);
         cell.setText(cellContents[c] || '');
-        // Clear text highlight carried over from the copied source row
         cell.editAsText().setBackgroundColor(null);
-        // Apply zebra cell background colour
         cell.setBackgroundColor(bg);
       }
       invoiceTable.appendTableRow(newRow);
@@ -645,30 +645,55 @@ function generateInvoicePDF(invoiceData) {
     totalHT  += parseFloat(String(line.ht  || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
     totalTTC += parseFloat(String(line.ttc || '0').replace(/[^\d.,]/g,'').replace(',','.')) || 0;
   });
-  body.replaceText('\\{\\{totalHT\\}\\}',  fmtAmountPDF(totalHT));
-  body.replaceText('\\{\\{totalTTC\\}\\}', fmtAmountPDF(totalTTC));
+  body.replaceText('\\{\\{totalHT\\}\\}',  fmtAmountPDF(totalHT,  cur));
+  body.replaceText('\\{\\{totalTTC\\}\\}', fmtAmountPDF(totalTTC, cur));
 
-  // 6. Replace RIB placeholder image — checks both Alt Description and Alt Title
+  // 6. Replace RIB placeholder image.
+  // body.getImages() only returns INLINE images.  If the placeholder was
+  // inserted as a floating/wrapped image it becomes a PositionedImage and
+  // won't appear in getImages().  We search both collections.
   if (invoiceData.ribImageFileId) {
-    var images = body.getImages();
-    for (var i = 0; i < images.length; i++) {
-      var img = images[i];
-      var altDesc  = img.getAltDescription() || '';
-      var altTitle = img.getAltTitle()       || '';
-      if (altDesc === 'rib-placeholder' || altTitle === 'rib-placeholder') {
-        try {
-          var ribBlob = getRibBlob(invoiceData.ribImageFileId);
-          if (ribBlob) {
-            var parent = img.getParent();
-            var idx    = parent.getChildIndex(img);
+    var ribBlob = null;
+    try { ribBlob = getRibBlob(invoiceData.ribImageFileId); } catch(e) { Logger.log('getRibBlob: ' + e.message); }
+
+    if (ribBlob) {
+      var replaced = false;
+
+      // — Inline images —
+      var inlineImgs = body.getImages();
+      for (var i = 0; i < inlineImgs.length && !replaced; i++) {
+        var img = inlineImgs[i];
+        if ((img.getAltDescription() || '') === 'rib-placeholder' ||
+            (img.getAltTitle()       || '') === 'rib-placeholder') {
+          try {
+            var par = img.getParent();
+            var pos = par.getChildIndex(img);
             img.removeFromParent();
-            parent.insertInlineImage(idx, ribBlob);
-          }
-        } catch (ribErr) {
-          Logger.log('RIB image replacement failed: ' + ribErr.message);
+            par.insertInlineImage(pos, ribBlob);
+            replaced = true;
+          } catch(e) { Logger.log('Inline RIB replace failed: ' + e.message); }
         }
-        break;
       }
+
+      // — Positioned (floating/wrapped) images — searched paragraph by paragraph
+      if (!replaced) {
+        var paras = body.getParagraphs();
+        for (var p = 0; p < paras.length && !replaced; p++) {
+          var posImgs = paras[p].getPositionedImages();
+          for (var pi = 0; pi < posImgs.length && !replaced; pi++) {
+            var posImg = posImgs[pi];
+            if ((posImg.getAltDescription() || '') === 'rib-placeholder' ||
+                (posImg.getAltTitle()       || '') === 'rib-placeholder') {
+              try {
+                posImg.setImage(ribBlob);
+                replaced = true;
+              } catch(e) { Logger.log('Positioned RIB replace failed: ' + e.message); }
+            }
+          }
+        }
+      }
+
+      if (!replaced) Logger.log('RIB placeholder image not found in document.');
     }
   }
 
@@ -716,9 +741,15 @@ function getRibBlob(fileId) {
   return null;
 }
 
-/** Format a number as French-locale amount for PDF (e.g. 14 262,00 €) */
-function fmtAmountPDF(n) {
-  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+/** Format a number as a currency amount for PDF.
+ *  EUR (default): French locale → "14 262,00 €"
+ *  USD:           US locale    → "$ 14,262.00"
+ */
+function fmtAmountPDF(n, currency) {
+  if ((currency || 'EUR') === 'USD') {
+    return '$ ' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  return n.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' \u20ac';
 }
 
 /** Format a YYYY-MM-DD date string as DD/MM/YYYY (French format) */
