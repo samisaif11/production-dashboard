@@ -582,7 +582,7 @@ function generateInvoicePDF(invoiceData) {
       for (var c = 0; c < newRow.getNumCells(); c++) {
         var cell = newRow.getCell(c);
         cell.setText(cellContents[c] || '');
-        cell.editAsText().setBackgroundColor(null);
+        clearCellTextHighlight_(cell);
         cell.setBackgroundColor(bg);
       }
       invoiceTable.appendTableRow(newRow);
@@ -724,7 +724,7 @@ function renderRibAsSecondPage_(body, ribBlob) {
   } catch (e) {}
 
   var inserted = para.appendInlineImage(ribBlob);
-  applyImageSizeSafely_(inserted, 469, 703);
+  applyImageSizeSafely_(inserted, 469, 703, true);
 
   return true;
 }
@@ -857,7 +857,20 @@ function replaceLargestImageInContainer(container, ribBlob) {
 
 
 
-function applyImageSizeSafely_(image, targetWidth, targetHeight) {
+function clearCellTextHighlight_(cell) {
+  var txt = cell.editAsText();
+  var textContent = txt.getText() || '';
+  if (!textContent.length) return;
+
+  try {
+    txt.setBackgroundColor(0, textContent.length - 1, null);
+  } catch (e) {
+    try { txt.setBackgroundColor(null); } catch (_) {}
+  }
+}
+
+
+function applyImageSizeSafely_(image, targetWidth, targetHeight, allowUpscale) {
   var maxW = 469;   // 6.51 in in Google Docs points (6.51*72)
   var maxH = 703;   // 9.77 in in Google Docs points (9.77*72)
 
@@ -870,7 +883,8 @@ function applyImageSizeSafely_(image, targetWidth, targetHeight) {
     h = 703;
   }
 
-  var scale = Math.min(maxW / w, maxH / h, 1);
+  var scale = Math.min(maxW / w, maxH / h);
+  if (!allowUpscale) scale = Math.min(scale, 1);
   var finalW = Math.max(1, Math.round(w * scale));
   var finalH = Math.max(1, Math.round(h * scale));
 
