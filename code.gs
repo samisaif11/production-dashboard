@@ -695,45 +695,52 @@ function getRibBlob(fileId) {
 
   // PDF → fetch first page as high-resolution image from Drive's viewer.
   // sz=s2048 requests a thumbnail up to 2048 px on its longest side.
-  var token   = ScriptApp.getOAuthToken();
+  var token = ScriptApp.getOAuthToken();
+  var authHeaders = { 'Authorization': 'Bearer ' + token };
   var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
 
-  if (resp.getResponseCode() === 200) {
-    var b1 = resp.getBlob();
-    b1.setContentType('image/jpeg');
-    b1.setName('rib.jpg');
-    return b1;
+  var resp = safeUrlFetch_(thumbUrl, authHeaders);
+  if (resp.ok && resp.response.getResponseCode() === 200) {
+    return resp.response.getBlob();
   }
 
   // Fallback 2: Drive v3 thumbnailLink (more reliable in some tenants)
-  var metaResp = UrlFetchApp.fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=thumbnailLink', {
-    headers: { 'Authorization': 'Bearer ' + token },
-    muteHttpExceptions: true
-  });
-  if (metaResp.getResponseCode() === 200) {
-    var meta = JSON.parse(metaResp.getContentText() || '{}');
+  var metaResp = safeUrlFetch_('https://www.googleapis.com/drive/v3/files/' + fileId + '?fields=thumbnailLink', authHeaders);
+  if (metaResp.ok && metaResp.response.getResponseCode() === 200) {
+    var meta = JSON.parse(metaResp.response.getContentText() || '{}');
     if (meta.thumbnailLink) {
-      var thumbResp = UrlFetchApp.fetch(meta.thumbnailLink, {
-        headers: { 'Authorization': 'Bearer ' + token },
-        muteHttpExceptions: true
-      });
-      if (thumbResp.getResponseCode() === 200) {
-        var b2 = thumbResp.getBlob();
-        b2.setContentType('image/jpeg');
-        b2.setName('rib.jpg');
-        return b2;
+      var thumbResp = safeUrlFetch_(meta.thumbnailLink, authHeaders);
+      if (thumbResp.ok && thumbResp.response.getResponseCode() === 200) {
+        return thumbResp.response.getBlob();
       }
     }
-  } catch (e) {
-    if (String(e && e.message || '').indexOf('script.external_request') !== -1 ||
-        String(e && e.message || '').indexOf('UrlFetchApp') !== -1) {
+  }
+
+  if (resp.error || metaResp.error) {
+    var errText = String((resp.error && resp.error.message) || (metaResp.error && metaResp.error.message) || '');
+    if (errText.indexOf('script.external_request') !== -1 || errText.indexOf('UrlFetchApp') !== -1) {
       throw new Error('Missing Apps Script authorization: enable URL Fetch scope (script.external_request), redeploy Web App, then run once as owner to grant permissions.');
     }
-    throw e;
   }
 
   throw new Error('Unable to read a PDF preview image from Drive for fileId: ' + fileId + '. If this keeps failing, upload RIB as PNG/JPG.');
 }
+
+function safeUrlFetch_(url, headers) {
+  try {
+    return {
+      ok: true,
+      response: UrlFetchApp.fetch(url, {
+        headers: headers,
+        muteHttpExceptions: true
+      }),
+      error: null
+    };
+  } catch (e) {
+    return { ok: false, response: null, error: e };
+  }
+}
+
 
 /** Format a number as a currency amount for PDF.
  *  EUR (default): French locale → "14 262,00 €"
