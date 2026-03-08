@@ -195,7 +195,16 @@ function doPost(e) {
       lock.releaseLock();
       try {
         const inv = D.invoiceData;
-        const ba = (D.bankAccounts || []).find(b => b.id === inv.bankAccountId);
+        const selectedBankId = str(inv.bankAccountId);
+        const ba = (D.bankAccounts || []).find(b => str(b.id) === selectedBankId);
+
+        if (selectedBankId && !ba) {
+          throw new Error('Selected bank account was not found. Please refresh and select the bank again.');
+        }
+        if (selectedBankId && ba && !str(ba.ribImageFileId)) {
+          throw new Error('Selected bank account has no RIB file ID configured.');
+        }
+
         const pdfUrl = generateInvoicePDF(Object.assign({}, inv, {
           ribImageFileId: ba ? ba.ribImageFileId : ''
         }));
