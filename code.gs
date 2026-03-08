@@ -697,10 +697,6 @@ function getRibBlob(fileId) {
   // sz=s2048 requests a thumbnail up to 2048 px on its longest side.
   var token   = ScriptApp.getOAuthToken();
   var thumbUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=s2048';
-  var resp = UrlFetchApp.fetch(thumbUrl, {
-    headers: { 'Authorization': 'Bearer ' + token },
-    muteHttpExceptions: true
-  });
 
   if (resp.getResponseCode() === 200) {
     var b1 = resp.getBlob();
@@ -728,9 +724,15 @@ function getRibBlob(fileId) {
         return b2;
       }
     }
+  } catch (e) {
+    if (String(e && e.message || '').indexOf('script.external_request') !== -1 ||
+        String(e && e.message || '').indexOf('UrlFetchApp') !== -1) {
+      throw new Error('Missing Apps Script authorization: enable URL Fetch scope (script.external_request), redeploy Web App, then run once as owner to grant permissions.');
+    }
+    throw e;
   }
 
-  throw new Error('Unable to read a PDF preview image from Drive for fileId: ' + fileId);
+  throw new Error('Unable to read a PDF preview image from Drive for fileId: ' + fileId + '. If this keeps failing, upload RIB as PNG/JPG.');
 }
 
 /** Format a number as a currency amount for PDF.
