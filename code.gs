@@ -658,33 +658,35 @@ function generateInvoicePDF(invoiceData) {
 
 function renderRibAsSecondPage_(body, ribBlob) {
   // 1) Truncate template right after invoice totals on page 1.
+  var cutIndex = -1;
   var anchor = findInvoiceEndElement_(body);
   if (anchor) {
     var direct = anchor;
     while (direct.getParent && direct.getParent() && direct.getParent() !== body) {
       direct = direct.getParent();
     }
-    var anchorIndex = body.getChildIndex(direct);
-    while (body.getNumChildren() > anchorIndex + 1) {
-      body.removeChild(body.getChild(anchorIndex + 1));
-    }
+    cutIndex = body.getChildIndex(direct);
   } else {
-    // Fallback: if totals text is not found, keep old behavior using first page break.
-    var pageBreakIndex = -1;
+    // Fallback: first page break defines page-1 end.
     for (var i = 0; i < body.getNumChildren(); i++) {
       if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
-        pageBreakIndex = i;
+        cutIndex = i - 1;
         break;
       }
     }
-    if (pageBreakIndex !== -1) {
-      while (body.getNumChildren() > pageBreakIndex + 1) {
-        body.removeChild(body.getChild(pageBreakIndex + 1));
-      }
-    }
+    if (cutIndex < 0) cutIndex = body.getNumChildren() - 1;
   }
 
-  // 2) Add a single clean RIB page.
+  while (body.getNumChildren() > cutIndex + 1) {
+    body.removeChild(body.getChild(cutIndex + 1));
+  }
+
+  // 2) Remove any residual page breaks/positioned images in the kept page
+  //    so output is deterministic: page 1 invoice + page 2 RIB only.
+  removeAllPageBreaks_(body);
+  removeAllPositionedImages_(body);
+
+  // 3) Add one clean RIB page.
   body.appendPageBreak();
   var para = body.appendParagraph('');
   try {
@@ -698,6 +700,26 @@ function renderRibAsSecondPage_(body, ribBlob) {
 
   return true;
 }
+
+function removeAllPageBreaks_(body) {
+  for (var i = body.getNumChildren() - 1; i >= 0; i--) {
+    if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
+      body.removeChild(body.getChild(i));
+    }
+  }
+}
+
+function removeAllPositionedImages_(container) {
+  if (!container.getParagraphs) return;
+  var paragraphs = container.getParagraphs();
+  for (var p = 0; p < paragraphs.length; p++) {
+    var posImgs = paragraphs[p].getPositionedImages();
+    for (var i = posImgs.length - 1; i >= 0; i--) {
+      try { posImgs[i].remove(); } catch (e) {}
+    }
+  }
+}
+
 
 function findInvoiceEndElement_(body) {
   var needle = 'Total TTC';
