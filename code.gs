@@ -676,13 +676,16 @@ function renderRibAsSecondPage_(body, ribBlob) {
   }
 
   var para = body.insertParagraph(pageBreakIndex + 1, '');
+  try {
+    para.setAlignment(DocumentApp.HorizontalAlignment.CENTER);
+    para.setSpacingBefore(0);
+    para.setSpacingAfter(0);
+  } catch (e) {}
+
   var inserted = para.appendInlineImage(ribBlob);
 
-  // Fit image to page-2 content area (no crop).
-  var sourceW = 0;
-  var sourceH = 0;
-  try { sourceW = inserted.getWidth(); sourceH = inserted.getHeight(); } catch (e) {}
-  applyImageSizeSafely_(inserted, sourceW, sourceH);
+  // Fit image to page-2 content area (no crop), with fixed frame target.
+  applyImageSizeSafely_(inserted, 469, 703);
 
   return true;
 }
@@ -784,8 +787,8 @@ function replaceLargestImageInContainer(container, ribBlob) {
 
 
 function applyImageSizeSafely_(image, targetWidth, targetHeight) {
-  var maxW = 520;   // ~A4 width minus margins in Google Docs points(px-like)
-  var maxH = 760;   // keep within one page height to avoid accidental overflow
+  var maxW = 469;   // 6.51 in in Google Docs points (6.51*72)
+  var maxH = 703;   // 9.77 in in Google Docs points (9.77*72)
 
   var w = Number(targetWidth) || 0;
   var h = Number(targetHeight) || 0;
@@ -793,7 +796,7 @@ function applyImageSizeSafely_(image, targetWidth, targetHeight) {
   // If placeholder size isn't readable, keep conservative default.
   if (w <= 0 || h <= 0) {
     w = maxW;
-    h = 700;
+    h = 703;
   }
 
   var scale = Math.min(maxW / w, maxH / h, 1);
@@ -829,7 +832,12 @@ function getRibBlob(fileId) {
     throw new Error('Unsupported RIB file type: ' + mimeType + '. Please use PNG or JPG.');
   }
 
-  return file.getBlob();
+  // Normalize to PNG to avoid EXIF/orientation/crop metadata oddities in Docs rendering.
+  try {
+    return file.getBlob().getAs('image/png');
+  } catch (e) {
+    return file.getBlob();
+  }
 }
 
 
