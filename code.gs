@@ -812,9 +812,8 @@ function applyImageSizeSafely_(image, targetWidth, targetHeight) {
 /**
  * Returns an image-compatible blob for the given Drive file ID.
  * - Image files (JPEG, PNG…): returned as-is.
- * - PDF files: Google Drive can't be inserted as an image directly.
- *   We fetch the first page as a high-res JPEG via Drive's thumbnail
- *   endpoint using the script's own OAuth token.
+ * - PDF files: rendered as a high-res image via Google Docs conversion
+ *   (primary) or Drive API thumbnailLink (fallback).
  */
 function getRibBlob(fileId) {
   var file = DriveApp.getFileById(fileId);
@@ -850,4 +849,10 @@ function formatDateFR(dateStr) {
   if (!dateStr) return '';
   var d = new Date(dateStr + 'T00:00:00');
   return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+/** Run this once from the editor to trigger OAuth consent for the Advanced Drive Service */
+function triggerAuth() {
+  var about = Drive.About.get();
+  Logger.log('Authorized as: ' + about.user.displayName);
 }
