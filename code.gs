@@ -724,18 +724,38 @@ function renderRibAsSecondPage_(body, ribBlob) {
   } catch (e) {}
 
   var inserted = para.appendInlineImage(ribBlob);
-  // Make page-2 RIB as large as possible without crop.
-  // Use image intrinsic ratio (not placeholder ratio) and let Docs clamp to
-  // page limits when oversized values are requested.
-  var iw = 0;
-  var ih = 0;
-  try {
-    iw = inserted.getWidth();
-    ih = inserted.getHeight();
-  } catch (e) {}
-  applyImageSizeSafely_(inserted, iw, ih, true, 2000, 2000);
+  var ribPageMax = getRibPageMaxSize_(body);
+  applyImageSizeSafely_(inserted, ribPageMax.maxW, ribPageMax.maxH);
 
   return true;
+}
+
+function getRibPageMaxSize_(body) {
+  // Safe defaults for A4 with 1-inch margins (Google Docs defaults).
+  var pageW = 595;
+  var pageH = 842;
+  var marginLeft = 72;
+  var marginRight = 72;
+  var marginTop = 72;
+  var marginBottom = 72;
+
+  try {
+    var attrs = body.getAttributes ? body.getAttributes() : null;
+    if (attrs) {
+      pageW = Number(attrs[DocumentApp.Attribute.PAGE_WIDTH]) || pageW;
+      pageH = Number(attrs[DocumentApp.Attribute.PAGE_HEIGHT]) || pageH;
+      marginLeft = Number(attrs[DocumentApp.Attribute.MARGIN_LEFT]) || marginLeft;
+      marginRight = Number(attrs[DocumentApp.Attribute.MARGIN_RIGHT]) || marginRight;
+      marginTop = Number(attrs[DocumentApp.Attribute.MARGIN_TOP]) || marginTop;
+      marginBottom = Number(attrs[DocumentApp.Attribute.MARGIN_BOTTOM]) || marginBottom;
+    }
+  } catch (e) {}
+
+  // Extra safety padding avoids edge clipping in exported PDFs.
+  var safetyPad = 8;
+  var maxW = Math.max(1, Math.floor(pageW - marginLeft - marginRight - safetyPad));
+  var maxH = Math.max(1, Math.floor(pageH - marginTop - marginBottom - safetyPad));
+  return { maxW: maxW, maxH: maxH };
 }
 
 function removeAllPageBreaks_(body) {
