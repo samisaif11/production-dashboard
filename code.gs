@@ -725,7 +725,11 @@ function renderRibAsSecondPage_(body, ribBlob) {
 
   var inserted = para.appendInlineImage(ribBlob);
   var ribPageMax = getRibPageMaxSize_(body);
-  applyImageSizeSafely_(inserted, ribPageMax.maxW, ribPageMax.maxH);
+
+  // Read intrinsic image dimensions, then scale to fill the printable area.
+  var intrW = 0, intrH = 0;
+  try { intrW = inserted.getWidth(); intrH = inserted.getHeight(); } catch (e) {}
+  applyImageSizeSafely_(inserted, intrW, intrH, true, ribPageMax.maxW, ribPageMax.maxH);
 
   return true;
 }
