@@ -612,7 +612,14 @@ function generateInvoicePDF(invoiceData) {
 
     // Deterministic mode (preferred): render RIB as the whole second page.
     // This avoids template crop/transform artifacts that can cause zoomed output.
-    var replaced = renderRibAsSecondPage_(body, ribBlob);
+    var replaced = false;
+    var deterministicModeError = '';
+    try {
+      replaced = renderRibAsSecondPage_(body, ribBlob);
+    } catch (e) {
+      deterministicModeError = (e && e.message) ? e.message : String(e || 'Unknown error');
+      replaced = false;
+    }
 
     // Compatibility fallback for legacy templates.
     if (!replaced) {
@@ -640,6 +647,11 @@ function generateInvoicePDF(invoiceData) {
     }
 
     if (!replaced) {
+      if (deterministicModeError) {
+        throw new Error('Unable to render invoice + RIB with the current template. ' +
+          'Please keep one placeholder image (alt text "rib-placeholder") in the template for fallback replacement. ' +
+          'Technical detail: ' + deterministicModeError);
+      }
       throw new Error('RIB placeholder not found. Add alt text "rib-placeholder" to the template image, or keep a large placeholder image for fallback replacement.');
     }
   }
@@ -712,15 +724,49 @@ function renderRibAsSecondPage_(body, ribBlob) {
   } catch (e) {}
 
   var inserted = para.appendInlineImage(ribBlob);
-  applyImageSizeSafely_(inserted, 469, 703);
+  var ribPageMax = getRibPageMaxSize_(body);
+  applyImageSizeSafely_(inserted, ribPageMax.maxW, ribPageMax.maxH);
 
   return true;
+}
+
+function getRibPageMaxSize_(body) {
+  // Safe defaults for A4 with 1-inch margins (Google Docs defaults).
+  var pageW = 595;
+  var pageH = 842;
+  var marginLeft = 72;
+  var marginRight = 72;
+  var marginTop = 72;
+  var marginBottom = 72;
+
+  try {
+    var attrs = body.getAttributes ? body.getAttributes() : null;
+    if (attrs) {
+      pageW = Number(attrs[DocumentApp.Attribute.PAGE_WIDTH]) || pageW;
+      pageH = Number(attrs[DocumentApp.Attribute.PAGE_HEIGHT]) || pageH;
+      marginLeft = Number(attrs[DocumentApp.Attribute.MARGIN_LEFT]) || marginLeft;
+      marginRight = Number(attrs[DocumentApp.Attribute.MARGIN_RIGHT]) || marginRight;
+      marginTop = Number(attrs[DocumentApp.Attribute.MARGIN_TOP]) || marginTop;
+      marginBottom = Number(attrs[DocumentApp.Attribute.MARGIN_BOTTOM]) || marginBottom;
+    }
+  } catch (e) {}
+
+  // Extra safety padding avoids edge clipping in exported PDFs.
+  var safetyPad = 8;
+  var maxW = Math.max(1, Math.floor(pageW - marginLeft - marginRight - safetyPad));
+  var maxH = Math.max(1, Math.floor(pageH - marginTop - marginBottom - safetyPad));
+  return { maxW: maxW, maxH: maxH };
 }
 
 function removeAllPageBreaks_(body) {
   for (var i = body.getNumChildren() - 1; i >= 0; i--) {
     if (body.getChild(i).getType() === DocumentApp.ElementType.PAGE_BREAK) {
-      body.removeChild(body.getChild(i));
+      try {
+        body.removeChild(body.getChild(i));
+      } catch (e) {
+        // Keep generation resilient to template structures where deleting an
+        // element would violate "last paragraph" constraints.
+      }
     }
   }
 }
