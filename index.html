@@ -1372,7 +1372,7 @@ function tglD(id){
 function renderFlts(){const fb=$('tFlts');fb.innerHTML='';const op=D.tasks.filter(t=>!t.done);
   const fs=[{k:'all',l:'ALL',n:D.tasks.length,cl:''},{k:'today',l:'TODAY+OVERDUE',n:op.filter(t=>t.due&&dB(t.due)<=0).length,cl:'tf'},{k:'blocked',l:'BLOCKED',n:op.filter(t=>t.blocked).length,cl:'bf'}];
   [...new Set(D.tasks.map(t=>t.project).filter(Boolean))].forEach(p=>{const pc=gpc(p);fs.push({k:p,l:pc.code,n:op.filter(t=>t.project===p).length,cl:''})});
-  fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT()};fb.appendChild(b)})
+  fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT()};fb.appendChild(b)})}
 
 function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.length;$('sB').textContent=o.filter(t=>t.blocked).length;
   // Done Today: only count tasks completed today (doneDate===today)
