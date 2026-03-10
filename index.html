@@ -73,7 +73,9 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .tsk:hover .drag-h{opacity:.4}.tsk .drag-h:hover{opacity:.8}
 .tsk .drag-h span{display:block;width:12px;height:2px;background:var(--t3);border-radius:1px}
 .tsk.dragging{opacity:.35;border:1px dashed var(--gold);transform:scale(.98)}
-.tsk.drag-over{border-top:2px solid var(--gold);margin-top:-2px}
+.tsk-swipe-wrap.dragging{opacity:.3;transform:scale(.985)}
+.drag-indicator{height:3px;background:var(--gold);border-radius:2px;margin:3px 0;box-shadow:0 0 10px rgba(212,175,55,.5);animation:dragIndPulse .6s ease-in-out infinite}
+@keyframes dragIndPulse{0%,100%{opacity:.7;transform:scaleX(.97)}50%{opacity:1;transform:scaleX(1)}}
 @keyframes shimmer{0%{left:-100%}100%{left:200%}}
 .tsk.shimmer::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(90deg,transparent,rgba(34,197,94,.15),transparent);animation:shimmer .6s ease-out;pointer-events:none}
 /* Swipe gestures */
@@ -142,6 +144,9 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .pin-btn:hover{color:var(--gold)}
 .pin-btn.pinned{color:var(--gold);opacity:1}
 .tsk.pinned{border-left:2px solid var(--gold)}
+/* Zebra effect — very discreet */
+#tList .tsk-swipe-wrap:nth-child(even) .tsk{background:rgba(255,255,255,.013)}
+#tList .tsk-swipe-wrap:nth-child(even) .tsk:hover{background:var(--bg-3)}
 
 /* Task/Deadline notes */
 .tsk-note{font-size:.65rem;color:var(--t3);font-style:italic;margin-top:4px;line-height:1.4;opacity:.6;letter-spacing:.2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
@@ -259,6 +264,12 @@ body::after{content:'';position:fixed;inset:0;background:url("data:image/svg+xml
 .psec{margin-bottom:16px}
 .psh{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;padding:10px 0}
 .psh h3{font-size:var(--st);font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--t2)}
+/* Ghost sections for inactive statuses */
+.psec-ghost{margin-bottom:4px;opacity:.28}
+.psec-ghost:hover{opacity:.45;transition:opacity .2s}
+.psh-ghost{padding:4px 0;cursor:default}
+.psh-ghost h3{font-size:.58rem;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--t3)}
+.ghost-count{font-family:'JetBrains Mono';font-size:.58rem;font-weight:700;color:var(--t3);opacity:.7;margin-left:2px}
 .psh .ch{font-size:.6rem;color:var(--t3);transition:var(--tr)}.psh .ch.op{transform:rotate(90deg)}
 .psb{display:none}.psb.op{display:block}
 .pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:10px}
@@ -1155,33 +1166,15 @@ function renderLogo(){const c=$('logoContainer');if(!c)return;if(COMPANY_LOGO){c
 /* ═══════════════════════════════════════════════════════════════
    TASKS
    ═══════════════════════════════════════════════════════════════ */
-let tF='all',bId=null,dragId=null;
+let tF='all',bId=null,dragId=null,dragOverId=null;
 const _collapsedSubs=new Set();
-// Persist sort preference: default is manual order
-let skipSort=true,sortDue=false;
-try{const sp=localStorage.getItem('sortPref');if(sp==='due'){skipSort=false;sortDue=true}else if(sp==='added'){skipSort=false;sortDue=false}}catch(e){}
+// Always use manual order
+const skipSort=true;
 
 function renderT(){
   const el=$('tList'),cl=$('cList');el.innerHTML='';cl.innerHTML='';
-  let all=[...D.tasks];
-  // Pinned tasks stay locked at their order position; unpinned tasks sort around them
-  if(skipSort) {
-    all.sort((a,b)=>a.order-b.order);
-  } else {
-    const pinned=all.filter(t=>t.pinned).sort((a,b)=>a.order-b.order);
-    let unpinned=all.filter(t=>!t.pinned);
-    if(sortDue){unpinned.sort((a,b)=>{if(!a.due&&!b.due)return a.order-b.order;if(!a.due)return 1;if(!b.due)return-1;return a.due.localeCompare(b.due)||a.order-b.order})}
-    else{unpinned.sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''))}
-    // Merge: insert pinned tasks at their order-based positions
-    all=[];let pi=0,ui=0;
-    const total=pinned.length+unpinned.length;
-    // Assign slots: pinned tasks claim their order rank among all tasks
-    const pinnedSlots=new Map();pinned.forEach((t,i)=>pinnedSlots.set(t.order,t));
-    const sortedOrders=[...D.tasks].sort((a,b)=>a.order-b.order);
-    let uIdx=0;
-    for(const t of sortedOrders){if(t.pinned){all.push(t)}else{if(uIdx<unpinned.length)all.push(unpinned[uIdx++])}}
-    while(uIdx<unpinned.length)all.push(unpinned[uIdx++]);
-  }
+  // Always manual order
+  let all=[...D.tasks].sort((a,b)=>a.order-b.order);
   const ff=t=>{if(tF==='all')return true;if(tF==='today')return t.due&&dB(t.due)<=0;if(tF==='blocked')return t.blocked;return t.project===tF};
   all.filter(ff).forEach(t=>el.innerHTML+=tkEl(t,t.done));
   const cF=D.completed.filter(ff).sort((a,b)=>(b.doneDate||'').localeCompare(a.doneDate||''));
@@ -1213,14 +1206,29 @@ function renderT(){
     row.addEventListener('dragleave',()=>row.classList.remove('sub-drag-over'));
     row.addEventListener('drop',e=>{if(subDragTid===null)return;e.preventDefault();e.stopPropagation();row.classList.remove('sub-drag-over');const tid=+row.dataset.tid,si=+row.dataset.si;if(tid!==subDragTid||si===subDragSi)return;const t=D.tasks.find(x=>x.id===tid);if(!t||!t.subtasks)return;pH('reorder subtask');const[item]=t.subtasks.splice(subDragSi,1);t.subtasks.splice(si,0,item);subDragTid=null;subDragSi=null;renderT()})});
   // Pin button
-  el.querySelectorAll('.pin-btn').forEach(b=>b.onclick=e=>{e.stopPropagation();const t=D.tasks.find(x=>x.id===+b.dataset.id);if(!t)return;pH(t.pinned?'unpin':'pin');t.pinned=!t.pinned;renderT()});
+  el.querySelectorAll('.pin-btn').forEach(b=>b.onclick=e=>{e.stopPropagation();const t=D.tasks.find(x=>x.id===+b.dataset.id);if(!t)return;pH(t.pinned?'unpin':'pin');t.pinned=!t.pinned;
+    if(t.pinned){
+      // Move pinned task to just after all currently pinned tasks (append to pinned group)
+      const pinnedTasks=D.tasks.filter(x=>x.pinned&&x.id!==t.id).sort((a,b)=>a.order-b.order);
+      const lastPinnedOrder=pinnedTasks.length?pinnedTasks[pinnedTasks.length-1].order:-1;
+      const unpinnedBefore=D.tasks.filter(x=>!x.pinned&&x.order<=lastPinnedOrder).length;
+      // Remove from current position, insert after last pin
+      D.tasks=D.tasks.filter(x=>x.id!==t.id);
+      const insertAt=pinnedTasks.length; // index after last pinned
+      D.tasks.sort((a,b)=>a.order-b.order);
+      D.tasks.splice(insertAt,0,t);
+      D.tasks.forEach((x,i)=>x.order=i);
+    }
+    renderT()});
   // Drag
-  el.querySelectorAll('.tsk').forEach(node=>{node.setAttribute('draggable','true');
-    node.addEventListener('dragstart',e=>{dragId=+node.dataset.id;node.classList.add('dragging');e.dataTransfer.effectAllowed='move'});
-    node.addEventListener('dragend',()=>{node.classList.remove('dragging');const hadDrag=dragId!==null;dragId=null;document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'))});
-    node.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';document.querySelectorAll('.drag-over').forEach(x=>x.classList.remove('drag-over'));node.classList.add('drag-over')});
-    node.addEventListener('dragleave',()=>node.classList.remove('drag-over'));
-    node.addEventListener('drop',e=>{e.preventDefault();node.classList.remove('drag-over');const did=+node.dataset.id;if(dragId===null||dragId===did)return;pH('reorder');const di=D.tasks.findIndex(t=>t.id===dragId),ri=D.tasks.findIndex(t=>t.id===did);if(di<0||ri<0)return;const[item]=D.tasks.splice(di,1);D.tasks.splice(ri,0,item);D.tasks.forEach((t,i)=>t.order=i);skipSort=true;dragId=null;renderT()})});
+  el.querySelectorAll('.tsk-swipe-wrap').forEach(wrap=>{
+    const node=wrap.querySelector('.tsk');if(!node)return;
+    wrap.setAttribute('draggable','true');
+    wrap.addEventListener('dragstart',e=>{dragId=+node.dataset.id;wrap.classList.add('dragging');e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain','')});
+    wrap.addEventListener('dragend',()=>{wrap.classList.remove('dragging');dragId=null;dragOverId=null;document.querySelectorAll('.drag-indicator').forEach(x=>x.remove())});
+    wrap.addEventListener('dragover',e=>{e.preventDefault();e.dataTransfer.dropEffect='move';const did=+node.dataset.id;if(dragOverId===did)return;dragOverId=did;document.querySelectorAll('.drag-indicator').forEach(x=>x.remove());if(dragId===null||dragId===did)return;const ind=document.createElement('div');ind.className='drag-indicator';wrap.parentNode.insertBefore(ind,wrap)});
+    wrap.addEventListener('dragleave',e=>{if(!wrap.contains(e.relatedTarget)){document.querySelectorAll('.drag-indicator').forEach(x=>x.remove());dragOverId=null}});
+    wrap.addEventListener('drop',e=>{e.preventDefault();document.querySelectorAll('.drag-indicator').forEach(x=>x.remove());const did=+node.dataset.id;if(dragId===null||dragId===did)return;pH('reorder');const di=D.tasks.findIndex(t=>t.id===dragId),ri=D.tasks.findIndex(t=>t.id===did);if(di<0||ri<0)return;const[item]=D.tasks.splice(di,1);D.tasks.splice(ri,0,item);D.tasks.forEach((t,i)=>t.order=i);dragId=null;dragOverId=null;renderT()})});
   // Swipe gestures (touch)
   el.querySelectorAll('.tsk-swipe-wrap').forEach(wrap=>{
     const tsk=wrap.querySelector('.tsk');if(!tsk)return;
@@ -1364,16 +1372,14 @@ function tglD(id){
 function renderFlts(){const fb=$('tFlts');fb.innerHTML='';const op=D.tasks.filter(t=>!t.done);
   const fs=[{k:'all',l:'ALL',n:D.tasks.length,cl:''},{k:'today',l:'TODAY+OVERDUE',n:op.filter(t=>t.due&&dB(t.due)<=0).length,cl:'tf'},{k:'blocked',l:'BLOCKED',n:op.filter(t=>t.blocked).length,cl:'bf'}];
   [...new Set(D.tasks.map(t=>t.project).filter(Boolean))].forEach(p=>{const pc=gpc(p);fs.push({k:p,l:pc.code,n:op.filter(t=>t.project===p).length,cl:''})});
-  fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT()};fb.appendChild(b)});
-  const sb=document.createElement('button');sb.className='sort-tgl';sb.textContent=skipSort?'↕ MANUAL':(sortDue?'↕ DUE DATE':'↕ ADDED');sb.onclick=()=>{if(skipSort){skipSort=false;sortDue=true;try{localStorage.setItem('sortPref','due')}catch(e){}}else if(sortDue){sortDue=false;try{localStorage.setItem('sortPref','added')}catch(e){}}else{skipSort=true;sortDue=false;try{localStorage.setItem('sortPref','manual')}catch(e){}}renderT()};fb.appendChild(sb)}
+  fs.forEach(f=>{const b=document.createElement('button');b.className=`chip ${f.cl} ${tF===f.k?'active':''}`;b.innerHTML=`${f.l}<span class="chip-c">${f.n}</span>`;b.onclick=()=>{tF=f.k;renderT()};fb.appendChild(b)})
 
 function updateSts(){const o=D.tasks.filter(t=>!t.done);$('sO').textContent=o.length;$('sB').textContent=o.filter(t=>t.blocked).length;
-  // Done Today: count tasks + completed subtasks done in active list + tasks completed today in archive
+  // Done Today: only count tasks completed today (doneDate===today)
   const today=td();
-  const doneActive=D.tasks.filter(t=>t.done).length;
+  const doneActive=D.tasks.filter(t=>t.done&&t.doneDate===today).length;
   const doneArchived=D.completed.filter(t=>t.doneDate===today).length;
-  const doneSubs=D.tasks.reduce((c,t)=>c+((t.subtasks||[]).filter(s=>s.completed).length),0);
-  $('sD').textContent=doneActive+doneArchived+doneSubs;
+  $('sD').textContent=doneActive+doneArchived;
   $('sOv').textContent=o.filter(t=>t.due&&dB(t.due)<0).length}
 
 function fillDD(){['fP','fdP','eP','edP','fiProj','eiProj'].forEach(id=>{const s=$(id);if(!s)return;s.innerHTML='<option value="">—</option>';D.projects.forEach(p=>s.innerHTML+=`<option value="${p.title}">${gpc(p.title).code} — ${p.title}</option>`);if(D.closed.length){s.innerHTML+=`<option disabled style="font-size:.6rem;color:var(--t3)">── COMPLETED ──</option>`;D.closed.forEach(p=>s.innerHTML+=`<option value="${p.title}" style="color:#22c55e">${gpc(p.title).code} — ${p.title}</option>`)}})}
@@ -1478,8 +1484,8 @@ function renderDL(){
     const tStr=!validDate?'':d.allDay?'ALL DAY':dt.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     let tmr='';
     if(!validDate)tmr='NO DATE';
-    else if(past){const a=Math.abs(diff),dy=Math.floor(a/864e5),hr=Math.floor((a%864e5)/36e5);tmr=dy>0?`${dy}D ${hr}H AGO`:`${hr}H AGO`}
-    else{const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);tmr=`${dy}D ${hr}H ${mn}M ${sc}S`}
+    else if(past){const a=Math.abs(diff),mo=Math.floor(a/(30.44*864e5)),dd=Math.floor((a%(30.44*864e5))/864e5),hr=Math.floor((a%864e5)/36e5);tmr=mo>0?`${mo}MO ${dd}D ${hr}H AGO`:`${dd}D ${hr}H AGO`}
+    else{const mo=Math.floor(diff/(30.44*864e5)),dd=Math.floor((diff%(30.44*864e5))/864e5),hr=Math.floor((diff%864e5)/36e5),sc=Math.floor((diff%6e4)/1e3);tmr=mo>0?`${mo}MO ${dd}D ${hr}H ${sc}S`:`${dd}D ${hr}H ${sc}S`}
     // Project label inline before title
     const dlProjLabel=d.project?`<span style="color:${gpc(d.project).c};opacity:.5;font-size:0.7em">${gpc(d.project).code}</span> `:'';
     const dlNoteHtml=d.notes?`<div class="dl-note">${d.notes}</div>`:'';
@@ -1494,7 +1500,7 @@ function renderDL(){
   }
 }
 
-setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;const dt=new Date(d.date);if(isNaN(dt.getTime())){el.innerHTML='NO DATE';el.className='dltm ok';return}const diff=dt-new Date();if(diff<0){const a=Math.abs(diff),dy=Math.floor(a/864e5),hr=Math.floor((a%864e5)/36e5);el.textContent=dy>0?`${dy}D ${hr}H AGO`:`${hr}H AGO`;el.className='dltm past';return}const dy=Math.floor(diff/864e5),hr=Math.floor((diff%864e5)/36e5),mn=Math.floor((diff%36e5)/6e4),sc=Math.floor((diff%6e4)/1e3);el.textContent=`${dy}D ${hr}H ${mn}M ${sc}S`;el.className='dltm '+(dy<=3?'urg':dy<=7?'soon':'ok')})},1e3);
+setInterval(()=>{D.deadlines.forEach(d=>{const el=$('dl-'+d.id);if(!el)return;const dt=new Date(d.date);if(isNaN(dt.getTime())){el.innerHTML='NO DATE';el.className='dltm ok';return}const diff=dt-new Date();if(diff<0){const a=Math.abs(diff),mo=Math.floor(a/(30.44*864e5)),dd=Math.floor((a%(30.44*864e5))/864e5),hr=Math.floor((a%864e5)/36e5);el.textContent=mo>0?`${mo}MO ${dd}D ${hr}H AGO`:`${dd}D ${hr}H AGO`;el.className='dltm past';return}const mo=Math.floor(diff/(30.44*864e5)),dd=Math.floor((diff%(30.44*864e5))/864e5),hr=Math.floor((diff%864e5)/36e5),sc=Math.floor((diff%6e4)/1e3);el.textContent=mo>0?`${mo}MO ${dd}D ${hr}H ${sc}S`:`${dd}D ${hr}H ${sc}S`;const totalDays=Math.floor(diff/864e5);el.className='dltm '+(totalDays<=3?'urg':totalDays<=7?'soon':'ok')})},1e3);
 
 $('ndTgl').onclick=()=>{const f=$('dFrm');f.classList.toggle('open');if(f.classList.contains('open')){$('fdDate').value=td();updateCalLabel('fdDate');$('fdT').focus()}};
 $('cDl').onclick=()=>$('dFrm').classList.remove('open');
@@ -1933,19 +1939,53 @@ function renderProj(){
   const filterActive=!_projShowAll;
   const fBtn=$('projFilterTgl');if(fBtn){fBtn.textContent=filterActive?'ACTIVE ONLY':'SHOW ALL';if(filterActive)fBtn.classList.add('active');else fBtn.classList.remove('active')}
   const groups={};D.projects.forEach(p=>{(groups[p.status]=groups[p.status]||[]).push(p)});
-  STATUSES.filter(s=>s!=='closed').forEach(s=>{if(!groups[s])return;
-    let projs=groups[s];if(filterActive)projs=projs.filter(p=>D.tasks.some(t=>t.project===p.title&&!t.done));if(!projs.length)return;
-    const hasActive=projs.some(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
-    el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch${hasActive?' op':''}">▶</span><h3>${SL[s]} (${projs.length})</h3></div><div class="psb${hasActive?' op':''}" id="ps-${s}"><div class="pgrid">${projs.map(p=>{
-      const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length,pc=gpc(p.title);
-      const posterHtml=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`;
-      const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';
-      return`<div class="pc" data-proj="${p.title}" style="position:relative">${tcCircle}<div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director} · <span style="color:var(--t2)">${p.type}</span></div><div class="pbs"><span class="sb ${p.status}">${SL[p.status]}</span><button class="pst-btn" data-proj="${p.title}" title="Change status">↺</button><button class="pmove" data-proj="${p.title}">→ Complete</button><button class="pedb" data-proj="${p.title}" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`});
+
+  function mkProjCard(p,extraCls=''){
+    const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length,pc=gpc(p.title);
+    const posterHtml=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`;
+    const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';
+    return`<div class="pc${extraCls?(' '+extraCls):''}" data-proj="${p.title}" style="position:relative">${tcCircle}<div class="poster-w">${posterHtml}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director} · <span style="color:var(--t2)">${p.type}</span></div><div class="pbs"><span class="sb ${p.status}">${SL[p.status]}</span><button class="pst-btn" data-proj="${p.title}" title="Change status">↺</button><button class="pmove" data-proj="${p.title}">→ Complete</button><button class="pedb" data-proj="${p.title}" title="Edit">✎</button></div></div></div>`
+  }
+
+  STATUSES.filter(s=>s!=='closed').forEach(s=>{
+    if(!groups[s])return;
+    const allProjs=groups[s];
+    const activeProjs=allProjs.filter(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
+    const hasActive=activeProjs.length>0;
+
+    if(filterActive){
+      if(!hasActive){
+        // Ghost section: discreet, collapsed, no projects shown
+        el.innerHTML+=`<div class="psec psec-ghost"><div class="psh psh-ghost" data-s="${s}-ghost"><h3>${SL[s]} <span class="ghost-count">${allProjs.length}</span></h3></div></div>`;
+        return;
+      }
+      // Show section with ONLY active projects
+      el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch op">▶</span><h3>${SL[s]} (${allProjs.length})</h3></div><div class="psb op" id="ps-${s}"><div class="pgrid">${activeProjs.map(p=>mkProjCard(p)).join('')}</div></div></div>`;
+    } else {
+      // Show all mode
+      const expanded=hasActive;
+      el.innerHTML+=`<div class="psec"><div class="psh" data-s="${s}"><span class="ch${expanded?' op':''}">▶</span><h3>${SL[s]} (${allProjs.length})</h3></div><div class="psb${expanded?' op':''}" id="ps-${s}"><div class="pgrid">${allProjs.map(p=>mkProjCard(p)).join('')}</div></div></div>`;
+    }
+  });
+
   // Completed section
-  let closedProjs=D.closed;if(filterActive)closedProjs=closedProjs.filter(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
-  if(closedProjs.length){const closedHasActive=closedProjs.some(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
-  el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch${closedHasActive?' op':''}">▶</span><h3>COMPLETED (${closedProjs.length})</h3></div><div class="psb${closedHasActive?' op':''}" id="ps-closed"><div class="pgrid">${closedProjs.map(p=>{const origIdx=D.closed.indexOf(p);const pc=gpc(p.title);const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length;const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';const ph=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`; return`<div class="pc arch" style="position:relative">${tcCircle}<div class="poster-w">${ph}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director}${p.type?` · <span style="color:var(--t2)">${p.type}</span>`:''}</div><div class="pbs"><button class="preopen" data-ci="${origIdx}">← Reopen</button><button class="pedb" data-proj="${p.title}" data-ci="${origIdx}" data-isclosed="1" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`;}
-  document.querySelectorAll('.psh').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
+  const allClosed=D.closed;
+  const activeClosed=allClosed.filter(p=>D.tasks.some(t=>t.project===p.title&&!t.done));
+  if(filterActive){
+    if(activeClosed.length){
+      // Show section with active-only closed projects
+      el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch op">▶</span><h3>COMPLETED (${allClosed.length})</h3></div><div class="psb op" id="ps-closed"><div class="pgrid">${activeClosed.map(p=>{const origIdx=D.closed.indexOf(p);const pc=gpc(p.title);const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length;const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';const ph=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`;return`<div class="pc arch" style="position:relative">${tcCircle}<div class="poster-w">${ph}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director}${p.type?` · <span style="color:var(--t2)">${p.type}</span>`:''}</div><div class="pbs"><button class="preopen" data-ci="${origIdx}">← Reopen</button><button class="pedb" data-proj="${p.title}" data-ci="${origIdx}" data-isclosed="1" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`;
+    } else if(allClosed.length){
+      el.innerHTML+=`<div class="psec psec-ghost"><div class="psh psh-ghost" data-s="closed-ghost"><h3>COMPLETED <span class="ghost-count">${allClosed.length}</span></h3></div></div>`;
+    }
+  } else {
+    if(allClosed.length){
+      const closedHasActive=activeClosed.length>0;
+      el.innerHTML+=`<div class="psec"><div class="psh" data-s="closed"><span class="ch${closedHasActive?' op':''}">▶</span><h3>COMPLETED (${allClosed.length})</h3></div><div class="psb${closedHasActive?' op':''}" id="ps-closed"><div class="pgrid">${allClosed.map(p=>{const origIdx=D.closed.indexOf(p);const pc=gpc(p.title);const tc=D.tasks.filter(t=>t.project===p.title&&!t.done).length;const tcCircle=tc?`<div class="tc-circle" style="color:${pc.c};background:${pc.b};border:1.5px solid ${pc.c}">${tc}</div>`:'';const ph=`<img src="${getPoster(p.title)}" alt="${p.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentElement.innerHTML='<div class=\\'poster-ph\\' style=\\'color:${pc.c}\\'>🎬<br>${pc.code}</div>'">`;return`<div class="pc arch" style="position:relative">${tcCircle}<div class="poster-w">${ph}</div><div class="pi"><div class="pn" style="color:${pc.c}">${p.title} <span style="font-weight:400;color:var(--t3);font-size:.7rem">${p.year}</span></div><div class="pd">${p.director}${p.type?` · <span style="color:var(--t2)">${p.type}</span>`:''}</div><div class="pbs"><button class="preopen" data-ci="${origIdx}">← Reopen</button><button class="pedb" data-proj="${p.title}" data-ci="${origIdx}" data-isclosed="1" title="Edit">✎</button></div></div></div>`}).join('')}</div></div></div>`;
+    }
+  }
+
+  document.querySelectorAll('.psh:not(.psh-ghost)').forEach(h=>h.onclick=()=>{const b=$('ps-'+h.dataset.s);b.classList.toggle('op');h.querySelector('.ch').classList.toggle('op')});
   document.querySelectorAll('.pmove').forEach(b=>b.onclick=e=>{e.stopPropagation();const title=b.dataset.proj,idx=D.projects.findIndex(p=>p.title===title);if(idx<0)return;pH('close project');const proj=D.projects[idx];D.closed.unshift({title:proj.title,year:proj.year,director:proj.director,type:proj.type});D.projects.splice(idx,1);toast(title+' → COMPLETED','gld');renderProj()});
   document.querySelectorAll('.preopen').forEach(b=>b.onclick=e=>{e.stopPropagation();const ci=+b.dataset.ci;if(ci<0||ci>=D.closed.length)return;pH('reopen project');const proj=D.closed[ci];D.projects.push({title:proj.title,year:proj.year,status:'post',type:proj.type||'Feature Film',director:proj.director});D.closed.splice(ci,1);toast(proj.title+' → REOPENED','gld');renderProj()});
   // Status change icon dropdown
